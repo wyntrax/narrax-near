@@ -1,0 +1,223 @@
+# Continuous integration for NARRAX NEAR (API, workers, shared packages, web app).
+#
+# Called on every pull request and by release.yml on pushes to main. The repository has no
+# Solana deployment scripts or separate frontend image, so those source-repo jobs are omitted.
+# The Playwright visual-baseline and production SEO suites remain manual.
+name: CI
+
+on:
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '22'
+  NEXT_TELEMETRY_DISABLED: '1'
+  # Not a real database. It only lets `prisma generate` read the schema.
+  GENERATE_DATABASE_URL: postgresql://build:build@localhost:5432/build
+
+jobs:
+  # ---------------------------------------------------------------------------------------------------------------
+  static:
+    name: Types, lint and repo hygiene
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # Cheap guard for mistakes that are expensive to undo: a committed secret file or a data export.
+      - name: No secrets, key files or data exports are tracked
+        run: |
+          bad="$(git ls-files | grep -E '(^|/)\.env($|\.)|\.pem$|\.p12$|(^|/)id_(rsa|ed25519)$|(^|/)backups/|(^|/)dump\.rdb$|\.zip$' | grep -vE '(^|/)\.env\.example$' || true)"
+          if [ -n "$bad" ]; then echo "::error::Tracked files that must not be in git:"; echo "$bad"; exit 1; fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Generate the Prisma client (the workers' types depend on it)
+        run: npx prisma generate --schema packages/database/prisma/schema.prisma
+        env:
+          DATABASE_URL: ${{ env.GENERATE_DATABASE_URL }}
+      - name: Typecheck (repository and web)
+        run: npm run typecheck
+      - name: Web lint
+        run: npm run lint -w @narra/web
+
+  # ---------------------------------------------------------------------------------------------------------------
+  backend:
+    name: Backend tests and migrations (Postgres 16, Redis 7)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: narra
+          POSTGRES_PASSWORD: narra
+          POSTGRES_DB: narra_ci_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U narra -d narra_ci_test"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      # The test-isolation guard only lets tests touch a database whose name matches
+      # NARRA_TEST_DATABASE_NAME and a Redis named in NARRA_TEST_REDIS_URL.
+      NARRA_TEST_DATABASE_NAME: narra_ci_test
+      DATABASE_URL: postgresql://narra:narra@localhost:5432/narra_ci_test
+      NARRA_TEST_REDIS_URL: redis://127.0.0.1:6379/15
+      SHADOW_DATABASE_URL: postgresql://narra:narra@localhost:5432/narra_ci_shadow
+      PGPASSWORD: narra
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+
+      - name: Create the shadow database used by the migration diff
+        run: psql -h localhost -U narra -d postgres -v ON_ERROR_STOP=1 -c 'create database narra_ci_shadow'
+
+      - name: Generate the Prisma client
+        run: npx prisma generate --schema packages/database/prisma/schema.prisma
+
+      - name: Apply every migration to an empty database
+        run: npx prisma migrate deploy --schema packages/database/prisma/schema.prisma
+
+      - name: Migrations match the Prisma schema (empty diff)
+        run: |
+          npx prisma migrate diff \
+            --from-migrations packages/database/prisma/migrations \
+            --to-schema-datamodel packages/database/prisma/schema.prisma \
+            --shadow-database-url "$SHADOW_DATABASE_URL" \
+            --exit-code
+
+      - name: Full backend suite, then fail if anything was skipped
+        run: |
+          npx vitest run --reporter=default --reporter=json --outputFile.json=vitest-results.json
+          node scripts/check-test-results.mjs vitest-results.json
+
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-vitest-results
+          path: vitest-results.json
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------------------------------------------
+  web:
+    name: Web unit tests and production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEXT_PUBLIC_API_URL: http://localhost:44099
+      NEXT_PUBLIC_SITE_URL: https://narrax.example
+      NEXT_PUBLIC_PRIVY_APP_ID: ''
+      NEXT_PUBLIC_WYNTRAX_URL: https://wyntrax.example/claim
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Generate the Prisma client
+        run: npx prisma generate --schema packages/database/prisma/schema.prisma
+        env:
+          DATABASE_URL: ${{ env.GENERATE_DATABASE_URL }}
+      - name: Web unit and component tests
+        run: npm run test -w @narra/web -- --maxWorkers=1 --minWorkers=1
+
+      # NARRA_WEB_TEST_AUTH must NOT be set here: the production build rejects any value,
+      # and then scans the output for test-auth leaks.
+      - name: Production build and auth-leak scan
+        run: npm run build -w @narra/web
+
+  # ---------------------------------------------------------------------------------------------------------------
+  docker:
+    name: Docker image builds and migrates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: narra
+          POSTGRES_PASSWORD: narra
+          POSTGRES_DB: narra_ci_image
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U narra -d narra_ci_image"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build the image (not pushed)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          load: true
+          push: false
+          tags: narra:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Nothing secret or exported is baked into the image
+        run: |
+          docker run --rm --entrypoint sh narra:ci -c '
+            for p in /app/.git /app/backups /app/.github /app/local-api.ps1 /app/local-web.ps1; do
+              if [ -e "$p" ]; then echo "::error::$p is inside the image"; exit 1; fi
+            done
+            find_secret() {
+              find /app -path "*/node_modules/*" -prune -o -type f \( "$@" \) -print -quit
+            }
+            envfile="$(find_secret -name ".env" -o -name ".env.*" ! -name ".env.example")"
+            [ -z "$envfile" ] || { echo "::error::$envfile is inside the image"; exit 1; }
+            keyfile="$(find_secret -name "*.pem" -o -name "*.key" -o -name "*.p12" -o -name "*.pfx")"
+            [ -z "$keyfile" ] || { echo "::error::$keyfile is inside the image"; exit 1; }
+            exit 0'
+
+      - name: The image runs as a non-root user with the migration tooling present
+        run: |
+          test "$(docker run --rm --entrypoint id narra:ci -u)" != "0"
+          docker run --rm --entrypoint npx narra:ci prisma --version
+
+      - name: Production migration command works from the image
+        run: |
+          docker run --rm --network host \
+            -e DATABASE_URL=postgresql://narra:narra@localhost:5432/narra_ci_image \
+            narra:ci npx prisma migrate deploy --schema packages/database/prisma/schema.prisma
+
+  # ---------------------------------------------------------------------------------------------------------------
+  # One stable name for branch protection. It fails if any required job failed, was cancelled or was skipped.
+  ci-passed:
+    name: CI passed
+    if: always()
+    needs: [static, backend, web, docker]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every job must have succeeded
+        run: |
+          echo '${{ toJSON(needs) }}'
+          if [ '${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}' = 'true' ]; then
+            echo "::error::At least one CI job did not succeed"; exit 1
+          fi

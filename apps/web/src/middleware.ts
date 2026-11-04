@@ -1,0 +1,31 @@
+import createMiddleware from 'next-intl/middleware';
+import {NextRequest, NextResponse} from 'next/server';
+import {routing} from './i18n/routing';
+import {contentSecurityPolicy} from './config/security';
+import {chainForHost} from './config/chain';
+const intl = createMiddleware(routing);
+export default function middleware(request: NextRequest) {
+  const nonce = btoa(crypto.randomUUID());
+  const csp = contentSecurityPolicy(nonce, process.env.NEXT_PUBLIC_API_URL, process.env.NODE_ENV === 'development');
+  const headers = new Headers(request.headers);
+  const chain = chainForHost(request.headers.get('host'));
+  headers.set('x-nonce', nonce); headers.set('Content-Security-Policy', csp); headers.set('x-narrax-chain', chain);
+  // Explicit URL locale wins. Otherwise remember only our cookie, never Accept-Language.
+  const explicitLocale = /^\/(en|id)(?:\/|$)/.exec(request.nextUrl.pathname)?.[1];
+  if (!explicitLocale && request.cookies.get('NARRA_LOCALE')?.value === 'id') {
+    const url = request.nextUrl.clone();
+    url.pathname = `/id${url.pathname === '/' ? '' : url.pathname}`;
+    const response = NextResponse.redirect(url);
+    response.headers.set('Content-Security-Policy', csp);
+    response.headers.set('Cache-Control', 'private, no-store');
+    return response;
+  }
+  // Next reads the request policy to nonce its own hydration scripts.
+  const response = intl(new NextRequest(request, {headers}));
+  if (explicitLocale) response.cookies.set('NARRA_LOCALE', explicitLocale, {path: '/', maxAge: 31536000, sameSite: 'lax'});
+  response.headers.set('Content-Security-Policy', csp);
+  response.headers.set('x-narrax-chain', chain);
+  response.headers.set('Cache-Control', 'private, no-store');
+  return response;
+}
+export const config = {matcher: ['/((?!api|_next|_vercel|.*\\..*).*)']};
