@@ -397,6 +397,8 @@ model WalletTrade {
   tokenAmount  Decimal? // token units traded, needed for cost-basis accounting
   amountUsd    Decimal?
   marketCapUsd Decimal?
+  /// Frozen pre-trade market evidence. Missing evidence means entry band UNKNOWN, never zero or FDV.
+  evidence     Json?
   signature    String        @unique
   at           DateTime
 

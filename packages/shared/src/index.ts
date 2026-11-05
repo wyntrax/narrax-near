@@ -11,3 +11,4 @@ export * from './access-config';
 export * from './solana-address';
 export * from './near-address';
 export * from './pro-research';
+export * from './wallet-ranking';
