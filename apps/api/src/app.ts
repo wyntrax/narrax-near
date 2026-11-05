@@ -30,6 +30,7 @@ import { createRuntimeSettings, type RuntimeSettingsResolver } from './runtime-s
 import { registerRuntimeRoutes } from './runtime-routes';
 import {registerPaperTradeRoutes} from './paper-trades';
 import { registerPersonalResearchRoutes } from './personalResearch';
+import { registerWalletRankingRoutes } from './walletRankingRoutes';
 import type {JupiterClient} from '@narra/solana';
 
 const EvaluateBody = z.object({
@@ -71,6 +72,7 @@ export async function buildApp(opts: { paperQuotes?:Pick<JupiterClient,'getQuote
   if (opts.account) {
     registerFeatureGates(app, opts.account.db, opts.account.now);
     registerPersonalResearchRoutes(app, opts.account);
+    registerWalletRankingRoutes(app, opts.account);
     registerEntitlementRoutes(app, opts.account);
     registerLinkedWalletRoutes(app, opts.account);
     registerAccountRoutes(app, opts.account);
