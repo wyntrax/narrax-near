@@ -48,3 +48,10 @@ Resume with `{"paused": false, "reason": "..."}`. A pause survives restarts (it 
 
 ## Not built yet (B5 and later)
 Circuit breakers for a real Executor, stuck-order reconciliation, key handling and signing (B5b), alert routing (paging) from the status warnings, log shipping and metrics, backups and restore drills, secrets rotation. B5's security review plan covers the Executor-related ones before any code is written.
+
+## Telegram Early Radar delivery
+- Global Early Radar alerts can be mirrored to one Telegram chat. Set `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`; leave either empty to disable delivery.
+- The worker reads only global alerts (`userId: null`) created in the last `TELEGRAM_MAX_AGE_MIN` minutes. It never reads user-owned alerts and cannot create an order, position or trade.
+- Delivery is idempotent through a per-chat cursor in `SystemSetting`. Rate limits, auth/chat errors and Telegram 5xx leave the cursor in place; malformed messages are skipped so they cannot block the feed.
+- Optional limits: `TELEGRAM_MAX_PER_RUN` (default 10, capped at 20) and `TELEGRAM_SEND_DELAY_MS` (default 1200). Set `TELEGRAM_ENABLED=false` to disable without removing credentials.
+- Messages use Telegram HTML. Provider text is escaped; the footer keeps the research-only disclaimer. Missing safety evidence is shown as unavailable, never as a pass.
