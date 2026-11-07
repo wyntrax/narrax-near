@@ -4,6 +4,7 @@ import { PROFILES, type RiskLimits } from '@narra/risk';
 import type { ExecutionDeps, PreTradeState } from './execution';
 import type { WalletEventDeps } from './walletEvent';
 import { makePaperPorts, type PaperPorts } from './paperLedger';
+import { walletTradeEvidence } from './walletResearchEvidence';
 import { loadSystemControls } from './systemConfig';
 
 type Db = PrismaClient;
@@ -37,8 +38,9 @@ export function makeWalletEventStore(db: Db): Pick<WalletEventDeps, 'saveWalletT
         return db.token.findUniqueOrThrow({ where: { mint: e.mint }, select: { id: true } });
       });
       try {
+        const evidence = await walletTradeEvidence(db, token.id, new Date(e.at), e.amountSol);
         await db.walletTrade.create({
-          data: { walletId: wallet.id, tokenId: token.id, side: e.side, amountSol: e.amountSol, tokenAmount: e.tokenAmount, signature: e.signature, at: new Date(e.at) },
+          data: { walletId: wallet.id, tokenId: token.id, side: e.side, amountSol: e.amountSol, tokenAmount: e.tokenAmount, signature: e.signature, at: new Date(e.at), ...evidence },
         });
         return 'created';
       } catch (err) {

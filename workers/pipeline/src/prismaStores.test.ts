@@ -16,6 +16,8 @@ describe('wallet event store', () => {
     const db = {
       trackedWallet: { count: vi.fn(async () => 1), findUnique: vi.fn(async () => ({ id: 'w1', active: true })) },
       token: { upsert: vi.fn(async () => ({ id: 't1' })) },
+      tokenMetric: { findFirst: vi.fn(async () => null) },
+      systemSetting: { findUnique: vi.fn(async () => null), findFirst: vi.fn(async () => null) },
       walletTrade: { create },
       walletProfile: { findFirst: vi.fn(async () => ({ score: 88 })) },
       ...over,
