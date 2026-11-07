@@ -12,6 +12,7 @@ vi.mock('@/i18n/navigation',()=>({useRouter:()=>({push:vi.fn()}),Link:({href,chi
 vi.mock('./session',()=>({useResearchQuery:(path:string)=>{
  fixture.paths.push(path);
  const result={isPending:false,isError:false,isFetching:false,refetch:vi.fn()};
+ if(path.startsWith('smart-money/rankings')) return {...result,data:{asOf:at,band:'ALL',windowDays:30,total:0,capped:false,minMedianPositionSol:0,counts:{reviewReady:0,observing:0},pipeline:null,items:[]}};
  if(path.startsWith('smart-money/')){
   const wallet={address:'wallet',source:'MANUAL',observedTrades:299,intelligence};
   return {...result,data:{items:[fixture.dirItem??wallet],nextCursor:null}};
