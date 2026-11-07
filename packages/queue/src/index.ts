@@ -26,6 +26,7 @@ export const QUEUE_NAMES = {
   outcomeTracking: 'outcome-tracking',
   notificationDispatch: 'notification-dispatch',
   realtimePublish: 'realtime-publish',
+  telegramDelivery: 'telegram-delivery',
 } as const;
 
 /** A normalized on-chain swap by a wallet. Produced from provider payloads, never from raw text. */
@@ -103,6 +104,7 @@ export function createQueues(connection: Redis) {
   const outcomeTracking = new Queue(QUEUE_NAMES.outcomeTracking, { connection });
   const notificationDispatch = new Queue(QUEUE_NAMES.notificationDispatch, { connection });
   const realtimePublish = new Queue(QUEUE_NAMES.realtimePublish, { connection });
+  const telegramDelivery = new Queue(QUEUE_NAMES.telegramDelivery, { connection });
 
   return {
     walletEvents,
@@ -125,6 +127,10 @@ export function createQueues(connection: Redis) {
       outcomeTracking.upsertJobScheduler('track', { every: everyMs }, { name: 'track', data: {}, opts: { attempts: 1, ...RETAIN } }),
     notificationDispatch,
     realtimePublish,
+    telegramDelivery,
+    /** Posts eligible global Early Radar alerts to the configured Telegram chat. */
+    scheduleTelegramDelivery: (everyMs = 30_000) =>
+      telegramDelivery.upsertJobScheduler('deliver', { every: everyMs }, { name: 'deliver', data: {}, opts: { attempts: 1, ...RETAIN_SHORT } }),
     scheduleEntryFanOut: (everyMs = 60_000) =>
       entryFanOut.upsertJobScheduler('fan-out', { every: everyMs }, { name: 'fan-out', data: {}, opts: { attempts: 1, ...RETAIN } }),
     scheduleExitFanOut: (everyMs = 60_000) =>
@@ -174,7 +180,7 @@ export function createQueues(connection: Redis) {
     /** Waiting, active, failed and delayed job counts for every queue, for the admin status view. */
     counts: async (): Promise<Record<string, QueueCounts>> => {
       const out: Record<string, QueueCounts> = {};
-      for (const q of [walletEvents, aiScreening, execution, walletIntelligence, narrativeIngestion, tokenResolution, aiAnalysis, marketData, walletSync, walletFunding, walletDiscovery, positionMonitor, entryFanOut, exitFanOut, portfolioSnapshots, outcomeTracking, notificationDispatch, realtimePublish]) {
+      for (const q of [walletEvents, aiScreening, execution, walletIntelligence, narrativeIngestion, tokenResolution, aiAnalysis, marketData, walletSync, walletFunding, walletDiscovery, positionMonitor, entryFanOut, exitFanOut, portfolioSnapshots, outcomeTracking, notificationDispatch, realtimePublish, telegramDelivery]) {
         const c = await q.getJobCounts('waiting', 'active', 'failed', 'delayed');
         let consumers: number | undefined;
         try { consumers = (await q.getWorkers()).length; } catch { consumers = undefined; } // unknown, not zero, when Redis will not say
@@ -198,7 +204,7 @@ export function createQueues(connection: Redis) {
         out[q.name]={lastCompletedAt:job?.finishedOn?new Date(job.finishedOn).toISOString():null,lastFailedAt:failed[0]?.finishedOn?new Date(failed[0].finishedOn).toISOString():null,lastRun:Object.keys(run).length?run:null};
       }));return out;
     },
-    close: async () => { await Promise.all([walletEvents.close(), aiScreening.close(), execution.close(), walletIntelligence.close(), narrativeIngestion.close(), tokenResolution.close(), aiAnalysis.close(), marketData.close(), walletSync.close(), walletFunding.close(), walletDiscovery.close(), positionMonitor.close(), entryFanOut.close(), exitFanOut.close(), portfolioSnapshots.close(), outcomeTracking.close(), notificationDispatch.close(), realtimePublish.close()]); },
+    close: async () => { await Promise.all([walletEvents.close(), aiScreening.close(), execution.close(), walletIntelligence.close(), narrativeIngestion.close(), tokenResolution.close(), aiAnalysis.close(), marketData.close(), walletSync.close(), walletFunding.close(), walletDiscovery.close(), positionMonitor.close(), entryFanOut.close(), exitFanOut.close(), portfolioSnapshots.close(), outcomeTracking.close(), notificationDispatch.close(), realtimePublish.close(), telegramDelivery.close()]); },
   };
 }
 export type Queues = ReturnType<typeof createQueues>;

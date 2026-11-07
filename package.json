@@ -19,6 +19,7 @@
     "data:purge-fabricated": "node --require ./apps/web/scripts/no-env-files.cjs --import tsx scripts/purge-fabricated-data.ts",
     "narratives:link-tokens": "node --require ./apps/web/scripts/no-env-files.cjs --import tsx scripts/link-narrative-tokens.ts",
     "research:coverage": "node --require ./apps/web/scripts/no-env-files.cjs --import tsx scripts/research-coverage.ts",
+    "telegram:send": "node --require ./apps/web/scripts/no-env-files.cjs --import tsx scripts/telegram-send.ts",
     "settings": "tsx scripts/settings.ts",
     "near:status": "tsx scripts/near-status.ts",
     "make-admin": "tsx scripts/make-admin.ts",

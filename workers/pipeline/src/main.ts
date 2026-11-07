@@ -16,6 +16,7 @@ import { aiProviderFromEnv } from '@narra/ai';
 import { makeWalletEventStore, processWalletEvent, ingestNarratives, makeChainPorts, refreshMarketData, processScreeningJob, runAiAnalysis, recomputeWalletIntelligence, resolveTokens, attributeNarrativeMentions, scanSocialTokens, monitorPositions, syncWalletWebhook, ingestWalletFunding, rebuildFundingGraph, scanEarlyBuyers, discoverCandidates, expirePendingConfirmations, fanOutEntries, fanOutExits, writePortfolioSnapshots, trackOutcomes, dispatchAlerts, publishNewEvents, type ChainPorts, type WalletEventDeps } from './index';
 import { assertEnv } from '@narra/shared';
 import { makeDeveloperHoldingSource } from './developerHoldings';
+import { deliverEarlyRadarTelegram, telegramConfigFromEnv, TelegramBotApiTransport } from './telegram';
 
 // First, before any connection is opened: stop with a clear list of what is wrong. Messages never contain a value.
 assertEnv('worker');
@@ -60,6 +61,12 @@ if (!syncDeps) console.log('wallet webhook sync is off: set HELIUS_API_KEY, HELI
 const llm = aiProviderFromEnv();
 if (!llm) console.log('no AI provider configured');
 
+// Telegram is a delivery layer for global research alerts only. It is off unless both values are set.
+const telegramConfig = telegramConfigFromEnv();
+const telegramTransport = telegramConfig ? new TelegramBotApiTransport(telegramConfig.token, telegramConfig.botApiBase) : null;
+if (!telegramConfig) console.log('telegram delivery off: set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID');
+else console.log('telegram delivery on');
+
 // Registering the repeating jobs. Done in an async block because this file runs as CommonJS under tsx, which has no top-level await.
 const scheduled = (async () => {
   await queues.scheduleWalletIntelligence();
@@ -77,6 +84,7 @@ const scheduled = (async () => {
   await queues.scheduleOutcomeTracking();
   await queues.scheduleNotificationDispatch();
   await queues.scheduleRealtimePublish();
+  if (telegramConfig) await queues.scheduleTelegramDelivery();
 })();
 scheduled.then(() => console.log('schedules registered'), (e) => { console.error('could not register schedules:', e instanceof Error ? e.message : e); process.exit(1); });
 
@@ -113,6 +121,22 @@ const workers = [
   new Worker(QUEUE_NAMES.notificationDispatch, async () => JSON.stringify(await dispatchAlerts(db)), { connection, concurrency: 1 }),
   // New rows to the realtime stream. A failure here never affects the jobs that wrote the rows.
   new Worker(QUEUE_NAMES.realtimePublish, async () => JSON.stringify(await publishNewEvents(db, connection)), { connection, concurrency: 1 }),
+  // Global Early Radar alerts to Telegram. Read-only delivery: no alert, order or position is written here.
+  new Worker(QUEUE_NAMES.telegramDelivery, async () => {
+    if (!telegramConfig || !telegramTransport) return 'telegram disabled';
+    const summary = await deliverEarlyRadarTelegram(db, {
+      chatId: telegramConfig.chatId, transport: telegramTransport, dryRun: false,
+      maxAgeMs: telegramConfig.maxAgeMs, limit: telegramConfig.limit, delayMs: telegramConfig.delayMs,
+    });
+    if (summary.lastError || summary.sent || summary.failed || summary.stopped) {
+      console.log(JSON.stringify({
+        msg: 'telegram_delivery', scanned: summary.scanned, candidates: summary.candidates,
+        sent: summary.sent, stale: summary.skippedStale, failed: summary.failed,
+        stopped: summary.stopped, error: summary.lastError,
+      }));
+    }
+    return JSON.stringify(summary);
+  }, { connection, concurrency: 1 }),
   // The execution queue is consumed by workers/executor, a separate process, since B5a. This process only enqueues.
 ];
 for (const w of workers) w.on('failed', (job, err) => console.error(JSON.stringify({ msg: 'job_failed', queue: w.name, id: job?.id, err: err.message })));
