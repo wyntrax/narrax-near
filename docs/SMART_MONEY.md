@@ -19,9 +19,11 @@ trades from GeckoTerminal, stores them, and calculates an average-cost profile f
 - Only exact NEAR contract ids already in the research universe are stored. Reference assets
   (wrapped NEAR and stablecoin contracts used by the market pipeline) are not candidate tokens.
 - Each observed trader is checked with `SMART_MONEY_ACCOUNT_RPC_URL` (default
-  `https://rpc.mainnet.near.org`). Contract/relayer accounts are excluded from wallet profiles;
-  an account-kind check that fails is counted and the trader is skipped. GeckoTerminal's `near`
-  market is mainnet, so this RPC is deliberately separate from a testnet `NEAR_RPC_URL`.
+  `https://free.rpc.fastnear.com`, falling back to `https://rpc.mainnet.near.org`).
+  Contract/relayer accounts are excluded from wallet profiles. Already-stored wallets are trusted
+  as externally owned and are not rechecked; an account-kind check that fails for a new address is
+  counted and that trader is skipped. GeckoTerminal's `near` market is mainnet, so this RPC is
+  deliberately separate from a testnet `NEAR_RPC_URL`.
 - Missing values stay missing. A current price is never substituted for a historical trade value.
 
 ## What is calculated
@@ -123,7 +125,7 @@ See `.env.example`:
 
 ```dotenv
 SMART_MONEY_ENABLED=true
-SMART_MONEY_ACCOUNT_RPC_URL=https://rpc.mainnet.near.org
+SMART_MONEY_ACCOUNT_RPC_URL=https://free.rpc.fastnear.com
 SMART_MONEY_MAX_POOLS=20
 SMART_MONEY_INTERVAL_MS=600000
 SMART_MONEY_MIN_CLOSED_TRADES=5

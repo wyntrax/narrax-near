@@ -284,7 +284,9 @@ export async function refreshSmartMoney(db: PrismaClient, deps: SmartMoneyDeps):
   const tokenByMint = new Map(candidates.map(token => [token.mint.toLowerCase(), token]));
   const errors: string[] = [];
   const affected = new Set<string>();
-  const walletKinds = new Map<string, boolean | null>();
+  // Only stored wallets reached this point, so they were already verified as externally owned.
+  const knownWallets = await db.smartWallet.findMany({ select: { address: true } });
+  const walletKinds = new Map<string, boolean | null>(knownWallets.map(wallet => [wallet.address, false]));
   let tradesSeen = 0, tradesStored = 0, contractsExcluded = 0, accountChecksFailed = 0;
 
   const allowedWallet = async (address: string): Promise<boolean> => {

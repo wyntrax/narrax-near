@@ -57,13 +57,22 @@ if (!marketDeps) console.log('market data disabled');
 
 // Smart money is independent of the market refresh: it only reads the public trade feed and stored token evidence.
 // GeckoTerminal's `near` data is mainnet, so the account-kind check must not inherit a testnet NEAR_RPC_URL.
-const smartMoneyRpc = new NearRpc({
-  url: process.env.SMART_MONEY_ACCOUNT_RPC_URL?.trim() || 'https://rpc.mainnet.near.org',
-  timeoutMs: 15_000,
-});
+// FastNEAR is the low-latency default; the public mainnet RPC is a fallback when it is rate-limited.
+const smartMoneyRpcs = [
+  process.env.SMART_MONEY_ACCOUNT_RPC_URL?.trim() || 'https://free.rpc.fastnear.com',
+  'https://rpc.mainnet.near.org',
+].filter((url, index, all) => all.indexOf(url) === index).map(url => new NearRpc({ url, timeoutMs: 15_000 }));
+const isContractAccount = async (address: string): Promise<boolean> => {
+  let last: unknown;
+  for (const rpc of smartMoneyRpcs) {
+    try { return await rpc.isContractAccount(address); }
+    catch (error) { last = error; }
+  }
+  throw last instanceof Error ? last : new Error('ACCOUNT_KIND_UNAVAILABLE');
+};
 const smartMoneyDeps = process.env.SMART_MONEY_ENABLED === 'false' ? null : {
   trades: gecko,
-  accountKind: { isContract: (address: string) => smartMoneyRpc.isContractAccount(address) },
+  accountKind: { isContract: isContractAccount },
   maxPools: smartMoneyMaxPools(),
   rules: smartMoneyRulesFromEnv(),
 };
