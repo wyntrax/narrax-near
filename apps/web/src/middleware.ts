@@ -28,4 +28,5 @@ export default function middleware(request: NextRequest) {
   response.headers.set('Cache-Control', 'private, no-store');
   return response;
 }
-export const config = {matcher: ['/((?!api|_next|_vercel|.*\\..*).*)']};
+// Exclude framework endpoints and real static assets, but not dynamic NEAR account IDs such as `wrap.near`.
+export const config = {matcher: ['/((?!api|_next|_vercel|.*\\.(?:avif|css|eot|gif|ico|jpeg|jpg|js|map|mjs|otf|png|svg|ttf|txt|webmanifest|webp|woff|woff2|xml)$).*)']};
