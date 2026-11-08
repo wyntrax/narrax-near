@@ -24,5 +24,5 @@ export function snapshot(mint: string, over: Partial<MarketSnapshot> = {}): Mark
 }
 
 export function info(mint: string, over: Partial<TokenInfo> = {}): TokenInfo {
-  return { mint, name: null, symbol: null, holders: 500, top10Pct: 30, mintAuthorityActive: false, freezeAuthorityActive: false, isHoneypot: false, websites: [], twitterHandle: null, ...over };
+  return { mint, name: null, symbol: null, holders: 500, top10Pct: 30, websites: [], twitterHandle: null, ...over };
 }

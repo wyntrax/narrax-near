@@ -53,7 +53,7 @@ function MonitorPage({ kind }: { kind: 'RADAR' | 'THESIS' }) {
 }
 function RuleSummary({ item }: { item: Monitor }) {
   const c = useCopy(), f = useFormat();
-  const values = [[c.liquidity, item.rules.minLiquidityUsd], [c.buyers, item.rules.minIndependentBuyers], [c.velocity, item.rules.minNarrativeVelocity], [c.risk, item.rules.maxRiskScore]] as const;
+  const values = [[c.liquidity, item.rules.minLiquidityUsd], [c.velocity, item.rules.minNarrativeVelocity], [c.risk, item.rules.maxRiskScore]] as const;
   return <ul className="pro-rules">{values.filter(([, v]) => v !== null).map(([label, v]) => <li key={label}>{label}: <b>{f.number(v)}</b></li>)}</ul>;
 }
 function MonitorForm({ kind, item, pending, onCancel, onSave }: { kind: 'RADAR' | 'THESIS'; item?: Monitor; pending: boolean; onCancel: () => void; onSave: (data: Input) => void }) {
@@ -62,7 +62,7 @@ function MonitorForm({ kind, item, pending, onCancel, onSave }: { kind: 'RADAR' 
     event.preventDefault(); const form = new FormData(event.currentTarget);
     const numeric = (key: string) => String(form.get(key) ?? '').trim() === '' ? null : Number(form.get(key));
     const parsed = ResearchMonitorInputSchema.safeParse({ name: form.get('name'), thesis: form.get('thesis') ?? '', mint: String(form.get('mint') ?? '').trim() || null, narrativeSlug: String(form.get('narrative') ?? '').trim() || null,
-      active: item?.active ?? true, rules: { minLiquidityUsd: numeric('liquidity'), minIndependentBuyers: numeric('buyers'), windowMinutes: numeric('window'), minNarrativeVelocity: numeric('velocity'), maxRiskScore: numeric('risk') } });
+      active: item?.active ?? true, rules: { minLiquidityUsd: numeric('liquidity'), windowMinutes: numeric('window'), minNarrativeVelocity: numeric('velocity'), maxRiskScore: numeric('risk') } });
     if (!parsed.success || (kind === 'THESIS' && (!parsed.data.mint || !parsed.data.thesis.trim()))) { setInvalid(true); return; }
     setInvalid(false); onSave(parsed.data);
   }
@@ -73,7 +73,6 @@ function MonitorForm({ kind, item, pending, onCancel, onSave }: { kind: 'RADAR' 
     <label className="pro-wide">{c.narrative}<input name="narrative" maxLength={128} defaultValue={item?.narrativeSlug ?? ''} /><small>{c.narrativeHint}</small></label>
     <fieldset className="pro-wide pro-form"><legend>{c.conditions}</legend><p className="research-note pro-wide">{c.optional}</p>
       <label>{c.liquidity}<input name="liquidity" type="number" min="0" max="1000000000000" step="any" defaultValue={item?.rules.minLiquidityUsd ?? ''} /></label>
-      <label>{c.buyers}<input name="buyers" type="number" min="1" max="100" step="1" defaultValue={item?.rules.minIndependentBuyers ?? ''} /></label>
       <label>{c.window}<input name="window" type="number" required min="5" max="60" step="1" defaultValue={item?.rules.windowMinutes ?? 30} /></label>
       <label>{c.velocity}<input name="velocity" type="number" min="0" max="1000000" step="any" defaultValue={item?.rules.minNarrativeVelocity ?? ''} /></label>
       <label>{c.risk}<input name="risk" type="number" min="0" max="100" step="any" defaultValue={item?.rules.maxRiskScore ?? ''} /></label>
@@ -84,7 +83,7 @@ function MonitorForm({ kind, item, pending, onCancel, onSave }: { kind: 'RADAR' 
 }
 function Evidence({ mint, at, evaluation, kind }: { mint: string; at: string; evaluation: ResearchEvaluation; kind: 'RADAR' | 'THESIS' }) {
   const c = useCopy(), f = useFormat();
-  const labels = { liquidity: c.liquidity, buyers: c.buyers, narrative: c.velocity, risk: c.risk, token: c.token };
+  const labels = { liquidity: c.liquidity, narrative: c.velocity, risk: c.risk, token: c.token };
   const status = (value: string) => value === 'MATCH' ? (kind === 'RADAR' ? c.match : c.supported) : value === 'NO_MATCH' ? c.weakened : c.uncertain;
   return <article className="pro-evidence" data-status={evaluation.status}><div className="pro-evidence-heading"><strong>{status(evaluation.status)}</strong><time dateTime={at}>{f.date(at)}</time></div>
     <Link className="pro-token-link" href={`/app/tokens/${encodeURIComponent(mint)}`}>{c.details} · <code>{mint}</code></Link>

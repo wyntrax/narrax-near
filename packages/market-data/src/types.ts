@@ -5,8 +5,16 @@ export class MarketDataError extends Error {
   constructor(public readonly kind: MarketDataErrorKind, message: string) { super(message); }
 }
 
-export const WSOL_MINT = 'So11111111111111111111111111111111111111112';
-export const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+/** NEAR chain id used by the public market-data APIs. */
+export const NEAR_CHAIN_ID = 'near';
+/** Wrapped NEAR on mainnet. Testnet deployments use wrap.testnet; both are reference assets, never candidates. */
+export const WNEAR_CONTRACT = 'wrap.near';
+export const NEAR_REFERENCE_CONTRACTS: ReadonlySet<string> = new Set([
+  WNEAR_CONTRACT, 'wrap.testnet',
+  // Mainnet and testnet USDC contracts used as quote assets.
+  '17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1',
+  'usdc.fakes.testnet',
+]);
 
 /** Price and liquidity facts for one token, taken from its deepest pool. Every number here was present in the source. */
 export interface MarketSnapshot {
@@ -24,7 +32,7 @@ export interface MarketSnapshot {
   priceChange1hPct: number | null;
   pairAddress: string;
   dexId: string | null;
-  /** When the deepest pool was created. A proxy for token age, not the mint time. */
+  /** When the deepest pool was created. A proxy for token age, not the contract creation time. */
   pairCreatedAt: Date | null;
 }
 
@@ -36,9 +44,6 @@ export interface TokenInfo {
   holders: number | null;
   /** Percent of supply (0 to 100) held by the ten largest accounts. May include pool and exchange accounts. */
   top10Pct: number | null;
-  mintAuthorityActive: boolean | null;
-  freezeAuthorityActive: boolean | null;
-  isHoneypot: boolean | null;
   websites: string[];
   twitterHandle: string | null;
 }
@@ -54,7 +59,7 @@ export interface NewPool {
   liquidityUsd: number | null;
 }
 
-/** Current price, liquidity and volume. Mints missing from the result had no usable data. */
+/** Current price, liquidity and volume. Contracts missing from the result had no usable data. */
 export const SNAPSHOT_OMISSION_REASONS = ['NO_MATCHING_PAIR', 'INVALID_PAIR', 'PRICE_UNAVAILABLE', 'LIQUIDITY_UNAVAILABLE', 'VOLUME_UNAVAILABLE', 'MARKET_VALUE_UNAVAILABLE', 'UNSPECIFIED'] as const;
 export type SnapshotOmissionReason = typeof SNAPSHOT_OMISSION_REASONS[number];
 export interface SnapshotRead {

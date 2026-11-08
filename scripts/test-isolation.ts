@@ -16,7 +16,8 @@ export function clearTestAiEnv(env: Record<string, string | undefined>): void {
  * silently change which users the admin checks accept, so tests always start from the database-flag fallback.
  */
 export function clearTestAdminEnv(env: Record<string, string | undefined>): void {
-  for (const key of ['ADMIN_EMAIL', 'ADMIN_PRIVY_USER_ID']) delete env[key];
+  // Empty, not deleted: .env may be loaded after this setup file, and dotenv does not override a present value.
+  for (const key of ['ADMIN_EMAIL', 'ADMIN_PRIVY_USER_ID']) env[key] = '';
 }
 
 /**

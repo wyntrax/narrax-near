@@ -11,7 +11,7 @@ import en from '../../../messages/en.json';
 const api=vi.hoisted(()=>({entitlements:vi.fn()}));
 vi.mock('@/lib/api',()=>({createApi:()=>api}));
 vi.mock('@/i18n/navigation',()=>({Link:({children,href,...rest}:{children:ReactNode;href:string})=><a href={href} {...rest}>{children}</a>}));
-function auth(overrides:Partial<AuthAdapter>={}):AuthAdapter{return {ready:true,authenticated:true,userId:'alice',wallets:[],login:vi.fn(),logout:vi.fn().mockResolvedValue(undefined),getAccessToken:vi.fn().mockResolvedValue('token'),connectWallet:vi.fn(),createWallet:vi.fn().mockResolvedValue(undefined),...overrides};}
+function auth(overrides:Partial<AuthAdapter>={}):AuthAdapter{return {ready:true,authenticated:true,userId:'alice',login:vi.fn(),logout:vi.fn().mockResolvedValue(undefined),getAccessToken:vi.fn().mockResolvedValue('token'),...overrides};}
 function mount(initial=auth()){
  const client=new QueryClient({defaultOptions:{queries:{retry:false,gcTime:0}}});
  const tree=(value:AuthAdapter)=><QueryClientProvider client={client}><NextIntlClientProvider locale="en" messages={en}><AuthContext.Provider value={value}><AppPlaceholder/></AuthContext.Provider></NextIntlClientProvider></QueryClientProvider>;

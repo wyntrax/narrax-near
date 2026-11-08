@@ -2,14 +2,14 @@ import type { PrismaClient } from '@narra/database';
 import { sanitizeUntrusted } from '@narra/shared';
 import { SOCIAL_RULES, computeNarrativeMetrics, groupBuzz, qualifiedBuzz, type BuzzGroup } from '@narra/narrative';
 import { EARLY_RULES, attentionPriceDivergence, evaluateEarlyBoth } from '@narra/token-intel';
-import { WSOL_MINT, type MarketQuoteSource } from '@narra/market-data';
+import { NEAR_REFERENCE_CONTRACTS, type MarketQuoteSource } from '@narra/market-data';
 import { createEarlyRadarAlert } from './earlyRadarTracking';
 
 export interface SocialScanSummary {
   rowsRead: number;
   groupsQualified: number;
   tokensCreated: number;
-  /** Mints people posted that no market source knows (new, no pool, or a pool address). Nothing is created for these. */
+  /** Contracts people posted that no market source knows (new, no pool, or a pool address). Nothing is created for these. */
   mintsUnverified: number;
   cashtagsResolved: number;
   /** Cashtags with zero or several matching tokens. Left out on purpose: a symbol alone cannot name one token. */
@@ -48,15 +48,15 @@ export async function scanSocialTokens(db: PrismaClient, deps: { quotes: MarketQ
   if (!groups.length) return out;
 
   // 1. Resolve each qualified reference to a token id. A mint wins over a cashtag for the same token.
-  const resolved = new Map<string, { group: BuzzGroup; via: 'MINT' | 'CASHTAG' }>();
+  const resolved = new Map<string, { group: BuzzGroup; via: 'CONTRACT' | 'CASHTAG' }>();
   const unknownMints: BuzzGroup[] = [];
   let cashtagLookups = 0;
   for (const g of groups) {
-    if (g.kind === 'MINT') {
-      if (g.ref === WSOL_MINT) continue;
+    if (g.kind === 'CONTRACT') {
+      if (NEAR_REFERENCE_CONTRACTS.has(g.ref)) continue;
       const t = await db.token.findUnique({ where: { mint: g.ref }, select: { id: true, blacklisted: true } });
       if (t?.blacklisted) continue;
-      if (t) resolved.set(t.id, { group: g, via: 'MINT' }); else unknownMints.push(g);
+      if (t) resolved.set(t.id, { group: g, via: 'CONTRACT' }); else unknownMints.push(g);
     } else {
       if (cashtagLookups++ >= R.maxCashtagLookupsPerRun) continue;
       const matches = await db.token.findMany({
@@ -82,7 +82,7 @@ export async function scanSocialTokens(db: PrismaClient, deps: { quotes: MarketQ
         const symbol = sanitizeUntrusted(s.symbol, 32), name = sanitizeUntrusted(s.name, 64);
         const t = await db.token.create({ data: { mint: g.ref, symbol: symbol || 'UNKNOWN', name: name || 'Unknown', createdOnChainAt: s.pairCreatedAt }, select: { id: true } });
         out.tokensCreated++;
-        resolved.set(t.id, { group: g, via: 'MINT' });
+        resolved.set(t.id, { group: g, via: 'CONTRACT' });
       } catch (e) { out.errors.push(`create ${g.ref.slice(0, 6)}: ${(e as Error).message}`.slice(0, 200)); }
     }
   } else out.mintsUnverified += unknownMints.length;
@@ -112,7 +112,7 @@ export async function scanSocialTokens(db: PrismaClient, deps: { quotes: MarketQ
     const divergence = attentionPriceDivergence(c.mentionVelocity, growth3h);
     const early = evaluateEarlyBoth({
       marketCapUsd, liquidityUsd, volume24hUsd: num(m.volume24hUsd) ?? NaN, holders: h.holders, holdersThen: thenRow?.holders ?? null,
-      top10Pct: h.top10Pct, devHoldingPct: h.devHoldingPct ?? null, smartWalletHolders: h.smartWalletHolders,
+      top10Pct: h.top10Pct,
       tokenAgeMinutes: t.createdOnChainAt ? (now.getTime() - t.createdOnChainAt.getTime()) / 60_000 : null,
       relation: 'UNKNOWN', ogScore: null, symbolOnlyMatch: via === 'CASHTAG', narrativeScore: c.score, narrativeStage: c.stage,
       narrativeManipulationRisk: c.organicKnown ? c.manipulationRisk : null, divergence: divergence.label, priceGrowth1hPct: growth1h,
@@ -129,9 +129,9 @@ export async function scanSocialTokens(db: PrismaClient, deps: { quotes: MarketQ
       if (await db.alert.count({ where: { kind, refId: tokenId, createdAt: { gte: new Date(now.getTime() - 6 * HOUR) } } })) continue;
       const k = (v: number) => `$${Math.round(v / 1000)}K`;
       const created=await createEarlyRadarAlert(db,{
-        tokenId,mint:t.mint,alertedAt:now,profile,tier:e.tier,route:'SOCIAL',matchKind:via==='MINT'?'MINT':'TICKER_ONLY',score:e.score,metricId:m.id,
+        tokenId,mint:t.mint,alertedAt:now,profile,tier:e.tier,route:'SOCIAL',matchKind:via==='CONTRACT'?'CONTRACT':'TICKER_ONLY',score:e.score,metricId:m.id,
         title: `${t.symbol}: early ${profile} candidate from social buzz (${k(marketCapUsd)} cap)`,
-        body: `${profile} score ${e.score} (${e.tier.toLowerCase()}). ${group.creators} accounts, ${group.points.length} posts named it in ${R.lookbackHours}h, found by ${via === 'MINT' ? 'mint address' : 'ticker only, so a copycat is possible'}. Market cap ${k(marketCapUsd)}, liquidity ${k(liquidityUsd)}, ${h.holders} holders, top 10 hold ${Math.round(h.top10Pct)}%${e.flags.length ? `. Cautions: ${e.flags.join(', ')}` : ''}. Research signal only, not a prediction or a recommendation to buy.`,
+        body: `${profile} score ${e.score} (${e.tier.toLowerCase()}). ${group.creators} accounts, ${group.points.length} posts named it in ${R.lookbackHours}h, found by ${via === 'CONTRACT' ? 'contract address' : 'ticker only, so a copycat is possible'}. Market cap ${k(marketCapUsd)}, liquidity ${k(liquidityUsd)}, ${h.holders} holders, top 10 hold ${Math.round(h.top10Pct)}%${e.flags.length ? `. Cautions: ${e.flags.join(', ')}` : ''}. Research signal only, not a prediction or a recommendation to buy.`,
       });
       if(created)out.alerts++;
     }

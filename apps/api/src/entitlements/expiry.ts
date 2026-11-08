@@ -10,9 +10,6 @@ export async function sweepExpired(db: PrismaClient, now: Date) {
       await tx.accessGrant.update({ where: { id: grant.id }, data: { status: 'EXPIRED' } });
       await audit(tx, null, 'entitlements.grant_expired', { grantId: grant.id, userId: grant.userId });
     }
-    const cutoff = new Date(+now - 86400000);
-    const challenges = await tx.walletLinkChallenge.findMany({ where: { OR: [{ expiresAt: { lt: cutoff } }, { consumedAt: { lt: cutoff } }] }, take: 500, select: { id: true } });
-    await tx.walletLinkChallenge.deleteMany({ where: { id: { in: challenges.map(c => c.id) } } });
-    return { expired: grants.length, challenges: challenges.length };
+    return { expired: grants.length };
   }, TX_OPTIONS);
 }

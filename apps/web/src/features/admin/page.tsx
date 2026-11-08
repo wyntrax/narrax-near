@@ -9,15 +9,14 @@ import {Link} from '@/i18n/navigation';
 import {useResearch,useResearchQuery} from '@/features/research/session';
 import {Loading,PageHeading,ResourceError} from '@/features/research/ui';
 import {createAdminApi,type AdminApi} from './api';
-import {effectiveStatus,shortAddress,toPayload,toSettings,toTierForm,MeSchema,type AdminGrant,type AdminSettings,type AdminStats} from './contracts';
-import {TiersCard} from './tiers-card';
+import {effectiveStatus,shortId,toPayload,toSettings,toWindowForm,parseWindowForm,MeSchema,type AdminGrant,type AdminSettings,type AdminStats,type WindowForm} from './contracts';
 import {RuntimeCard} from './runtime-card';
 import {DataHealthCard} from './data-health-card';
 import {FeaturesCard} from './features-card';
 
 const ERROR_KEYS = {
-  FORBIDDEN: 'adminErrForbidden', EARLY_ACCESS_DISABLED: 'adminErrDisabled', EARLY_ACCESS_FULL: 'adminErrFull', VERIFIED_WALLET_REQUIRED: 'adminErrWallet',
-  INVALID_INPUT: 'adminErrInvalid', EARLY_ACCESS_CLOSED: 'adminErrClosed', WALLET_LINK_UNAVAILABLE: 'adminErrDomain', UNAUTHORIZED: 'adminErrSession', RATE_LIMITED: 'adminErrRate',
+  FORBIDDEN: 'adminErrForbidden', EARLY_ACCESS_DISABLED: 'adminErrDisabled', EARLY_ACCESS_FULL: 'adminErrFull',
+  INVALID_INPUT: 'adminErrInvalid', EARLY_ACCESS_CLOSED: 'adminErrClosed', UNAUTHORIZED: 'adminErrSession', RATE_LIMITED: 'adminErrRate',
 } as const;
 const DAYS = [7, 30, 90, 365];
 
@@ -41,11 +40,9 @@ function useWhen() {
 
 export function AdminPage() {
   const t = useTranslations('workspace'), {api, key} = useAdmin();
-  // Who the caller is comes first. A signed-in non-admin sees only the notice below and no admin request is made.
   const me = useResearchQuery('me', MeSchema);
   const isAdmin = me.data?.isAdmin === true;
   const settings = useQuery({queryKey: key('settings'), queryFn: () => api.settings(), retry: false, gcTime: 0, enabled: isAdmin});
-  // Seat counts are admin-only, so only ask for them once the settings call has already succeeded.
   const stats = useQuery({queryKey: key('stats'), queryFn: () => api.stats(), retry: false, gcTime: 0, enabled: settings.isSuccess});
   const heading = <PageHeading title={t('adminTitle')} body={t('adminBody')}/>;
   if (me.isPending) return <>{heading}<Loading/></>;
@@ -62,22 +59,19 @@ export function AdminPage() {
     <Tabs.Root defaultValue="access" className="admin-tabs">
       <Tabs.List className="admin-tab-list" aria-label={t('adminTitle')}>
         <Tabs.Trigger className="admin-tab" value="access">{t('adminTabAccess')}</Tabs.Trigger>
-        <Tabs.Trigger className="admin-tab" value="tiers">{t('adminTabTiers')}</Tabs.Trigger>
         <Tabs.Trigger className="admin-tab" value="research">{t('adminTabResearch')}</Tabs.Trigger>
         <Tabs.Trigger className="admin-tab" value="runtime">{t('adminTabRuntime')}</Tabs.Trigger>
       </Tabs.List>
       <Tabs.Content className="admin-tab-panel" value="access">
         <div className="admin-grid">
           <SettingsCard api={api} initial={current} stats={stats.data}/>
+          <WindowCard api={api} initial={toWindowForm(settings.data.items)}/>
           <WhitelistCard api={api}/>
         </div>
         <GrantsCard api={api}/>
       </Tabs.Content>
-      <Tabs.Content className="admin-tab-panel" value="tiers">
-        <TiersCard api={api} initial={toTierForm(settings.data.items)}/>
-        <FeaturesCard api={api} items={settings.data.items}/>
-      </Tabs.Content>
       <Tabs.Content className="admin-tab-panel" value="research">
+        <FeaturesCard api={api} items={settings.data.items}/>
         <DataHealthCard api={api} queryKey={key('data-health')}/>
       </Tabs.Content>
       <Tabs.Content className="admin-tab-panel" value="runtime">
@@ -87,7 +81,6 @@ export function AdminPage() {
   </div>;
 }
 
-/** Shown to a signed-in non-admin. It never renders admin data, and it reports the caller's own ids so the operator can set the environment. */
 function AdminRestricted({me}: {me?: {isAdmin?: boolean; admin?: {configured: boolean; privyUserId: string; email: string | null}} | undefined}) {
   const t = useTranslations('workspace');
   const value = (input?: string | null) => input && input.length ? input : t('adminNotSet');
@@ -103,7 +96,6 @@ function AdminRestricted({me}: {me?: {isAdmin?: boolean; admin?: {configured: bo
   </div>;
 }
 
-/** The first thing an admin sees: whether early access is open and how the seats stand, before any form. */
 function AdminOverview({settings, stats}: {settings: AdminSettings; stats?: AdminStats}) {
   const t = useTranslations('workspace'), open = settings.enabled;
   const value = (n?: number) => n === undefined ? '—' : n;
@@ -136,15 +128,32 @@ function SettingsCard({api, initial, stats}: {api: AdminApi; initial: AdminSetti
     <form onSubmit={event => {event.preventDefault(); if (valid) save.mutate();}} className="admin-form">
       <label className="admin-check"><input type="checkbox" checked={form.enabled} onChange={event => set('enabled', event.target.checked)}/><span><b>{t('adminOpen')}</b><small>{t('adminOpenHelp')}</small></span></label>
       <div className="admin-field"><label htmlFor="admin-cap">{t('adminCap')}</label><input id="admin-cap" inputMode="numeric" value={form.cap} onChange={event => set('cap', event.target.value.trim())} aria-invalid={!/^\d{1,9}$/.test(form.cap)}/></div>
-      <div className="admin-field"><label htmlFor="admin-domain">{t('adminDomain')}</label><div className="admin-inline"><input id="admin-domain" value={form.domain} placeholder="http://localhost:4010" onChange={event => set('domain', event.target.value.trim())}/><button type="button" className="research-control" onClick={() => set('domain', window.location.origin)}>{t('adminUseOrigin')}</button></div><small>{t('adminDomainHelp')}</small></div>
       <p className="admin-hint">{t('featureAccess.enforcement')}</p>
       <label className="admin-check"><input type="checkbox" checked={form.shadow} onChange={event => set('shadow', event.target.checked)}/><span><b>{t('featureAccess.logging')}</b></span></label>
       <div className="admin-field"><label htmlFor="admin-reason">{t('adminReason')}</label><input id="admin-reason" maxLength={300} value={reason} onChange={event => {save.reset(); setReason(event.target.value);}}/></div>
-      <div className="admin-actions">
-        <button type="submit" className="research-control admin-primary" disabled={!valid || save.isPending}>{t('adminSave')}</button>
-        <button type="button" className="research-control" onClick={() => {save.reset(); setForm(current => ({...current, enabled: true, cap: String(Math.max(Number(current.cap) || 0, 25)), domain: window.location.origin})); setReason(current => current || 'Local testing');}}>{t('adminPreset')}</button>
-      </div>
+      <div className="admin-actions"><button type="submit" className="research-control admin-primary" disabled={!valid || save.isPending}>{t('adminSave')}</button></div>
       {!valid && <p className="admin-hint" role="status">{!reason.trim() ? t('adminHintReason') : t('adminHintCap')}</p>}
+      {save.isSuccess && <p role="status" className="admin-ok">{t('adminSaved')}</p>}
+      {save.isError && <p role="alert" className="admin-bad">{text(save.error)}</p>}
+    </form>
+  </section>;
+}
+
+function WindowCard({api, initial}: {api: AdminApi; initial: WindowForm}) {
+  const t = useTranslations('workspace'), text = useErrorText();
+  const [form, setForm] = useState(initial), [reason, setReason] = useState('');
+  const parsed = parseWindowForm(form);
+  const save = useMutation({mutationFn: () => {if (!parsed.ok) throw new ApiError('INVALID_INPUT', 400); return api.save(parsed.payload, reason.trim());}});
+  const valid = parsed.ok && reason.trim().length > 0;
+  const set = <K extends keyof WindowForm>(name: K, value: WindowForm[K]) => {save.reset(); setForm(current => ({...current, [name]: value}));};
+  return <section className="admin-card" aria-labelledby="admin-window">
+    <h2 id="admin-window">{t('adminWindowTitle')}</h2>
+    <p>{t('adminWindowHelp')}</p>
+    <form className="admin-form" onSubmit={event => {event.preventDefault(); if (valid) save.mutate();}}>
+      <div className="admin-field"><label htmlFor="tier-closes">{t('adminClosesAt')}</label><div className="admin-inline"><input id="tier-closes" type="datetime-local" value={form.closesAt} onChange={event => set('closesAt', event.target.value)}/><button type="button" className="research-control" onClick={() => set('closesAt', '')}>{t('adminNever')}</button></div><small>{t('adminClosesHelp')}</small></div>
+      <div className="admin-field"><label htmlFor="tier-days">{t('adminAccessDays')}</label><input id="tier-days" inputMode="numeric" value={form.accessDays} onChange={event => set('accessDays', event.target.value.trim())}/><small>{t('adminAccessDaysHelp')}</small></div>
+      <div className="admin-field"><label htmlFor="tier-reason">{t('adminReason')}</label><input id="tier-reason" maxLength={300} value={reason} onChange={event => {save.reset(); setReason(event.target.value);}}/></div>
+      <div className="admin-actions"><button type="submit" className="research-control admin-primary" disabled={!valid || save.isPending}>{t('adminSave')}</button></div>
       {save.isSuccess && <p role="status" className="admin-ok">{t('adminSaved')}</p>}
       {save.isError && <p role="alert" className="admin-bad">{text(save.error)}</p>}
     </form>
@@ -168,7 +177,7 @@ function WhitelistCard({api}: {api: AdminApi}) {
   </section>;
 }
 
-function UserResult({api, user}: {api: AdminApi; user: {id: string; wallets: {id: string; address: string}[]}}) {
+function UserResult({api, user}: {api: AdminApi; user: {id: string; email: string | null}}) {
   const t = useTranslations('workspace'), text = useErrorText(), client = useQueryClient(), {key} = useAdmin();
   const [days, setDays] = useState(30), [reason, setReason] = useState('Whitelisted by admin');
   const grant = useMutation({
@@ -176,13 +185,12 @@ function UserResult({api, user}: {api: AdminApi; user: {id: string; wallets: {id
     onSuccess: async () => {await client.invalidateQueries({queryKey: key('grants')}); await client.invalidateQueries({queryKey: key('stats')});},
   });
   return <div className="admin-user">
-    <p className="admin-mono" title={user.id}>{user.id}</p>
-    <p><b>{t('adminUserWallets')}</b></p>
-    {user.wallets.length ? <ul className="admin-wallets">{user.wallets.map(wallet => <li key={wallet.id} className="admin-mono" title={wallet.address}>{wallet.address}</li>)}</ul> : <p className="admin-bad" role="status">{t('adminNoWallets')}</p>}
+    <p className="admin-mono" title={user.id}>{user.email ?? shortId(user.id)}</p>
+    <p className="admin-mono" title={user.id}>{shortId(user.id)}</p>
     <div className="admin-inline">
       <label className="sr-only" htmlFor={`days-${user.id}`}>{t('adminDuration')}</label>
       <select id={`days-${user.id}`} value={days} onChange={event => {grant.reset(); setDays(Number(event.target.value));}}>{DAYS.map(value => <option key={value} value={value}>{t('adminDays', {days: value})}</option>)}</select>
-      <button type="button" className="research-control admin-primary" disabled={!user.wallets.length || !reason.trim() || grant.isPending} onClick={() => grant.mutate()}>{t('adminGrant')}</button>
+      <button type="button" className="research-control admin-primary" disabled={!reason.trim() || grant.isPending} onClick={() => grant.mutate()}>{t('adminGrant')}</button>
     </div>
     <div className="admin-field"><label htmlFor={`reason-${user.id}`}>{t('adminReason')}</label><input id={`reason-${user.id}`} maxLength={300} value={reason} onChange={event => {grant.reset(); setReason(event.target.value);}}/></div>
     {grant.isSuccess && <p role="status" className="admin-ok">{t('adminGranted')}</p>}
@@ -203,9 +211,9 @@ function GrantsCard({api}: {api: AdminApi}) {
     {grants.isError && <ResourceError error={grants.error} retry={() => void grants.refetch()}/>}
     {grants.data && !grants.data.items.length && <p role="status">{t('adminNoGrants')}</p>}
     {grants.data && grants.data.items.length > 0 && <div className="admin-scroll"><table className="admin-table">
-      <thead><tr><th scope="col">{t('adminColWallet')}</th><th scope="col">{t('adminColSource')}</th><th scope="col">{t('adminColStatus')}</th><th scope="col">{t('adminColUntil')}</th><th scope="col"><span className="sr-only">{t('adminRevoke')}</span></th></tr></thead>
+      <thead><tr><th scope="col">{t('adminColUser')}</th><th scope="col">{t('adminColSource')}</th><th scope="col">{t('adminColStatus')}</th><th scope="col">{t('adminColUntil')}</th><th scope="col"><span className="sr-only">{t('adminRevoke')}</span></th></tr></thead>
       <tbody>{grants.data.items.map(grant => {const status = effectiveStatus(grant); return <tr key={grant.id}>
-        <td className="admin-mono" title={grant.wallets.join(', ') || grant.userId}>{grant.wallets.length ? grant.wallets.map(shortAddress).join(', ') : shortAddress(grant.userId)}</td>
+        <td className="admin-mono" title={grant.userId}>{grant.email ?? shortId(grant.userId)}</td>
         <td>{grant.source === 'ADMIN' ? t('adminSourceAdmin') : t('adminSourceSelf')}</td>
         <td><span className={`admin-badge admin-${status.toLowerCase()}`}>{status}</span></td>
         <td>{when(grant.validUntil) ?? t('adminNever')}</td>

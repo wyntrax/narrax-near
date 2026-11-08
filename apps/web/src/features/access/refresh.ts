@@ -1,5 +1,5 @@
 /**
- * Scheduling for the "membership expires" refresh.
+ * Scheduling for the "access expires" refresh.
  *
  * Browsers and Node store timer delays as 32-bit signed integers (max 2^31-1 ms, about 24.8 days).
  * A longer delay silently becomes ~1 ms, so a member whose nextExpiry was further away than that

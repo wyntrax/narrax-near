@@ -2,7 +2,7 @@ import { resolveChainFromHost, type ChainId } from '@narra/shared';
 
 /**
  * Chains this deployment implements. The NEAR build serves only NEAR; the production
- * multi-chain deployment adds 'solana' here and keeps the apex domain on Solana.
+ * multi-chain deployment would add another chain here.
  */
 export const SUPPORTED_CHAINS = ['near'] as const satisfies readonly ChainId[];
 export const DEFAULT_CHAIN: ChainId = SUPPORTED_CHAINS[0];

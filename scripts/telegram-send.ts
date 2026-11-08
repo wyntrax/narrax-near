@@ -15,7 +15,7 @@ Options:
   --json                      Print the delivery summary and messages as JSON
   --help                      Show this help
 
-Reads global Early Radar alerts only. It never sends a user-owned alert, creates a call, order or position.
+Reads global Early Radar alerts only. It never sends a user-owned alert or changes research state.
 Requires DATABASE_URL. --send also requires TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID.`;
 
 const positive = (name: string, raw: string | undefined, fallback: number): number => {

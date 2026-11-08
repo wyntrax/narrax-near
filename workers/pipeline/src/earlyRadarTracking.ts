@@ -12,7 +12,7 @@ async function point(db:Pick<Prisma.TransactionClient,'systemSetting'>,metric:To
   return {id:metric.id,at:metric.at,priceUsd:num(metric.priceUsd),marketCapUsd:num(metric.marketCapUsd),marketCapIsFdv:exact&&typeof metadata?.marketCapIsFdv==='boolean'?metadata.marketCapIsFdv:null,source:exact&&metadata?.source==='dexscreener'?'dexscreener':null};
 }
 const horizons=(at:Date)=>EARLY_OUTCOME_RULES.horizonsHours.map(horizonHours=>({horizonHours,targetAt:new Date(+at+horizonHours*HOUR),nextCheckAt:new Date(+at+horizonHours*HOUR)}));
-type RadarAlertInput={tokenId:string;mint:string;alertedAt:Date;profile:'trencher'|'holder';tier:'WATCH'|'STRONG';route:'NARRATIVE'|'SOCIAL';matchKind:'NAME'|'MINT'|'TICKER_ONLY';score:number;metricId:string;title:string;body:string};
+type RadarAlertInput={tokenId:string;mint:string;alertedAt:Date;profile:'trencher'|'holder';tier:'WATCH'|'STRONG';route:'NARRATIVE'|'SOCIAL';matchKind:'NAME'|'CONTRACT'|'TICKER_ONLY';score:number;metricId:string;title:string;body:string};
 
 /** Atomically freezes attribution/entry with the alert. No opportunity, decision or trading writes. */
 export async function createEarlyRadarAlert(db:PrismaClient,input:RadarAlertInput):Promise<boolean>{

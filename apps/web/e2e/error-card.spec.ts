@@ -19,7 +19,7 @@ for(const width of [1440,390])for(const theme of ['dark','light'])test(`request 
   if(url.pathname==='/v1/me/entitlements')return route.fulfill({status:503,headers,json:{error:'ENTITLEMENTS_UNAVAILABLE'}});
   return route.fulfill({status:404,headers,json:{error:'NOT_FOUND'}});
  });
- await page.goto(`${origin}/en/app/portfolio`);await page.getByRole('button',{name:'Continue',exact:true}).click();
+ await page.goto(`${origin}/en/app/alerts`);await page.getByRole('button',{name:'Continue',exact:true}).click();
  const card=page.locator('.research-error-card');
  await expect(card).toBeVisible();
  await expect(card.getByRole('heading',{name:'Research could not be loaded'})).toBeVisible();

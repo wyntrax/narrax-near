@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { LlmError, extractJson, type LlmProvider } from '@narra/ai';
 import { AGENT_LIMITS, FALLBACK } from './constants';
 import { buildStepMessage, SYSTEM_PROMPT, type StepInput } from './prompt';
-import type { AgentPorts, ProposalView } from './ports';
+import type { AgentPorts } from './ports';
 import { sanitizeAssistantText, sanitizeUserText } from './sanitize';
 import { findTool, type AgentContext } from './tools';
 
@@ -27,7 +27,6 @@ export interface AgentRunInput {
 
 export interface AgentRunResult {
   text: string;
-  proposals: ProposalView[];
   toolsUsed: string[];
   /** Tool calls the model asked for that were refused (unknown tool or bad arguments). */
   refusedCalls: number;
@@ -47,7 +46,7 @@ export interface AgentRunResult {
  * A model that has been talked into anything still cannot do more than the registry allows, and the registry holds nothing that trades.
  */
 export async function runAgent(i: AgentRunInput): Promise<AgentRunResult> {
-  const out: AgentRunResult = { text: '', proposals: [], toolsUsed: [], refusedCalls: 0, stopReason: 'bad_output', inputTokens: 0, outputTokens: 0 };
+  const out: AgentRunResult = { text: '', toolsUsed: [], refusedCalls: 0, stopReason: 'bad_output', inputTokens: 0, outputTokens: 0 };
   const results: StepInput['toolResults'] = [];
   const userMessage = sanitizeUserText(i.userMessage), history = i.history.slice(-AGENT_LIMITS.historyMessages).map((h) => ({ role: h.role, text: h.text.slice(0, AGENT_LIMITS.maxUserMessageChars) }));
   let toolCalls = 0, bad = 0;
@@ -82,7 +81,6 @@ export async function runAgent(i: AgentRunInput): Promise<AgentRunResult> {
     try {
       const r = await tool.run(i.ports, i.ctx, args.data);
       if (r.error) { results.push({ tool: tool.name, ok: false, error: r.error, facts: r.facts }); continue; }
-      if (r.proposal) out.proposals.push(r.proposal);
       const entry = { tool: tool.name, ok: true, facts: r.facts, ...(r.untrusted?.length ? { untrusted: r.untrusted } : {}) };
       results.push(JSON.stringify(entry).length > AGENT_LIMITS.maxToolResultChars ? { tool: tool.name, ok: false, error: 'result_too_large' } : entry);
     } catch {

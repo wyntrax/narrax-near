@@ -16,8 +16,7 @@ describe('untrusted data', () => {
 describe('AgentDecisionSchema', () => {
   const valid = {
     action: 'BUY', confidence: 0.8, reasonCodes: ['SMART_MONEY'], positiveSignals: [], negativeSignals: [], risks: [],
-    suggestedPositionSizePct: 2, entry: { maxSlippageBps: 100, maxPriceImpactPct: 1 },
-    exit: { stopLossPct: null, takeProfitPct: null, trailingStopPct: null }, invalidationConditions: [], summary: 'ok',
+       exit: { stopLossPct: null, takeProfitPct: null, trailingStopPct: null }, invalidationConditions: [], summary: 'ok',
   };
   it('accepts a valid decision', () => expect(AgentDecisionSchema.safeParse(valid).success).toBe(true));
   it('rejects out-of-range or unknown values', () => {

@@ -27,7 +27,7 @@ export interface BuzzGroup { kind: TokenRefKind; ref: string; points: MentionPoi
 export function groupBuzz(rows: readonly BuzzRow[]): BuzzGroup[] {
   const map = new Map<string, { kind: TokenRefKind; ref: string; points: Map<string, MentionPoint> }>();
   for (const r of rows) {
-    if (r.refKind !== 'MINT' && r.refKind !== 'CASHTAG') continue;
+    if (r.refKind !== 'CONTRACT' && r.refKind !== 'CASHTAG') continue;
     const key = `${r.refKind}:${r.ref}`;
     const g = map.get(key) ?? { kind: r.refKind as TokenRefKind, ref: r.ref, points: new Map<string, MentionPoint>() };
     g.points.set(`${r.platform}:${r.externalId}`, { externalId: r.externalId, platform: r.platform, creator: r.creatorId ?? r.externalId, creatorAgeDays: r.creatorAgeDays, engagement: r.engagement, at: r.at, simhash: r.simhash, textHash: r.textHash });
@@ -36,11 +36,11 @@ export function groupBuzz(rows: readonly BuzzRow[]): BuzzGroup[] {
   return [...map.values()].map((g) => { const points = [...g.points.values()]; return { kind: g.kind, ref: g.ref, points, creators: new Set(points.map((p) => p.creator)).size }; });
 }
 
-/** Keeps references with enough distinct accounts and mentions, most creators first. Mints sort before cashtags on a tie. */
+/** Keeps references with enough distinct accounts and mentions, most creators first. Contract references sort before cashtags on a tie. */
 export function qualifiedBuzz(groups: readonly BuzzGroup[], rules: SocialRules = SOCIAL_RULES): BuzzGroup[] {
   return groups
     .filter((g) => g.creators >= rules.minCreators && g.points.length >= rules.minMentions)
-    .sort((a, b) => b.creators - a.creators || (a.kind === b.kind ? 0 : a.kind === 'MINT' ? -1 : 1) || a.ref.localeCompare(b.ref));
+    .sort((a, b) => b.creators - a.creators || (a.kind === b.kind ? 0 : a.kind === 'CONTRACT' ? -1 : 1) || a.ref.localeCompare(b.ref));
 }
 
 /** A post that belongs to a narrative, so its token references can be attributed back to that narrative. */

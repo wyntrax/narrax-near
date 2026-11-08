@@ -12,9 +12,9 @@ export const GATED_ROUTES: Record<string, FeatureKey> = {
   })),
   'GET /v1/narratives': 'research.narratives', 'GET /v1/narratives/:slug': 'research.narratives',
   'GET /v1/narratives/rotation': 'research.rotation', 'GET /v1/tokens/:mint': 'research.tokens',
-  'GET /v1/intelligence-bar': 'research.overview', 'GET /v1/smart-money/wallets': 'research.smart_money', 'GET /v1/smart-money/rankings': 'research.smart_money',
+  'GET /v1/intelligence-bar': 'research.overview',
   'GET /v1/analytics/decisions/summary': 'research.decision_analytics', 'GET /v1/analytics/decisions/outcomes': 'research.decision_analytics',
-  'GET /v1/analytics/signals': 'research.advanced_analytics', 'GET /v1/analytics/backtest-summary': 'research.advanced_analytics',
+  'GET /v1/analytics/signals': 'research.decision_analytics',
   'POST /v1/chat': 'research.chat',
 };
 export function registerFeatureGates(app: FastifyInstance, db: PrismaClient, now?: () => Date) {

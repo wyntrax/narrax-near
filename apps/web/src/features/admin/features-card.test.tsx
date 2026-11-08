@@ -12,16 +12,15 @@ function view(value?:unknown){
  render(<NextIntlClientProvider locale="en" messages={{workspace:messages}}><QueryClientProvider client={new QueryClient()}><FeaturesCard api={{save} as unknown as AdminApi} items={value===undefined?[]:[{key:'entitlements.features',value}]}/></QueryClientProvider></NextIntlClientProvider>);
  return save;
 }
-it('offers all features with Early, Member and Pro, without Elite',()=>{
+it('offers all features with Early, Member and Pro',()=>{
  view();
  expect(screen.getAllByRole('combobox')).toHaveLength(Object.keys(FEATURE_TIERS).length);
  expect(screen.getByLabelText('Agent')).toHaveValue('EARLY_ACCESS');
  expect(screen.getByLabelText('Personal Radar')).toHaveValue('PRO');
- expect(screen.queryByRole('option',{name:'Elite'})).toBeNull();
  expect(screen.getByRole('button',{name:messages.featureAccess.save})).toBeDisabled();
 });
 it('saves the full feature map with a reason, preserving existing age restrictions',async()=>{
- const save=view({'research.chat':{requiredTier:'ELITE',min_entitlement_age_hours:24}});
+ const save=view({'research.chat':{requiredTier:'PRO',min_entitlement_age_hours:24}});
  fireEvent.change(screen.getByLabelText('Agent'),{target:{value:'MEMBER'}});
  fireEvent.change(screen.getByLabelText(messages.adminReason),{target:{value:'Member agent access'}});
  fireEvent.click(screen.getByRole('button',{name:messages.featureAccess.save}));

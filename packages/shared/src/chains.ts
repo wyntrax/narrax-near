@@ -1,15 +1,10 @@
 /**
- * Chain routing for the multi-chain NARRAX deployment.
+ * Chain routing for the NARRAX deployment.
  *
- * The apex domain serves the original chain (Solana). Each additional chain is
- * mounted on a subdomain, for example `near.narrax.xyz`. This module is pure so
- * both the Next.js middleware and the API can share one decision.
- *
- * The NEAR build of the repository ships only the NEAR adapter. Callers pass the
- * chains this deployment actually implements; an unsupported subdomain falls
- * back to the first supported chain instead of returning a chain we cannot serve.
+ * This build serves NEAR only. The helpers are kept pure so the Next.js middleware and the API
+ * can share one decision when another chain is added later.
  */
-export const CHAIN_IDS = ['solana', 'near'] as const;
+export const CHAIN_IDS = ['near'] as const;
 export type ChainId = (typeof CHAIN_IDS)[number];
 
 export interface ChainDescriptor {
@@ -22,7 +17,6 @@ export interface ChainDescriptor {
 }
 
 export const CHAINS: Record<ChainId, ChainDescriptor> = {
-  solana: { id: 'solana', label: 'Solana', subdomain: 'solana', nativeSymbol: 'SOL', nativeDecimals: 9 },
   near: { id: 'near', label: 'NEAR', subdomain: 'near', nativeSymbol: 'NEAR', nativeDecimals: 24 },
 };
 
@@ -41,9 +35,8 @@ export function chainFromSubdomain(host: string): ChainId | null {
  * Resolve the chain for a request host.
  *
  * - `near.example.com` -> near
- * - `solana.example.com` -> solana
  * - `example.com` -> the first supported chain (the apex default)
- * - an unsupported subdomain -> the first supported chain
+ * - any unsupported subdomain -> the first supported chain
  */
 export function resolveChainFromHost(host: string, supported: readonly ChainId[] = CHAIN_IDS): ChainId {
   if (supported.length === 0) throw new Error('resolveChainFromHost needs at least one supported chain');

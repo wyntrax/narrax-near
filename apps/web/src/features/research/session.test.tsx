@@ -10,7 +10,7 @@ import site from '../../../messages/en.json';
 import {hasFeature,ResearchWorkspace,useResearchQuery} from './session';
 vi.mock('./shell',()=>({ResearchShell:({children}:{children:ReactNode})=>children}));
 vi.mock('@/i18n/navigation',()=>({Link:({children,href}:{children:ReactNode;href:string})=><a href={href}>{children}</a>,useRouter:()=>({replace:vi.fn()}),usePathname:()=>'/app'}));
-const auth=(userId:string|null):AuthAdapter=>({ready:true,authenticated:!!userId,userId,getAccessToken:async()=>userId,login:vi.fn(),logout:async()=>{},connectWallet:vi.fn(),createWallet:async()=>{},wallets:[]});
+const auth=(userId:string|null):AuthAdapter=>({ready:true,authenticated:!!userId,userId,getAccessToken:async()=>userId,login:vi.fn(),logout:async()=>{}});
 function Probe(){const query=useResearchQuery('private',z.object({label:z.string()}));return <p>{query.data?.label??'waiting for research'}</p>;}
 function Tree({user}:{user:string|null}){return <NextIntlClientProvider locale="en" messages={{workspace:messages,common:site.common}}><AuthContext.Provider value={auth(user)}><ResearchWorkspace theme="dark"><Probe/></ResearchWorkspace></AuthContext.Provider></NextIntlClientProvider>;}
 afterEach(()=>{cleanup();vi.unstubAllGlobals();vi.unstubAllEnvs();});

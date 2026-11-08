@@ -1,8 +1,5 @@
 import { z } from 'zod';
 
-export const TradingMode = z.enum(['PAPER', 'SHADOW', 'SEMI_AUTO', 'AUTO']);
-export type TradingMode = z.infer<typeof TradingMode>;
-
 export const DecisionAction = z.enum(['BUY', 'WATCH', 'HOLD', 'REDUCE', 'SELL', 'IGNORE']);
 export type DecisionAction = z.infer<typeof DecisionAction>;
 

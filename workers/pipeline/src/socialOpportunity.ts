@@ -7,14 +7,14 @@ export async function socialOpportunityEvidence(db:PrismaClient,narrativeId:stri
  const since=new Date(+now-SOCIAL_RULES.lookbackHours*3600000);
  const [posts,mentions]=await Promise.all([
   db.narrativeMention.findMany({where:{narrativeId,at:{gte:since,lte:now}},select:{narrativeId:true,platform:true,externalId:true},take:SOCIAL_RULES.maxRows}),
-  db.tokenMention.findMany({where:{at:{gte:since,lte:now},creatorId:{not:null},OR:tokens.flatMap(t=>[{refKind:'MINT',ref:t.mint},{refKind:'CASHTAG',ref:t.symbol.toUpperCase()}])},take:SOCIAL_RULES.maxRows}),
+  db.tokenMention.findMany({where:{at:{gte:since,lte:now},creatorId:{not:null},OR:tokens.flatMap(t=>[{refKind:'CONTRACT',ref:t.mint},{refKind:'CASHTAG',ref:t.symbol.toUpperCase()}])},take:SOCIAL_RULES.maxRows}),
  ]);
  const groups=groupBuzzByNarrative(posts,mentions,{...SOCIAL_RULES,minCreators:0,minMentions:0}).get(narrativeId)??[];
  const out=new Map<string,{accounts:number;posts:number;manipulationRisk:number}>();
  for(const t of tokens){
   const points=new Map<string,MentionPoint>();
   for(const g of groups){
-   if(g.kind==='MINT'?g.ref!==t.mint:g.ref!==t.symbol.toUpperCase())continue;
+   if(g.kind==='CONTRACT'?g.ref!==t.mint:g.ref!==t.symbol.toUpperCase())continue;
    if(g.kind==='CASHTAG'){
     const matches=await db.token.findMany({where:{symbol:{equals:g.ref,mode:'insensitive'},blacklisted:false,metrics:{some:{at:{gte:new Date(+now-24*3600000)}}}},select:{id:true},take:2});
     if(matches.length!==1||matches[0]!.id!==t.id)continue;

@@ -6,14 +6,11 @@ import {
 } from '@narra/analytics';
 import { AgentDecisionSchema } from '@narra/shared';
 import { makeAuthenticate, type AccountDeps } from './account';
-import { makeRequireAdmin } from './admin';
 import { IdCursor, Limit, decodeCursor, encodeCursor } from './paging';
 
 const DAY = 86_400_000;
 /** Most outcomes one request will read. A bigger range is cut and says so (`truncated`). Starting value. */
 const MAX_OUTCOME_ROWS = 5000;
-const MAX_TRADE_ROWS = 10_000;
-const MAX_EQUITY_POINTS = 500;
 
 const Range = z.object({ days: z.coerce.number().int().min(1).max(365).default(30), costPct: z.coerce.number().min(0).max(20).default(DEFAULT_ROUND_TRIP_COST_PCT) });
 const Action = z.enum(['BUY', 'WATCH', 'IGNORE', 'SELL', 'REDUCE', 'HOLD']);
@@ -21,13 +18,11 @@ const SummaryQuery = Range.extend({ action: Action.default('BUY') });
 // Optional filters preserve existing unfiltered API clients. The analytics page always sends both.
 const OutcomesQuery = z.object({ limit: Limit, cursor: z.string().max(300).optional(), final: z.enum(['true', 'false']).optional(), action: Action.optional(), days: Range.shape.days.optional() });
 const CursorShape = z.tuple([z.string().datetime(), IdCursor]);
-const IdParam = z.object({ id: IdCursor });
 
-const num = (d: { toString(): string } | null | undefined) => (d == null ? null : Number(d.toString()));
 const iso = (d: Date) => d.toISOString();
 
 export const ANALYTICS_CAVEATS = [
-  'Outcomes are price moves from stored readings. They are not fills: real trades cost more (fees, price impact) and can fail.',
+  'Outcomes are price moves from stored readings. They are not executable returns: fees, price impact and liquidity are not modeled.',
   `A number is only called reliable with at least ${GATES.minSample} independent events across ${GATES.minDistinctTokens} tokens. Below that it is shown and marked insufficient.`,
   'Tokens that rug often stop being tracked, so missing 24h prices are not random. The unknown rate is shown beside every result.',
   'Everything comes from the period the system has been running, usually a single market regime.',
@@ -35,7 +30,7 @@ export const ANALYTICS_CAVEATS = [
 
 /**
  * Read-only views of what B6 measures: how decisions turned out, how reasons and confidence line up with outcomes,
- * the signed-in user's own results, and saved backtests. Nothing here writes, and nothing here changes a limit or a threshold.
+ * and how reasons and confidence line up with outcomes. Nothing here writes, and nothing here changes a limit or a threshold.
  * Token symbols are untrusted text: clients must render them as plain text.
  */
 export function registerAnalyticsRoutes(app: FastifyInstance, deps: Pick<AccountDeps, 'db' | 'verifier' | 'now'>): void {
@@ -43,7 +38,6 @@ export function registerAnalyticsRoutes(app: FastifyInstance, deps: Pick<Account
   const now = deps.now ?? (() => new Date());
   const rl = { config: { rateLimit: { max: 60, timeWindow: '1 minute' } } };
   const user = { preHandler: makeAuthenticate(deps), ...rl };
-  const admin = { preHandler: makeRequireAdmin(deps), ...rl };
   const bad = { error: 'INVALID_INPUT' } as const;
 
   /** Measured global decisions in range, including pending/unknown; one per token per 24h. */
@@ -123,71 +117,5 @@ export function registerAnalyticsRoutes(app: FastifyInstance, deps: Pick<Account
       })),
       nextCursor: rows.length > q.data.limit && last ? encodeCursor([last.decision.createdAt.toISOString(), last.decisionId]) : null,
     };
-  });
-
-  /** The signed-in user's own results. Paper and real are never mixed in one number. */
-  app.get('/v1/analytics/me/performance', user, async (req, reply) => {
-    const q = Range.safeParse(req.query);
-    if (!q.success) return reply.code(400).send(bad);
-    const userId = req.userId!, to = now(), from = new Date(to.getTime() - q.data.days * DAY);
-    const trades = await db.trade.findMany({ where: { userId, executedAt: { gte: from, lte: to } }, orderBy: [{ executedAt: 'desc' }, { id: 'desc' }], take: MAX_TRADE_ROWS, select: { positionId: true, side: true, realizedPnlSol: true, feeSol: true, executedAt: true, simulated: true, position: { select: { status: true, tokenId: true } } } });
-    const section = (simulated: boolean) => {
-      const rows = trades.filter((t) => t.simulated === simulated);
-      const byDay = new Map<string, number>(), byPosition = new Map<string, { pnl: number; closed: boolean; tokenId: string }>();
-      let realized = 0, fees = 0;
-      for (const t of rows) {
-        const pnl = num(t.realizedPnlSol) ?? 0;
-        realized += pnl; fees += num(t.feeSol) ?? 0;
-        const day = t.executedAt.toISOString().slice(0, 10);
-        byDay.set(day, (byDay.get(day) ?? 0) + pnl);
-        if (t.positionId && t.position) { const p = byPosition.get(t.positionId) ?? { pnl: 0, closed: t.position.status === 'CLOSED', tokenId: t.position.tokenId }; p.pnl += pnl; byPosition.set(t.positionId, p); }
-      }
-      const closed = [...byPosition.values()].filter((p) => p.closed);
-      const described = describeReturns(closed.map((p) => ({ tokenId: p.tokenId, ret: p.pnl })), 0);
-      return {
-        trades: rows.length, realizedPnlSol: realized, feesSol: fees,
-        daily: [...byDay.entries()].sort(([a], [b]) => (a < b ? -1 : 1)).map(([day, pnlSol]) => ({ day, pnlSol })),
-        closedPositions: { count: closed.length, wins: closed.filter((p) => p.pnl > 0).length, winRate: described.winRate, winRateCi: described.winRateCi, meanPnlSol: described.mean, sufficient: described.sufficient, note: described.note },
-      };
-    };
-    return { range: { from: iso(from), to: iso(to), days: q.data.days }, truncated: trades.length === MAX_TRADE_ROWS, paper: section(true), real: section(false), caveats: ['Realized profit and loss includes fees. A buy books its fee as a loss, so a position that has not been sold shows a small negative number.', ...ANALYTICS_CAVEATS] };
-  });
-
-  app.get('/v1/analytics/me/equity', user, async (req, reply) => {
-    const q = Range.extend({ simulated: z.enum(['true', 'false']).default('true') }).safeParse(req.query);
-    if (!q.success) return reply.code(400).send(bad);
-    const userId = req.userId!, to = now(), from = new Date(to.getTime() - q.data.days * DAY), simulated = q.data.simulated === 'true';
-    const rows = await db.portfolioSnapshot.findMany({ where: { userId, simulated, at: { gte: from, lte: to } }, orderBy: [{ at: 'asc' }, { id: 'asc' }], take: 20_000 });
-    const step = Math.max(1, Math.ceil(rows.length / MAX_EQUITY_POINTS));
-    const points = rows.filter((_, i) => i % step === 0 || i === rows.length - 1).map((r) => ({ at: iso(r.at), valueSol: num(r.totalValueSol) as number }));
-    const values = rows.map((r) => num(r.totalValueSol) as number), peak = values.length ? Math.max(...values) : null, latest = values.length ? values[values.length - 1]! : null;
-    return { simulated, range: { from: iso(from), to: iso(to), days: q.data.days }, points, peakSol: peak, latestSol: latest, drawdownPct: peak && latest != null && peak > 0 ? ((peak - latest) / peak) * 100 : null, downsampled: step > 1 };
-  });
-
-  /** The headline of the newest saved backtest, for any signed-in user. The full report is admin-only. */
-  app.get('/v1/analytics/backtest-summary', user, async () => {
-    const r = await db.backtestRun.findFirst({ where: { kind: 'FULL' }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }] });
-    if (!r) return { available: false as const };
-    const rep = r.report as { generatedAt?: string; coverage?: unknown; findings?: unknown; noConclusion?: unknown };
-    const strs = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').map((x) => x.slice(0, 400)) : []);
-    return { available: true as const, id: r.id, createdAt: r.createdAt, generatedAt: rep.generatedAt ?? null, coverage: rep.coverage ?? null, findings: strs(rep.findings), noConclusion: strs(rep.noConclusion), caveats: ANALYTICS_CAVEATS };
-  });
-
-  app.get('/v1/analytics/backtests', admin, async (req, reply) => {
-    const q = z.object({ limit: Limit }).safeParse(req.query);
-    if (!q.success) return reply.code(400).send(bad);
-    const rows = await db.backtestRun.findMany({ orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: q.data.limit });
-    return { items: rows.map((r) => { const rep = r.report as { findings?: unknown[]; noConclusion?: unknown[]; coverage?: unknown }; return { id: r.id, kind: r.kind, createdAt: r.createdAt, params: r.params, coverage: rep.coverage ?? null, findings: rep.findings?.length ?? 0, noConclusion: rep.noConclusion?.length ?? 0 }; }) };
-  });
-
-  app.get('/v1/analytics/backtests/:id', admin, async (req, reply) => {
-    const p = IdParam.safeParse(req.params);
-    if (!p.success) return reply.code(400).send(bad);
-    const r = await db.backtestRun.findUnique({ where: { id: p.data.id } });
-    if (!r) return reply.code(404).send({ error: 'NOT_FOUND' });
-    const rep = JSON.parse(JSON.stringify(r.report)) as { strategies?: Record<string, unknown>[] };
-    // The per-event arrays are working data for the comparison, and can be large. The summaries stay.
-    for (const s of rep.strategies ?? []) { delete s.holdItems; delete s.ruleItems; }
-    return { id: r.id, kind: r.kind, createdAt: r.createdAt, params: r.params, report: rep, gates: { minSample: GATES.minSample, minDistinctTokens: GATES.minDistinctTokens }, note: insufficiencyNote(0, 0) ? 'See each group for its own evidence note.' : null };
   });
 }

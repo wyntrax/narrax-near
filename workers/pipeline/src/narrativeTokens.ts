@@ -1,6 +1,6 @@
 import type { PrismaClient } from '@narra/database';
 import { SOCIAL_RULES, groupBuzzByNarrative } from '@narra/narrative';
-import { WSOL_MINT } from '@narra/market-data';
+import { NEAR_REFERENCE_CONTRACTS } from '@narra/market-data';
 import { matchScore, resolveCandidates, type Candidate } from '@narra/token-intel';
 
 export interface MentionTokenSummary {
@@ -62,7 +62,7 @@ export async function attributeNarrativeMentions(db: PrismaClient, now: Date = n
 
     // Resolve each qualified reference to an existing token. A mint by its address; a cashtag only when it is unambiguous.
     // When a mint and a cashtag name the same token, the stronger (mint) evidence wins.
-    type Resolved = { symbol: string; name: string; createdAt: Date | null; deployer: string | null; top10Pct: number | null; devHoldingPct: number | null; match: number };
+    type Resolved = { symbol: string; name: string; createdAt: Date | null; deployer: string | null; top10Pct: number | null; match: number };
     const tokens = new Map<string, Resolved>();
     const add = (id: string, t: Omit<Resolved, 'match'>, match: number) => {
       const existing = tokens.get(id);
@@ -70,19 +70,19 @@ export async function attributeNarrativeMentions(db: PrismaClient, now: Date = n
       else tokens.set(id, { ...t, match });
     };
     for (const g of groups) {
-      if (g.kind === 'MINT') {
-        if (g.ref === WSOL_MINT) continue;
-        const t = await db.token.findUnique({ where: { mint: g.ref }, select: { id: true, symbol: true, name: true, createdOnChainAt: true, deployer: true, blacklisted: true, holders: { orderBy: { at: 'desc' }, take: 1, select: { top10Pct: true, devHoldingPct: true } } } });
+      if (g.kind === 'CONTRACT') {
+        if (NEAR_REFERENCE_CONTRACTS.has(g.ref)) continue;
+        const t = await db.token.findUnique({ where: { mint: g.ref }, select: { id: true, symbol: true, name: true, createdOnChainAt: true, deployer: true, blacklisted: true, holders: { orderBy: { at: 'desc' }, take: 1, select: { top10Pct: true } } } });
         if (!t || t.blacklisted) { out.unresolvedMints++; continue; }
-        add(t.id, { symbol: t.symbol, name: t.name, createdAt: t.createdOnChainAt, deployer: t.deployer, top10Pct: t.holders[0]?.top10Pct ?? null, devHoldingPct: t.holders[0]?.devHoldingPct ?? null }, MINT_MATCH);
+        add(t.id, { symbol: t.symbol, name: t.name, createdAt: t.createdOnChainAt, deployer: t.deployer, top10Pct: t.holders[0]?.top10Pct ?? null }, MINT_MATCH);
       } else {
         const matches = await db.token.findMany({
           where: { symbol: { equals: g.ref, mode: 'insensitive' }, blacklisted: false, metrics: { some: { at: { gte: cashtagSince } } } },
-          select: { id: true, symbol: true, name: true, createdOnChainAt: true, deployer: true, holders: { orderBy: { at: 'desc' }, take: 1, select: { top10Pct: true, devHoldingPct: true } } }, take: 2,
+          select: { id: true, symbol: true, name: true, createdOnChainAt: true, deployer: true, holders: { orderBy: { at: 'desc' }, take: 1, select: { top10Pct: true } } }, take: 2,
         });
         if (matches.length !== 1) { out.ambiguousCashtags++; continue; }
         const t = matches[0]!;
-        add(t.id, { symbol: t.symbol, name: t.name, createdAt: t.createdOnChainAt, deployer: t.deployer, top10Pct: t.holders[0]?.top10Pct ?? null, devHoldingPct: t.holders[0]?.devHoldingPct ?? null }, CASHTAG_MATCH);
+        add(t.id, { symbol: t.symbol, name: t.name, createdAt: t.createdOnChainAt, deployer: t.deployer, top10Pct: t.holders[0]?.top10Pct ?? null }, CASHTAG_MATCH);
       }
     }
     if (!tokens.size) continue;
@@ -94,7 +94,7 @@ export async function attributeNarrativeMentions(db: PrismaClient, now: Date = n
       if (t.deployer && t.createdAt) {
         deployerRecent = await db.token.count({ where: { deployer: t.deployer, id: { not: tokenId }, createdOnChainAt: { gte: new Date(t.createdAt.getTime() - 7 * DAY), lte: new Date(t.createdAt.getTime() + 7 * DAY) } } });
       }
-      candidates.push({ id: tokenId, symbol: t.symbol, createdAt: t.createdAt, deployer: t.deployer, matchScore: t.match, top10Pct: t.top10Pct, devHoldingPct: t.devHoldingPct, deployerRecentTokens: deployerRecent });
+      candidates.push({ id: tokenId, symbol: t.symbol, createdAt: t.createdAt, deployer: t.deployer, matchScore: t.match, top10Pct: t.top10Pct, deployerRecentTokens: deployerRecent });
     }
     const og = resolveCandidates({ firstDetectedAt: n.firstDetectedAt }, candidates);
 

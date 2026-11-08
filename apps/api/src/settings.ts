@@ -7,8 +7,7 @@ import { makeAuthenticate, type AccountDeps } from './account';
 const DAY = 86_400_000;
 
 /**
- * User settings. Trading limits and mode stay on their own routes (/v1/risk-profile, /v1/mode), where each change has its
- * own checks. Nothing here can change what the agent may do. Every change is written to the audit log.
+ * User settings. Every change is written to the audit log.
  */
 export function registerSettingsRoutes(app: FastifyInstance, deps: Pick<AccountDeps, 'db' | 'verifier' | 'now'>): void {
   const db: PrismaClient = deps.db;
@@ -27,8 +26,8 @@ export function registerSettingsRoutes(app: FastifyInstance, deps: Pick<AccountD
       appearance: { theme: s?.theme ?? 'DARK', density: s?.density ?? 'COMFORTABLE', reducedMotion: s?.reducedMotion ?? false },
       notifications: {
         minPriority: s?.minAlertPriority ?? DEFAULT_NOTIFICATION_PREFS.minPriority, mutedKinds: s?.mutedAlertKinds ?? DEFAULT_NOTIFICATION_PREFS.mutedKinds,
-        // Alerts about your own positions and confirmations, and every CRITICAL alert, are always delivered.
-        mutableKinds: kinds.map((k) => k.kind), alwaysDelivered: ['CRITICAL', 'POSITION_SIGNAL', 'CONFIRMATION_REQUIRED'],
+        // Every CRITICAL alert is always delivered.
+        mutableKinds: kinds.map((k) => k.kind), alwaysDelivered: ['CRITICAL'],
       },
       interests: user.interests,
     };

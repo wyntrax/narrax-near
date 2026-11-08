@@ -91,7 +91,7 @@
 .admin-user{display:grid;gap:12px;padding:16px;border:1px solid var(--bd);border-radius:8px;background:var(--bg)}
 .admin-mono,.admin-code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;overflow-wrap:anywhere}
 .admin-code{display:inline-block;padding:6px 10px;border:1px solid var(--bd);border-radius:6px;background:var(--bg)}
-.admin-wallets{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+
 /* Keep breathing room between stacked admin cards; the grid already spaces its own columns. */
 .admin-card + .admin-card,.admin-grid + .admin-card{margin-top:22px}
 .admin-grid>.admin-card+.admin-card{margin-top:0}

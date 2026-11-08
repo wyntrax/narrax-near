@@ -12,7 +12,7 @@ const n = (v: { toString(): string } | null | undefined) => (v == null ? null : 
 const Paging = z.object({ limit: Limit, cursor: IdCursor.optional() });
 const OppCursor = z.tuple([z.number().finite(), z.string().regex(/^[A-Za-z0-9_-]{1,64}$/)]);
 
-/** Read-only endpoints that feed the UI. Market data is shared; positions and trades are scoped to the signed-in user. */
+/** Read-only endpoints that feed the UI. Market data is shared and fully read-only. */
 export function registerReadRoutes(app: FastifyInstance, deps: Pick<AccountDeps, 'db' | 'verifier' | 'now'>): void {
   const db: PrismaClient = deps.db;
   const now = deps.now ?? (() => new Date());
@@ -91,7 +91,7 @@ export function registerReadRoutes(app: FastifyInstance, deps: Pick<AccountDeps,
         const d = o.analyses[0]?.decisions[0];
         return {
           id: o.id, createdAt: o.createdAt, score: o.score,
-          scores: { narrative: o.narrativeScore, smartMoney: o.smartMoneyScore, liquidity: o.liquidityScore, momentum: o.momentumScore, og: o.ogScore, risk: o.riskScore },
+          scores: { narrative: o.narrativeScore, liquidity: o.liquidityScore, momentum: o.momentumScore, og: o.ogScore, risk: o.riskScore },
           attentionGrowth: o.attentionGrowth, priceGrowth: o.priceGrowth,
           token: { mint: o.token.mint, symbol: o.token.symbol, name: o.token.name, priceUsd: n(m?.priceUsd), marketCapUsd: n(m?.marketCapUsd), liquidityUsd: n(m?.liquidityUsd) },
           narrative: o.narrative, decision: d ? { action: d.action, confidence: d.confidence } : null,
@@ -174,81 +174,18 @@ export function registerReadRoutes(app: FastifyInstance, deps: Pick<AccountDeps,
       where: { mint },
       include: {
         metrics: { orderBy: { at: 'desc' }, take: 1 }, holders: { orderBy: { at: 'desc' }, take: 1 }, risk: { orderBy: { at: 'desc' }, take: 1 },
-        consensus: { orderBy: { at: 'desc' }, take: 1 }, narratives: { include: { narrative: { select: { name: true, slug: true, stage: true } } } },
+        narratives: { include: { narrative: { select: { name: true, slug: true, stage: true } } } },
       },
     });
     if (!t) return reply.code(404).send({ error: 'NOT_FOUND' });
     const m = t.metrics[0];
-    const c = t.consensus[0];
     const evidence=await marketEvidence(db,[t.id]);
-    const developerHolding=await db.systemSetting.findUnique({where:{key:`research.developerHolding.${t.id}`}});
     return {
       mint: t.mint, symbol: t.symbol, name: t.name, blacklisted: t.blacklisted, createdOnChainAt: t.createdOnChainAt,
       observation:observation(evidence.get(t.id),m?.id,now()),
-      developerHolding:developerHolding?.value??null,
       metrics: m ? { priceUsd: n(m.priceUsd), marketCapUsd: n(m.marketCapUsd), liquidityUsd: n(m.liquidityUsd), volume24hUsd: n(m.volume24hUsd), at: m.at } : null,
       holders: t.holders[0] ?? null, risk: t.risk[0] ?? null,
-      consensus: c ? { score: c.score, walletCount: c.walletCount, independentEntities: c.independentEntities, leaderCount: c.leaderCount, netFlowSol: n(c.netFlowSol), timingConcentration: c.timingConcentration } : null,
       narratives: t.narratives.map((r) => ({ ...r.narrative, relation: r.relation, ogScore: r.ogScore })),
-    };
-  });
-
-  app.get('/v1/smart-money/wallets', opts, async (req, reply) => {
-    const q = Paging.extend({q:z.string().trim().min(1).max(64).optional(),source:z.enum(['MANUAL','IMPORT','DISCOVERED']).optional(),sort:z.enum(['recent','score']).default('recent')}).safeParse(req.query);
-    if (!q.success) return reply.code(400).send(bad);
-    if (q.data.cursor && !(await db.trackedWallet.count({ where: { id: q.data.cursor, active: true } }))) return reply.code(400).send(bad);
-    const term=q.data.q?likeEscape(q.data.q):undefined;
-    const rows = await db.trackedWallet.findMany({
-      where: { active: true,...(q.data.source?{source:q.data.source}:{}),...(term?{OR:[{address:{startsWith:term}},{label:{contains:term,mode:'insensitive' as const}}]}:{}) }, orderBy: q.data.sort==='score'?[{profile:{score:'desc'}},{id:'asc'}]:[{createdAt:'desc'},{id:'asc'}], take: q.data.limit + 1,
-      ...(q.data.cursor ? { cursor: { id: q.data.cursor }, skip: 1 } : {}),
-      include: { profile: true, metrics: { where: { window: '30D' }, orderBy: { computedAt: 'desc' }, take: 1 }, cluster: { select: { id: true, confidence: true } },trades:{orderBy:[{at:'desc'},{id:'desc'}],take:1,select:{at:true}},_count:{select:{trades:true}} },
-    });
-    const page = rows.slice(0, q.data.limit);
-    const walletProgress = await db.systemSetting.findMany({where:{key:{in:page.map(w=>`wallet.intelligence.${w.id}`)}}});
-    const progressByKey = new Map(walletProgress.map(row=>[row.key,row.value]));
-    return {
-      nextCursor: rows.length > q.data.limit ? page[page.length - 1]!.id : null,
-      items: page.map((w) => ({
-        address: w.address, label: w.label, score: w.profile?.score??null, leaderScore: w.profile?.leaderScore??null, style: w.profile?.style??null,
-        source:w.source,profileAt:w.profile?.updatedAt??null,metricsAt:w.metrics[0]?.computedAt??null,evidenceStatus:'UNVERIFIED',trackedSince:w.createdAt,lastTradeAt:w.trades[0]?.at??null,observedTrades:w._count.trades,intelligence:progressByKey.get(`wallet.intelligence.${w.id}`)??null,
-        medianHoldSeconds: w.profile?.medianHoldSeconds??null, bestPattern: w.profile?.bestPattern??null, weakPattern: w.profile?.weakPattern??null,
-        winRate: w.metrics[0]?.winRate ?? null, pnl30dSol: n(w.metrics[0]?.pnlSol), closedTrades: w.metrics[0]?.closedTrades ?? null, avgRoi: w.metrics[0]?.avgRoi ?? null,
-        // Cluster links are inferred, so confidence is always returned with them.
-        cluster: w.cluster,
-      })),
-    };
-  });
-
-  app.get('/v1/positions', opts, async (req) => {
-    const rows = await db.position.findMany({
-      where: { userId: req.userId!, status: 'OPEN' }, orderBy: { openedAt: 'desc' },
-      include: { token: { select: { mint: true, symbol: true, metrics: { orderBy: { at: 'desc' }, take: 1 } } }, evaluations: { orderBy: { createdAt: 'desc' }, take: 1 } },
-    });
-    return {
-      items: rows.map((p) => {
-        const ev = p.evaluations[0];
-        const entry = n(p.entryPriceUsd)!;
-        const current = n(p.token.metrics[0]?.priceUsd);
-        return { id: p.id, mode: p.mode, simulated:p.simulated, paperCloseEligible:p.simulated&&p.mode==='PAPER'&&p.baseUnits!=null&&p.baseUnits.gt(0), openedAt: p.openedAt, sizeSol: n(p.sizeSol), entryPriceUsd: entry, currentPriceUsd: current,
-          pnlPct: current != null && entry > 0 ? (current / entry - 1) * 100 : null, entryContext: p.entryContext, token: { mint: p.token.mint, symbol: p.token.symbol },
-          // The monitor's latest reading. A recommendation from fixed rules, not an order. Null until the monitor has looked.
-          evaluation: ev ? { action: ev.action, fractionPct: ev.fractionPct, signals: ev.signals, unavailable: ev.unavailable, blind: ev.blind, pnlPct: ev.pnlPct, at: ev.createdAt } : null };
-      }),
-    };
-  });
-
-  app.get('/v1/trades', opts, async (req, reply) => {
-    const q = Paging.safeParse(req.query);
-    if (!q.success) return reply.code(400).send(bad);
-    const rows = await db.trade.findMany({
-      where: { userId: req.userId! }, orderBy: [{ executedAt: 'desc' }, { id: 'desc' }], take: q.data.limit + 1,
-      ...(q.data.cursor ? { cursor: { id: q.data.cursor }, skip: 1 } : {}),
-      include: { order: { select: { sizeSol: true, token: { select: { mint: true, symbol: true } } } } },
-    });
-    const page = rows.slice(0, q.data.limit);
-    return {
-      items: page.map((t) => ({ id: t.id, executedAt: t.executedAt, side: t.side, mode: t.mode, simulated:t.simulated, reason: t.reason, sizeSol: n(t.order.sizeSol), expectedPriceUsd: n(t.expectedPriceUsd), actualPriceUsd: n(t.actualPriceUsd), slippageBps: t.slippageBps, signature: t.signature, token: t.order.token })),
-      nextCursor: rows.length > q.data.limit ? page[page.length - 1]!.id : null,
     };
   });
 }

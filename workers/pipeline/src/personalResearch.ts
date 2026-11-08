@@ -1,43 +1,27 @@
 import type { Prisma, PrismaClient } from '@narra/database';
 import { PersonalBriefSchema, PRO_RESEARCH_LIMITS as L, ResearchEvaluationSchema, ResearchRulesSchema, evaluatePersonalResearch, type PersonalEvidence, type ResearchRules } from '@narra/shared';
-import { walletMarketEvidence } from './walletResearchEvidence';
-import { walletQualifications } from './walletQualifications';
 
 export type PersonalPermissions = { radar: boolean; thesis: boolean; briefing: boolean };
 type Db = Prisma.TransactionClient;
 export const personalResearchLock = (tx: Db, userId: string) => tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`personal-research:${userId}`}))`;
 const json = (value: unknown) => value as Prisma.InputJsonValue;
 
-/** Current observed net accumulation; a capped/incomplete sample is never counted as a full population. */
+/** Current stored market, narrative and risk evidence. Missing readings stay unknown, never zero. */
 async function evidenceFor(tx: Db, mint: string, narrativeSlug: string | null, rules: ResearchRules, now: Date): Promise<PersonalEvidence> {
   const token = await tx.token.findUnique({ where: { mint } });
-  const empty: PersonalEvidence = { liquidity: null, buyers: null, narrative: null, risk: null, blocked: !!token?.blacklisted };
+  const empty: PersonalEvidence = { liquidity: null, narrative: null, risk: null, blocked: !!token?.blacklisted };
   if (!token || token.blacklisted) return empty;
   if (narrativeSlug && !await tx.narrativeTokenRelation.count({ where: { tokenId: token.id, narrative: { slug: narrativeSlug }, confidence: { gte: 0.5 }, relation: { notIn: ['UNRELATED', 'SUSPICIOUS'] } } })) return { ...empty, blocked: true };
-  const [market, risk, narrative, trades] = await Promise.all([
-    rules.minLiquidityUsd !== null ? walletMarketEvidence(tx, token.id, now) : null,
+  const [market, risk, narrative] = await Promise.all([
+    rules.minLiquidityUsd !== null ? tx.tokenMetric.findFirst({ where: { tokenId: token.id, at: { lte: now, gte: new Date(+now - L.marketAgeMs) } }, orderBy: [{ at: 'desc' }, { id: 'desc' }] }) : null,
     rules.maxRiskScore !== null ? tx.tokenRiskMetric.findFirst({ where: { tokenId: token.id, at: { lte: now } }, orderBy: [{ at: 'desc' }, { id: 'desc' }] }) : null,
     rules.minNarrativeVelocity !== null ? tx.narrativeMetric.findFirst({ where: { at: { lte: now, gte: new Date(+now - L.narrativeAgeMs) }, narrative: {
       ...(narrativeSlug ? { slug: narrativeSlug } : {}), tokens: { some: { tokenId: token.id, confidence: { gte: 0.5 }, relation: { notIn: ['UNRELATED', 'SUSPICIOUS'] } } },
     } }, orderBy: [{ at: 'desc' }, { id: 'desc' }] }) : null,
-    rules.minIndependentBuyers !== null ? tx.walletTrade.findMany({ where: { tokenId: token.id, wallet: { active: true }, at: { lte: now, gte: new Date(+now - rules.windowMinutes * 60_000) } }, include: { wallet: true }, orderBy: [{ at: 'desc' }, { id: 'desc' }], take: L.tradesPerToken + 1 }) : [],
   ]);
-  let buyers: PersonalEvidence['buyers'] = null;
-  if (trades.length && trades.length <= L.tradesPerToken) {
-    const wallets = [...new Map(trades.map(t => [t.walletId, t.wallet])).values()];
-    const qualified = await walletQualifications(tx, wallets, now);
-    const observed = trades.filter(t => qualified.get(t.walletId)?.eligible);
-    const entities = new Map<string, number>();
-    for (const t of observed) {
-      const key = t.wallet.clusterId ? `cluster:${t.wallet.clusterId}` : `wallet:${t.walletId}`;
-      entities.set(key, (entities.get(key) ?? 0) + (t.side === 'BUY' ? 1 : -1) * Number(t.amountSol));
-    }
-    if (observed.length && [...entities.values()].every(Number.isFinite)) buyers = {
-      value: [...entities.values()].filter(v => v >= L.minEntityNetSol).length, at: observed[0]!.at.toISOString(), source: 'qualified-wallet-trades', refs: observed.map(t => t.signature),
-    };
-  }
-  return { blocked: false, buyers,
-    liquidity: market ? { value: market.liquidityUsd, at: market.at, source: market.source, refs: [market.metricId, market.pairAddress] } : null,
+  return {
+    blocked: false,
+    liquidity: market ? { value: Number(market.liquidityUsd.toString()), at: market.at.toISOString(), source: 'token-metric', refs: [market.id] } : null,
     narrative: narrative ? { value: narrative.velocity, at: narrative.at.toISOString(), source: 'narrative-metric', refs: [narrative.id, narrative.narrativeId] } : null,
     risk: risk ? { value: risk.riskScore, at: risk.at.toISOString(), source: 'recorded-risk-score', refs: [risk.id, ...risk.flags] } : null,
   };

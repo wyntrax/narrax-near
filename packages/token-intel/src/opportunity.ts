@@ -3,8 +3,6 @@ import type { TokenRelation } from './og';
 
 export interface OpportunityInputs {
   narrativeScore: number;
-  /** Latest smart money consensus score, or 0 when no qualifying wallet has bought. */
-  smartMoneyScore: number;
   liquidityUsd: number;
   holders: number;
   priceGrowth1hPct: number | null;
@@ -12,7 +10,6 @@ export interface OpportunityInputs {
   relation: TokenRelation;
   divergence: DivergenceLabel;
   top10Pct: number | null;
-  devHoldingPct: number | null;
   tokenAgeMinutes: number | null;
   narrativeManipulationRisk: number | null;
 }
@@ -20,7 +17,6 @@ export interface OpportunityInputs {
 export interface OpportunityScores {
   score: number;
   narrative: number;
-  smartMoney: number;
   liquidity: number;
   momentum: number;
   og: number;
@@ -41,7 +37,7 @@ export function meetsFloors(i: Pick<OpportunityInputs, 'liquidityUsd' | 'holders
 }
 
 /**
- * Opportunity score: narrative 30, smart money 25, liquidity 15, momentum 10, OG 10, low risk 10,
+ * Opportunity score: narrative 35, liquidity 20, momentum 15, OG 15, low risk 15,
  * plus 5 for a strong positive attention-price gap. Hard caps keep weak setups from ranking high.
  */
 export function opportunityScore(i: OpportunityInputs): OpportunityScores {
@@ -50,15 +46,14 @@ export function opportunityScore(i: OpportunityInputs): OpportunityScores {
 
   const unknown = 0.5;
   const risk = clamp(100 * (
-    0.25 * (i.top10Pct == null ? unknown : clamp((i.top10Pct - 20) / 50, 0, 1)) +
-    0.20 * (i.devHoldingPct == null ? unknown : clamp(i.devHoldingPct / 20, 0, 1)) +
-    0.20 * (1 - liquidity / 100) +
-    0.15 * (i.narrativeManipulationRisk == null ? unknown : i.narrativeManipulationRisk / 100) +
+    0.35 * (i.top10Pct == null ? unknown : clamp((i.top10Pct - 20) / 50, 0, 1)) +
+    0.25 * (1 - liquidity / 100) +
+    0.20 * (i.narrativeManipulationRisk == null ? unknown : i.narrativeManipulationRisk / 100) +
     0.10 * (i.tokenAgeMinutes == null ? unknown : clamp(1 - i.tokenAgeMinutes / 60, 0, 1)) +
     0.10 * (i.relation === 'SUSPICIOUS' ? 1 : 0)
   ));
 
-  let score = 0.30 * i.narrativeScore + 0.25 * i.smartMoneyScore + 0.15 * liquidity + 0.10 * momentum + 0.10 * i.ogScore + 0.10 * (100 - risk);
+  let score = 0.35 * i.narrativeScore + 0.20 * liquidity + 0.15 * momentum + 0.15 * i.ogScore + 0.15 * (100 - risk);
   if (i.divergence === 'STRONG_POSITIVE') score += 5;
 
   const caps: string[] = [];
@@ -68,5 +63,5 @@ export function opportunityScore(i: OpportunityInputs): OpportunityScores {
   if (risk >= 80) cap(55, 'HIGH_RISK');
   if (i.divergence === 'NEGATIVE_SATURATED') cap(60, 'PRICE_RAN_AHEAD');
 
-  return { score: r1(clamp(score)), narrative: r1(i.narrativeScore), smartMoney: r1(i.smartMoneyScore), liquidity: r1(liquidity), momentum: r1(momentum), og: r1(i.ogScore), risk: r1(risk), caps };
+  return { score: r1(clamp(score)), narrative: r1(i.narrativeScore), liquidity: r1(liquidity), momentum: r1(momentum), og: r1(i.ogScore), risk: r1(risk), caps };
 }

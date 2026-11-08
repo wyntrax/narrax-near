@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { getJson, toNumber, type HttpOptions } from './http';
 import { RateLimiter } from './limiter';
-import { MarketDataError, type MarketQuoteSource, type MarketSnapshot, type SnapshotRead, type SnapshotOmissionReason } from './types';
+import { MarketDataError, NEAR_CHAIN_ID, type MarketQuoteSource, type MarketSnapshot, type SnapshotRead, type SnapshotOmissionReason } from './types';
 
 /** Documented limit is 300 requests a minute for these endpoints. 250 ms spacing stays well under it. */
 export const DEXSCREENER_MIN_INTERVAL_MS = 250;
@@ -49,7 +49,7 @@ export class DexScreenerSource implements MarketQuoteSource {
     const unique = [...new Set(mints)];
     for (let i = 0; i < unique.length; i += DEXSCREENER_BATCH) {
       const chunk = unique.slice(i, i + DEXSCREENER_BATCH);
-      const { body } = await getJson(`${this.baseUrl}/tokens/v1/solana/${chunk.join(',')}`, { ...this.opts, limiter: this.limiter });
+      const { body } = await getJson(`${this.baseUrl}/tokens/v1/near/${chunk.join(',')}`, { ...this.opts, limiter: this.limiter });
       const raw = Array.isArray(body) ? body : body && typeof body === 'object' && 'pairs' in body && Array.isArray((body as { pairs: unknown }).pairs) ? (body as { pairs: unknown[] }).pairs : null;
       if (!raw) {
         // The API may answer { pairs: null } for tokens it has never seen. Anything else is a shape change.
@@ -64,10 +64,10 @@ export class DexScreenerSource implements MarketQuoteSource {
       for (const item of raw) {
         const p = Pair.safeParse(item);
         if (!p.success) {
-          if (item?.chainId === 'solana' && typeof item?.baseToken?.address === 'string' && chunk.includes(item.baseToken.address)) invalidMints.add(item.baseToken.address);
+          if (item?.chainId === NEAR_CHAIN_ID && typeof item?.baseToken?.address === 'string' && chunk.includes(item.baseToken.address)) invalidMints.add(item.baseToken.address);
           continue;
         }
-        if (p.data.chainId !== 'solana') continue;
+        if (p.data.chainId !== NEAR_CHAIN_ID) continue;
         const mint = p.data.baseToken.address;
         if (!chunk.includes(mint)) continue; // pools where the token is only the quote side price the other asset
         const liq = p.data.liquidity?.usd ?? -1;

@@ -4,7 +4,7 @@ import type {SeoLocale} from './seo';
 /** Only authored public pages may supply image copy; never render arbitrary URL text. */
 export function socialPreview(locale: SeoLocale, key: string) {
   const copy = researchCopy[locale], id = locale === 'id';
-  if (key === 'home') return {title: id ? 'Pahami narasi. Telusuri buktinya.' : 'See the narrative. Follow the evidence.', label: 'NEAR RESEARCH', description: id ? 'Narasi, token, dan aktivitas wallet dalam satu ruang riset.' : 'Narratives, tokens and wallet activity. One research workspace.'};
+  if (key === 'home') return {title: id ? 'Pahami narasi. Telusuri buktinya.' : 'See the narrative. Follow the evidence.', label: 'NEAR RESEARCH', description: id ? 'Narasi, token, dan bukti pasar dalam satu ruang riset.' : 'Narratives, tokens and market evidence. One research workspace.'};
   if (key === 'research') return {title: copy.title, label: id ? 'PANDUAN RISET' : 'RESEARCH GUIDES', description: copy.description};
   if (key === 'methodology') return {title: copy.methodology, label: id ? 'METODOLOGI' : 'OUR METHODOLOGY', description: copy.methodologyDescription};
   const guide = researchGuides[locale].find(item => item.slug === key);

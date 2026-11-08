@@ -1,10 +1,10 @@
 import type {z} from 'zod';
-import {ApiErrorSchema, ChallengeSchema, EntitlementsSchema, GrantSchema, LinkSchema, OkSchema, RequirementsSchema, StatusSchema} from './schemas';
+import {ApiErrorSchema, EntitlementsSchema, GrantSchema, OkSchema, RequirementsSchema, StatusSchema} from './schemas';
 export const REQUEST_TIMEOUT_MS = 10000;
 export class ApiError extends Error {
   constructor(readonly code: string, readonly status = 0, readonly retryAfter = 0, readonly requiredTier?: string) {super(code);}
 }
-export const ERROR_CODES = ['INVALID_INPUT','WALLET_LINK_UNAVAILABLE','WALLET_LIMIT','CHALLENGE_LIMIT','CHALLENGE_UNAVAILABLE','NOT_FOUND','EARLY_ACCESS_DISABLED','EARLY_ACCESS_FULL','EARLY_ACCESS_CLOSED','VERIFIED_WALLET_REQUIRED','INVITES_UNAVAILABLE','ENTITLEMENTS_UNAVAILABLE','FEATURE_LOCKED','NETWORK','TIMEOUT','INVALID_RESPONSE','UNAUTHORIZED','RATE_LIMITED','INVALID_WALLET_PROOF','WALLET_UNAVAILABLE','DOMAIN_MISMATCH','WALLET_REJECTED','CONFIGURATION','UNKNOWN'] as const;
+export const ERROR_CODES = ['INVALID_INPUT','NOT_FOUND','EARLY_ACCESS_DISABLED','EARLY_ACCESS_FULL','EARLY_ACCESS_CLOSED','INVITES_UNAVAILABLE','ENTITLEMENTS_UNAVAILABLE','FEATURE_LOCKED','NETWORK','TIMEOUT','INVALID_RESPONSE','UNAUTHORIZED','RATE_LIMITED','CONFIGURATION','UNKNOWN'] as const;
 export function errorKey(error: unknown): typeof ERROR_CODES[number] {return error instanceof ApiError && ERROR_CODES.includes(error.code as typeof ERROR_CODES[number]) ? error.code as typeof ERROR_CODES[number] : 'UNKNOWN';}
 /**
  * Shared plumbing for every private request: validates the API origin, attaches the access token (and the optional
@@ -58,10 +58,6 @@ export function createApi(base: string, getAccessToken: () => Promise<string | n
   return {
     entitlements: () => request('/v1/me/entitlements', EntitlementsSchema), status: () => request('/v1/early-access/status', StatusSchema, 'GET', undefined, false),
     requirements: () => request('/v1/access/requirements', RequirementsSchema, 'GET', undefined, false),
-    challenge: (address: string) => request('/v1/me/linked-wallets/challenge', ChallengeSchema, 'POST', {chain:'solana', address}),
-    verify: (value: {challengeId: string; message: string; signature: string}) => request('/v1/me/linked-wallets/verify', LinkSchema, 'POST', value),
-    refreshMembership: () => request('/v1/me/membership/refresh', OkSchema, 'POST'),
-    unlink: (id: string) => request(`/v1/me/linked-wallets/${encodeURIComponent(id)}`, OkSchema, 'DELETE'),
     join: () => request('/v1/me/early-access/join', GrantSchema, 'POST'), leave: () => request('/v1/me/early-access', OkSchema, 'DELETE')
   };
 }

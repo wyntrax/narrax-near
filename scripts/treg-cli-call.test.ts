@@ -10,10 +10,10 @@ vi.mock('node:child_process', async () => {
 beforeEach(() => { exec.mockReset(); });
 
 it('preserves Unicode JSON, requests UTF-8 on Windows and reads CLI receipt metadata', async () => {
-  const result = { output: { data: { items: [{ text: 'Narasi Solana 🚀' }] } } };
+  const result = { output: { data: { items: [{ text: 'Narasi NEAR 🚀' }] } } };
   exec.mockResolvedValue({ stdout: JSON.stringify({ result, _treg: { http_status: 200, call_id: 'call-1', charged_micro: 0, replay: true } }) });
   const receipt = vi.fn();
-  expect(await createTregCliCall(.01, receipt)(TREG_ENDPOINTS.x, { query: 'Solana' }, 'request-1')).toEqual(result);
+  expect(await createTregCliCall(.01, receipt)(TREG_ENDPOINTS.x, { query: 'NEAR' }, 'request-1')).toEqual(result);
   expect(exec).toHaveBeenCalledWith('treg', expect.arrayContaining(['--json', 'Idempotency-Key: request-1']), expect.objectContaining({ env: expect.objectContaining({ PYTHONIOENCODING: 'utf-8' }), windowsHide: true }));
   expect(receipt).toHaveBeenCalledWith(expect.objectContaining({ callId: 'call-1', costMicro: 0, status: 200, replayed: true }));
 });

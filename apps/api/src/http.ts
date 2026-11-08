@@ -7,7 +7,7 @@ import { isExactBrowserOrigin } from '@narra/shared';
 
 /** Starting values, not tuned. */
 export const HTTP_LIMITS = {
-  /** Largest JSON body. The Helius webhook route raises its own limit, and the wallet import (500 rows) fits well inside this. */
+  /** Largest JSON body. Research write routes keep their own smaller limits. */
   bodyLimitBytes: 256 * 1024,
   requestTimeoutMs: 30_000,
   /** Longer than common proxy idle timeouts (60 s) so the proxy closes first. */

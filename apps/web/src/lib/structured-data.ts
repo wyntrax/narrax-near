@@ -12,7 +12,7 @@ export function websiteSchema(locale: SeoLocale) {
   return {'@context': 'https://schema.org', '@graph': [organizationSchema(), {
     '@type': 'WebSite', '@id': `${siteOrigin()}/#website`, name: 'Narrax', url: siteOrigin(), inLanguage: ['en', 'id'],
     publisher: {'@id': `${siteOrigin()}/#organization`},
-  }, {'@type': 'WebPage', '@id': `${publicUrl(locale)}#webpage`, url: publicUrl(locale), name: locale === 'id' ? 'Riset Narasi & Smart Money Solana' : 'Solana Narrative & Smart Money Research', description: productFacts[locale].summary, inLanguage: locale, about: {'@id': `${siteOrigin()}/#organization`}, isPartOf: {'@id': `${siteOrigin()}/#website`}}]};
+  }, {'@type': 'WebPage', '@id': `${publicUrl(locale)}#webpage`, url: publicUrl(locale), name: locale === 'id' ? 'Riset Narasi & Token NEAR' : 'NEAR Narrative & Token Research', description: productFacts[locale].summary, inLanguage: locale, about: {'@id': `${siteOrigin()}/#organization`}, isPartOf: {'@id': `${siteOrigin()}/#website`}}]};
 }
 export function productFaqSchema(locale: SeoLocale) {
   return {'@context': 'https://schema.org', '@type': 'FAQPage', '@id': `${publicUrl(locale)}#product-questions`, inLanguage: locale,

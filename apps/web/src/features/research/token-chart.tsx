@@ -1,7 +1,7 @@
 'use client';
 import {useState,useId} from 'react';
 import {useTranslations} from 'next-intl';
-import {Clock3,Activity,ShieldCheck,Wallet} from 'lucide-react';
+import {Clock3,Activity,ShieldCheck} from 'lucide-react';
 import {TokenHistorySchema,type Token,type PricePoint} from './contracts';
 import {useResearchQuery} from './session';
 import {Loading,ResourceError,useFormat} from './ui';
@@ -46,7 +46,6 @@ function TokenEvents({token,points}:{token:Token;points:PricePoint[]}){
  const events:{key:string;at:string;label:string;detail:string;Icon:typeof Clock3}[]=points.slice(-5).map((point,index)=>({key:`price-${index}`,at:point.at,label:t('enhance.priceObserved'),detail:`${f.usd(point.priceUsd)} · DEX Screener`,Icon:Activity}));
  if(token.observation?.pairCreatedAt)events.push({key:'pool',at:token.observation.pairCreatedAt,label:t('trench.poolCreated'),detail:token.observation.dexId??'DEX Screener',Icon:Clock3});
  if(token.risk)events.push({key:'risk',at:token.risk.at,label:t('enhance.riskObserved'),detail:`${t('risk')}: ${f.number(token.risk.riskScore)} · ${token.risk.flags.length?token.risk.flags.join(' · '):t('noFlags')}`,Icon:ShieldCheck});
- if(token.developerHolding)events.push({key:'holding',at:token.developerHolding.at,label:t('enhance.issuerHolding'),detail:`${f.number(token.developerHolding.holdingPct,4)}%`,Icon:Wallet});
  events.sort((a,b)=>Date.parse(b.at)-Date.parse(a.at));
  return <div className="token-observation-events"><h3>{t('events')}</h3><p className="research-note">{t('enhance.eventCoverage')}</p>{events.length?<ol>{events.map(({key,at,label,detail,Icon})=><li key={key}><span className="event-icon"><Icon size={17} aria-hidden="true"/></span><div><strong>{label}</strong><p>{detail}</p><time dateTime={at}>{f.date(at)}</time></div></li>)}</ol>:<p>{t('enhance.noObservedEvents')}</p>}</div>;
 }

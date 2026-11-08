@@ -39,8 +39,10 @@ describe.skipIf(!up)('account routes (needs Postgres)', () => {
 
   const call = async (method: 'GET' | 'PUT' | 'POST', path: string, sub: string | null, payload?: unknown) => {
     const app = await buildApp({ account: { db, verifier } });
-    const res = await app.inject({ method, url: path, payload: payload as object, headers: sub ? { authorization: `Bearer ${await sign(sub)}` } : {} });
-    return { status: res.statusCode, body: res.json() };
+    try {
+      const res = await app.inject({ method, url: path, payload: payload as object, headers: sub ? { authorization: `Bearer ${await sign(sub)}` } : {} });
+      return { status: res.statusCode, body: res.json() };
+    } finally { await app.close(); }
   };
   const alice = `did:privy:alice-${tag}`;
   const bob = `did:privy:bob-${tag}`;
@@ -48,52 +50,25 @@ describe.skipIf(!up)('account routes (needs Postgres)', () => {
   it('requires a valid token', async () => {
     expect((await call('GET', '/v1/me', null)).status).toBe(401);
     const app = await buildApp({ account: { db, verifier } });
-    expect((await app.inject({ method: 'GET', url: '/v1/me', headers: { authorization: 'Bearer nope' } })).statusCode).toBe(401);
+    try { expect((await app.inject({ method: 'GET', url: '/v1/me', headers: { authorization: 'Bearer nope' } })).statusCode).toBe(401); } finally { await app.close(); }
   });
 
   it('creates the user on first sign-in with safe defaults', async () => {
     const r = await call('GET', '/v1/me', alice);
     expect(r.status).toBe(200);
-    expect(r.body).toMatchObject({ mode: 'SHADOW', aiTradingEnabled: false, agentPaused: false, riskPreset: null });
+    expect(r.body).toMatchObject({ isAdmin: false, admin: { configured: false } });
     expect((await call('GET', '/v1/me', alice)).body.id).toBe(r.body.id); // same user, not a new one
   });
 
-  it('only allows automated modes once AI access is on, and drops them when it goes off', async () => {
-    expect((await call('PUT', '/v1/mode', alice, { mode: 'AUTO' })).status).toBe(409);
-    expect((await call('PUT', '/v1/mode', alice, { mode: 'PAPER' })).status).toBe(200);
-    expect((await call('PUT', '/v1/ai-access', alice, { enabled: true })).body.aiTradingEnabled).toBe(true);
-    expect((await call('PUT', '/v1/mode', alice, { mode: 'AUTO' })).status).toBe(200);
-    expect((await call('GET', '/v1/me', alice)).body).toMatchObject({ mode: 'AUTO', aiTradingEnabled: true });
-    await call('PUT', '/v1/ai-access', alice, { enabled: false });
-    expect((await call('GET', '/v1/me', alice)).body).toMatchObject({ mode: 'SHADOW', aiTradingEnabled: false });
-    expect((await call('PUT', '/v1/mode', alice, { mode: 'NOPE' })).status).toBe(400);
+  it('keeps users and their audit events separate', async () => {
+    const mine = (await call('GET', '/v1/me', alice)).body;
+    await call('POST', '/v1/me/audit', alice, { action: 'test.event', detail: { ok: true } });
+    const actions = (await db.auditLog.findMany({ where: { userId: mine.id } })).map((a) => a.action);
+    expect(actions).toContain('test.event');
+    expect((await call('GET', '/v1/me', bob)).body.id).not.toBe(mine.id);
   });
 
-  it('pause, resume and revoke work without preconditions and are audited', async () => {
-    expect((await call('POST', '/v1/agent/pause', alice)).body.agentPaused).toBe(true);
-    expect((await call('GET', '/v1/me', alice)).body.agentPaused).toBe(true);
-    await call('POST', '/v1/agent/resume', alice);
-    await call('PUT', '/v1/ai-access', alice, { enabled: true });
-    await call('PUT', '/v1/mode', alice, { mode: 'SEMI_AUTO' });
-    expect((await call('POST', '/v1/ai-access/revoke', alice)).body).toEqual({ aiTradingEnabled: false, mode: 'SHADOW' });
-    const me = (await call('GET', '/v1/me', alice)).body;
-    const actions = (await db.auditLog.findMany({ where: { userId: me.id } })).map((a) => a.action);
-    expect(actions).toEqual(expect.arrayContaining(['agent.paused', 'agent.resumed', 'ai_access.revoked', 'mode.changed']));
-  });
-
-  it('keeps users separate', async () => {
-    await call('POST', '/v1/agent/pause', alice);
-    expect((await call('GET', '/v1/me', bob)).body.agentPaused).toBe(false);
-  });
-
-  it('saves risk presets and refuses custom limits beyond the system limits', async () => {
-    expect((await call('PUT', '/v1/risk-profile', alice, { preset: 'CONSERVATIVE' })).body).toMatchObject({ preset: 'CONSERVATIVE', maxPerTradeSol: 0.1 });
-    const all = { maxPerTradeSol: 0.3, maxDailyAllocationSol: 1, maxTokenExposurePct: 12, maxOpenPositions: 4, maxDailyLossPct: 6, minConfidence: 0.8 };
-    expect((await call('PUT', '/v1/risk-profile', alice, { preset: 'CUSTOM', ...all })).status).toBe(200);
-    const bad = await call('PUT', '/v1/risk-profile', alice, { preset: 'CUSTOM', ...all, maxPerTradeSol: 50, minConfidence: 0.1 });
-    expect(bad.status).toBe(400);
-    expect(bad.body).toEqual({ error: 'EXCEEDS_SYSTEM_LIMITS', fields: ['maxPerTradeSol', 'minConfidence'] });
-    expect((await call('PUT', '/v1/risk-profile', alice, { preset: 'CUSTOM', maxPerTradeSol: 0.2 })).body.error).toBe('CUSTOM_REQUIRES_ALL_LIMITS');
-    expect((await call('GET', '/v1/me', alice)).body.riskPreset).toBe('CUSTOM');
+  it('treats a trading route as removed', async () => {
+    expect((await call('PUT', '/v1/mode', alice, { mode: 'AUTO' })).status).toBe(404);
   });
 });

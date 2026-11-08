@@ -12,11 +12,11 @@ describe('test isolation', () => {
     env.AI_MODEL_ID='explicit-test-model';
     expect(env.AI_MODEL_ID).toBe('explicit-test-model');
   });
-  it('removes an inherited admin allowlist so a shell export cannot change who admin checks accept', () => {
+  it('clears an inherited admin allowlist so a shell export cannot change who admin checks accept', () => {
     const env = {...good, ADMIN_EMAIL:'owner@example.com', ADMIN_PRIVY_USER_ID:'did:privy:someone'};
     clearTestAdminEnv(env);
-    expect(env).not.toHaveProperty('ADMIN_EMAIL');
-    expect(env).not.toHaveProperty('ADMIN_PRIVY_USER_ID');
+    expect(env.ADMIN_EMAIL).toBe('');
+    expect(env.ADMIN_PRIVY_USER_ID).toBe('');
     expect(resolveTestEnv(env)).toEqual(resolveTestEnv(good));
   });
   it('allows an explicitly named local test database and a designated local Redis', () => {

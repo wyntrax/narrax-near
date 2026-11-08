@@ -16,10 +16,6 @@ export const AGENT_LIMITS = {
   /** A single conversation stops accepting messages at this size. */
   maxMessagesPerConversation: 200,
   maxUserMessagesPerDay: 200,
-  /** A proposal can be applied for this long after the agent made it. */
-  proposalTtlMs: 10 * 60_000,
-  maxPendingProposalsPerUser: 5,
-  maxReasonChars: 300,
 } as const;
 
 export const FALLBACK = {

@@ -9,7 +9,6 @@ export interface Candidate {
   deployer: string | null;
   matchScore: number;
   top10Pct: number | null;
-  devHoldingPct: number | null;
   /** Other tokens from the same deployer in the days around this launch. Null when unknown. */
   deployerRecentTokens: number | null;
 }
@@ -60,13 +59,7 @@ export function resolveCandidates(narrative: { firstDetectedAt: Date }, candidat
       add('first_mover_rank', tied || rank === 0 ? 1 : rank === 1 ? 0.5 : 0.2, 25);
       add('gap_to_earliest', earliest ? clamp(1 - (c.createdAt.getTime() - earliest.createdAt!.getTime()) / HOUR / 6) : 1, 15);
     }
-    if (c.top10Pct != null || c.devHoldingPct != null) {
-      const parts = [
-        ...(c.top10Pct != null ? [clamp((60 - c.top10Pct) / 35)] : []),
-        ...(c.devHoldingPct != null ? [clamp((20 - c.devHoldingPct) / 15)] : []),
-      ];
-      add('holder_spread', parts.reduce((s, x) => s + x, 0) / parts.length, 15);
-    }
+    if (c.top10Pct != null) add('holder_spread', clamp((60 - c.top10Pct) / 35), 15);
     if (c.deployerRecentTokens != null) add('deployer_history', c.deployerRecentTokens >= 3 ? 0.2 : c.deployerRecentTokens === 2 ? 0.6 : 1, 10);
     if (c.deployerRecentTokens != null && c.deployerRecentTokens >= 3) flags.push('SERIAL_DEPLOYER');
 

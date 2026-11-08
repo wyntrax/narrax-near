@@ -29,7 +29,7 @@ export async function renderSocialImage(locale: SeoLocale, key: string) {
         <span style={{fontSize:38,fontWeight:700,letterSpacing:5}}>NARRAX</span>
       </div>
       <div style={{display:'flex',position:'absolute',right:60,top:62,padding:'12px 18px',border:'1px solid #405452',borderRadius:30,color:'#b9efdd',fontSize:17,letterSpacing:3}}>NEAR / RESEARCH</div>
-      <div style={{display:'flex',position:'absolute',left:62,top:150,fontSize:16,letterSpacing:3,color:'#a8f3da'}}>{home?(id?'NARASI + SMART MONEY':'NARRATIVES + SMART MONEY'):copy.label}</div>
+      <div style={{display:'flex',position:'absolute',left:62,top:150,fontSize:16,letterSpacing:3,color:'#a8f3da'}}>{home?(id?'NARASI + BUKTI TOKEN':'NARRATIVES + TOKEN EVIDENCE'):copy.label}</div>
       <div style={{display:'flex',position:'absolute',left:60,top:190,width:650,flexDirection:'column'}}>
         {home?<div style={{display:'flex',flexDirection:'column',fontSize:72,fontWeight:700,lineHeight:1.06,letterSpacing:-3}}>
           {(id?['Pahami narasi.','Telusuri','buktinya.']:['See the narrative.','Follow the','evidence.']).map((line,i)=><span key={line} style={{color:i===2?'#a8f3da':'#f7fafc'}}>{line}</span>)}

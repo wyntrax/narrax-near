@@ -12,10 +12,8 @@ export function routeFeature(path:string):FeatureKey|undefined{
   case 'radar':case 'narratives':return 'research.narratives';
   case 'tokens':return 'research.tokens';
   case 'opportunities':return 'research.opportunities';
-  case 'smart-money':return parts[3]?'research.wallet_detail':'research.smart_money';
   case 'analytics':return 'research.decision_analytics';
-  case 'backtests':return 'research.advanced_analytics';
   case 'agent':return 'research.chat';
-  default:return undefined; // Own-account Portfolio/Alerts/Settings and separately authorized Admin.
+  default:return undefined; // Own-account Alerts/Settings and separately authorized Admin.
  }
 }

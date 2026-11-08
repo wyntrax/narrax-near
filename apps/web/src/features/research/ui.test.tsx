@@ -19,10 +19,10 @@ it('opens a token from any non-interactive cell without hijacking external links
   expect(screen.getByText('$10').closest('tr')).toHaveClass('research-clickable-row');
 });
 it('infers a detail link in any column, including links inside wrapper components',()=>{
- function Name(){return <Link href="/en/app/smart-money/address">Wallet</Link>;}
+ function Name(){return <Link href="/en/app/tokens/example.near">Wallet</Link>;}
  render(<DataTable caption="Wallets" headers={['Time','Wallet','Count']} rows={[{key:'w',cells:['Today',<span key="name"><Name/></span>,'12 trades']}]} />);
- fireEvent.click(screen.getByText('12 trades'));expect(push).toHaveBeenCalledWith('/app/smart-money/address');
- push.mockClear();fireEvent.keyDown(screen.getByText('Today').closest('tr')!,{key:'Enter'});expect(push).toHaveBeenCalledWith('/app/smart-money/address');
+ fireEvent.click(screen.getByText('12 trades'));expect(push).toHaveBeenCalledWith('/app/tokens/example.near');
+ push.mockClear();fireEvent.keyDown(screen.getByText('Today').closest('tr')!,{key:'Enter'});expect(push).toHaveBeenCalledWith('/app/tokens/example.near');
 });
 it('does not turn summary or external-only rows into internal navigation',()=>{
  render(<DataTable caption="Summary" headers={['Item','Value']} rows={[{key:'a',cells:['Total','20']},{key:'b',cells:[<a key="external" href="https://x.com/person">Creator</a>,'10']}]} />);

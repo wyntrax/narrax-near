@@ -14,7 +14,7 @@ class FakeSocket implements HubSocket {
 }
 
 let seq = 0;
-const global = (channel: 'narratives' | 'alerts' | 'market', id = `${1000 + ++seq}-0`): StreamEvent => ({ id, type: 'market.sol', channel, scope: 'global', userId: null, at: new Date().toISOString(), data: { n: seq } });
+const global = (channel: 'narratives' | 'alerts' | 'market', id = `${1000 + ++seq}-0`): StreamEvent => ({ id, type: 'market.near', channel, scope: 'global', userId: null, at: new Date().toISOString(), data: { n: seq } });
 const mine = (userId: string, id = `${1000 + ++seq}-0`): StreamEvent => ({ id, type: 'notification.created', channel: 'me', scope: 'user', userId, at: new Date().toISOString(), data: { n: seq } });
 
 function client(hub: RealtimeHub, user: string | null, channels?: ('narratives' | 'alerts' | 'market')[]) {

@@ -13,7 +13,7 @@ export function MarketingNavigation(){
       frame=0;
       const offset=(document.querySelector('.site-header')?.getBoundingClientRect().height??80)+32;
       let current='home';
-      for(const id of ['home','how','preview','access','faq']){const section=document.getElementById(id);if(section&&section.getBoundingClientRect().top<=offset)current=id;}
+      for(const id of ['home','how','preview','faq']){const section=document.getElementById(id);if(section&&section.getBoundingClientRect().top<=offset)current=id;}
       const faq=document.getElementById('faq');
       if(faq&&window.scrollY+window.innerHeight>=document.documentElement.scrollHeight-2&&faq.getBoundingClientRect().top<window.innerHeight)current='faq';
       setActive(current);
@@ -24,7 +24,7 @@ export function MarketingNavigation(){
     const main=document.querySelector('.landing-page');if(main)observer?.observe(main);
     return()=>{window.cancelAnimationFrame(frame);window.removeEventListener('scroll',schedule);window.removeEventListener('resize',schedule);window.removeEventListener('hashchange',schedule);observer?.disconnect();};
   },[path]);
- const links=[['/',t('home')],['/#how',c('how')],['/#preview',t('product')],['/#access',t('tiers')],['/#faq',t('faq')]];
+ const links=[['/',t('home')],['/#how',c('how')],['/#preview',t('product')],['/#faq',t('faq')]];
    const items=links.map(([href,label])=><Link key={href} href={href!} prefetch={false} aria-current={path==='/'&&active===(href==='/'?'home':href!.split('#')[1])?'location':undefined} onClick={()=>setOpen(false)}>{label}</Link>);
   return <><div className="bracket-nav">{items}</div><Dialog.Root open={open} onOpenChange={setOpen}><Dialog.Trigger className="mobile-nav-trigger">{t('menu')} <span aria-hidden="true">+</span></Dialog.Trigger><Dialog.Portal><Dialog.Overlay className="dialog-overlay"/><Dialog.Content className="dialog-content mobile-nav-dialog"><Dialog.Title>{t('menu')}</Dialog.Title><Dialog.Description>{t('menuDescription')}</Dialog.Description><nav aria-label={c('navigation')}>{items}<Link href="/early-access" prefetch={false} onClick={()=>setOpen(false)}>{t('earlyAccess')} ↗</Link></nav><Dialog.Close className="button button-ghost">{c('close')}</Dialog.Close></Dialog.Content></Dialog.Portal></Dialog.Root></>;
 }

@@ -1,7 +1,7 @@
 'use client';
 import {useState,type ReactNode} from 'react';
 import {useLocale,useTranslations} from 'next-intl';
-import {LayoutDashboard,Radar,Orbit,Coins,Wallet,Briefcase,Bell,ChartColumn,FlaskConical,Bot,Settings,ShieldCheck,PanelLeftClose,PanelLeftOpen,Menu,LogOut,ArrowUpRight,LockKeyhole} from 'lucide-react';
+import {LayoutDashboard,Radar,Orbit,Coins,Bell,ChartColumn,FlaskConical,Bot,Settings,ShieldCheck,PanelLeftClose,PanelLeftOpen,Menu,LogOut,ArrowUpRight,LockKeyhole} from 'lucide-react';
 import {Link,usePathname} from '@/i18n/navigation';
 import {BrandMark} from '@/components/brand-mark';
 import {PoweredBy} from '@/components/powered-by';
@@ -14,7 +14,7 @@ import {Locked,useFormat,researchErrorKey} from './ui';
 import {routeFeature} from './route-access';
 import {MeSchema} from '@/features/admin/contracts';
 import {proCopy} from '@/features/pro-research/copy';
-const navigation=[{href:'/app',key:'overview',icon:LayoutDashboard},{href:'/app/radar',key:'radar',icon:Radar},{href:'/app/opportunities',key:'opportunities',icon:Orbit},{href:'/app/tokens',key:'tokens',icon:Coins},{href:'/app/smart-money',key:'smartMoney',icon:Wallet},{href:'/app/portfolio',key:'portfolio',icon:Briefcase},{href:'/app/alerts',key:'alerts',icon:Bell},{href:'/app/analytics',key:'analytics',icon:ChartColumn},{href:'/app/backtests',key:'backtest',icon:ChartColumn},{href:'/app/agent',key:'agent',icon:Bot},{href:'/app/settings',key:'settings',icon:Settings}];
+const navigation=[{href:'/app',key:'overview',icon:LayoutDashboard},{href:'/app/radar',key:'radar',icon:Radar},{href:'/app/opportunities',key:'opportunities',icon:Orbit},{href:'/app/tokens',key:'tokens',icon:Coins},{href:'/app/alerts',key:'alerts',icon:Bell},{href:'/app/analytics',key:'analytics',icon:ChartColumn},{href:'/app/agent',key:'agent',icon:Bot},{href:'/app/settings',key:'settings',icon:Settings}];
 export function ResearchShell({children,theme}:{children:ReactNode;theme:string}){
   const t=useTranslations('workspace'),pathname=usePathname(),auth=useAuth();
  const locale=useLocale()==='id'?'id':'en',pro=proCopy[locale],navLabel=(key:string)=>key==='personalRadar'?pro.radar:key==='theses'?pro.thesis:key==='briefing'?pro.briefing:t(key);
@@ -45,9 +45,8 @@ export function ResearchShell({children,theme}:{children:ReactNode;theme:string}
 function IntelligenceBar(){const t=useTranslations('workspace'),f=useFormat(),query=useResearchQuery('market-preview',MarketPreviewSchema,true,60000);const bar=query.isError?null:query.data;
  const state=query.isPending?t('snapshotStates.loading'):query.isError?t('snapshotStates.failed'):!bar?t('unavailable'):null;
  return <header className="intelligence-bar" tabIndex={0} aria-label={t('snapshot')} aria-busy={query.isFetching}>
-   <span title={bar?.solUsd?t('updated',{at:f.date(bar.solUsd.at)}):undefined}>SOL <b>{state??(!bar?.solUsd?t('snapshotStates.noPrice'):f.usd(bar.solUsd.priceUsd))}</b>{bar?.solUsd?.stale&&<small className="preview-stale">{t('snapshotStates.stalePrice')}</small>}</span>
+   <span title={bar?.nearUsd?t('updated',{at:f.date(bar.nearUsd.at)}):undefined}>NEAR <b>{state??(!bar?.nearUsd?t('snapshotStates.noPrice'):f.usd(bar.nearUsd.priceUsd))}</b>{bar?.nearUsd?.stale&&<small className="preview-stale">{t('snapshotStates.stalePrice')}</small>}</span>
   <span>{t('heat')} <b>{state??(bar?.narrativeHeat==null?t('snapshotStates.noNarratives'):f.number(bar.narrativeHeat))}</b></span>
-   <span>{t('enhance.trackedWallets')} <b>{state??f.number(bar?.trackedWallets,0)}</b></span>
    <span>{t('opportunityCount')} <b>{state??f.number(bar?.opportunities24h,0)}</b></span>
   {query.isError?<button className="research-control" title={t(researchErrorKey(query.error))} disabled={query.isFetching} onClick={()=>void query.refetch()}>{t('retry')}</button>:<span className="snapshot-label" title={query.data?t('updated',{at:f.date(query.data.at)}):undefined}>{t('snapshot')}</span>}
  </header>;

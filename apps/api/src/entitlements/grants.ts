@@ -18,7 +18,7 @@ export async function grantEarlyAccess(db: PrismaClient, userId: string, input: 
     await lockUser(tx, userId);
     const settings = await localSettings(tx);
     const users = await tx.accessGrant.findMany({ where: active(now), distinct: ['userId'], select: { userId: true } });
-    const denied = earlyAccessAdmission({ ...settings, now, occupied: users.length, alreadySeated: users.some(u => u.userId === userId), hasWallet: (await tx.linkedWallet.count({ where: { userId } })) > 0 });
+    const denied = earlyAccessAdmission({ ...settings, now, occupied: users.length, alreadySeated: users.some(u => u.userId === userId) });
     if (denied) throw new AccessError(denied);
     const source = actorId === null ? 'EARLY_ACCESS' : 'ADMIN';
     const previous = await tx.accessGrant.findUnique({ where: { userId_source: { userId, source } } });

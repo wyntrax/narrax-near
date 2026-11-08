@@ -2,6 +2,8 @@
  * Evidence gates. Below these, numbers are still shown but nothing is called better or worse.
  * UNVALIDATED starting values: a gate this low only stops the most obviously empty comparisons.
  */
+export const DEFAULT_ROUND_TRIP_COST_PCT = 2;
+
 export const GATES = {
   /** Fewest independent events a group needs before any verdict. */
   minSample: 30,
@@ -120,4 +122,31 @@ export function dedupeEvents<T extends { tokenId: string; at: Date }>(events: T[
     if (prev == null || e.at.getTime() - prev >= windowMs) { out.push(e); last.set(e.tokenId, e.at.getTime()); }
   }
   return out;
+}
+
+export interface Bucket { label: string; described: Described }
+
+/** Calibrate returns against a numeric key (for example model confidence) split at edges. */
+export function calibrateByBucket(items: (Item & { key: number })[], edges: number[]): Bucket[] {
+  const out: Bucket[] = [];
+  let low = -Infinity;
+  for (const high of edges) {
+    const rows = items.filter((i) => i.key >= low && i.key < high);
+    out.push({ label: Number.isFinite(low) ? `${low.toFixed(1)}-${high.toFixed(1)}` : `<${high.toFixed(1)}`, described: describeReturns(rows) });
+    low = high;
+  }
+  const tail = items.filter((i) => i.key >= low);
+  out.push({ label: Number.isFinite(low) ? `>=${low.toFixed(1)}` : 'all', described: describeReturns(tail) });
+  return out;
+}
+
+/** Calibrate returns against the reason codes attached to each decision. */
+export function calibrateBySignal(items: (Item & { codes: string[] })[]): Bucket[] {
+  const by = new Map<string, Item[]>();
+  for (const i of items) for (const code of new Set(i.codes)) {
+    const list = by.get(code) ?? [];
+    list.push({ tokenId: i.tokenId, ret: i.ret });
+    by.set(code, list);
+  }
+  return [...by.entries()].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0])).map(([label, rows]) => ({ label, described: describeReturns(rows) }));
 }

@@ -1,19 +1,20 @@
 'use client';
-import {PrivyProvider, usePrivy, useIdentityToken, useConnectWallet} from '@privy-io/react-auth';
-import {useWallets, useSignMessage, useCreateWallet, toSolanaWalletConnectors} from '@privy-io/react-auth/solana';
-import {useMemo, type ReactNode} from 'react';
-import {AuthContext} from './context';
-const connectors = toSolanaWalletConnectors();
-function Bridge({children}: {children: ReactNode}) {
-  const {ready, authenticated, user, login, logout, getAccessToken} = usePrivy();
-  const {identityToken} = useIdentityToken();
-  const {connectWallet} = useConnectWallet(); const {wallets} = useWallets(); const {signMessage} = useSignMessage(); const {createWallet} = useCreateWallet();
-  const value = useMemo(() => ({ready, authenticated, userId: user?.id ?? null, login, logout, getAccessToken,
+import { PrivyProvider, usePrivy, useIdentityToken } from '@privy-io/react-auth';
+import { useMemo, type ReactNode } from 'react';
+import { AuthContext } from './context';
+
+function Bridge({ children }: { children: ReactNode }) {
+  const { ready, authenticated, user, login, logout, getAccessToken } = usePrivy();
+  const { identityToken } = useIdentityToken();
+  const value = useMemo(() => ({
+    ready, authenticated, userId: user?.id ?? null, login, logout, getAccessToken,
     // Privy signs this token; the API verifies the signature before trusting any email in it. Null when unavailable.
     getIdentityToken: async () => identityToken ?? null,
-    connectWallet: () => connectWallet({walletChainType:'solana-only'}), createWallet: async () => {await createWallet();},
-    wallets: wallets.map(wallet => ({address: wallet.address, name: wallet.standardWallet.name, signMessage: async (message: Uint8Array) => (await signMessage({message, wallet})).signature}))
-  }), [ready, authenticated, user?.id, login, logout, getAccessToken, identityToken, connectWallet, createWallet, wallets, signMessage]);
+  }), [ready, authenticated, user?.id, login, logout, getAccessToken, identityToken]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-export default function AuthProvider({children,appId}: {children: ReactNode;appId:string}) {return <PrivyProvider appId={appId} config={{loginMethods:['google','email','wallet'], appearance:{walletChainType:'solana-only'}, externalWallets:{solana:{connectors}}, embeddedWallets:{solana:{createOnLogin:'off'}}}}><Bridge>{children}</Bridge></PrivyProvider>;}
+
+/** NEAR-only research build: sign-in is email or Google. No browser wallet connection is requested or stored. */
+export default function AuthProvider({ children, appId }: { children: ReactNode; appId: string }) {
+  return <PrivyProvider appId={appId} config={{ loginMethods: ['google', 'email'] }}><Bridge>{children}</Bridge></PrivyProvider>;
+}

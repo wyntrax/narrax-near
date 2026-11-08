@@ -16,7 +16,7 @@ async function main() {
     'check-mints': { type: 'boolean', default: false },
   } });
   if (values.help) {
-    console.log('npm run narratives:treg -- --query "Solana" [--name "Solana"] [--platforms x,reddit,tiktok] [--hours 48] [--pages 1] [--max-cost 0.01] [--cli] [--write]');
+    console.log('npm run narratives:treg -- --query "NEAR" [--name "NEAR"] [--platforms x,reddit,tiktok] [--hours 48] [--pages 1] [--max-cost 0.01] [--cli] [--write]');
     console.log('Default: fetch a bounded hash/reference-only preview; no database writes. --cli uses your treg login. --check-mints checks up to 30 extracted mints with DEX Screener. --write imports the same observations without a second paid fetch.');
     return;
   }

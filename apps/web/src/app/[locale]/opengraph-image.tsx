@@ -4,7 +4,7 @@ import path from 'node:path';
 import {OG_TOKENS as colors} from '@/config/site';
 import en from '../../../messages/en.json';
 import id from '../../../messages/id.json';
-export const alt='NARRAX — narrative research on Solana';
+export const alt='NARRAX — narrative research on NEAR';
 export const size={width:1200,height:630};
 export const contentType='image/png';
 export default async function Image({params}:{params:Promise<{locale:string}>}){

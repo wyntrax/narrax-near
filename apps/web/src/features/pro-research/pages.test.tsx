@@ -30,7 +30,7 @@ it.each(['en', 'id'] as const)('creates a radar with explicit conditions and rej
   fireEvent.click(screen.getByRole('button', { name: c.save }));
   await waitFor(() => expect(state.send).toHaveBeenCalledWith('personal-research/radars', expect.anything(), 'POST', {
     name: 'My liquidity radar', thesis: '', mint: null, narrativeSlug: null, active: true,
-    rules: { minLiquidityUsd: 200000, minIndependentBuyers: null, windowMinutes: 30, minNarrativeVelocity: null, maxRiskScore: null },
+    rules: { minLiquidityUsd: 200000, windowMinutes: 30, minNarrativeVelocity: null, maxRiskScore: null },
   }));
 });
 it('preserves user-entered text on failed saves', async () => {
@@ -38,7 +38,7 @@ it('preserves user-entered text on failed saves', async () => {
   fireEvent.click(screen.getByRole('button', { name: proCopy.en.newThesis }));
   fireEvent.change(screen.getByLabelText(proCopy.en.name), { target: { value: 'My thesis' } });
   fireEvent.change(screen.getByLabelText(proCopy.en.rationale), { target: { value: '<script>plain text</script>' } });
-  fireEvent.change(screen.getByLabelText(proCopy.en.mint), { target: { value: 'wyntrax.testnet' } });
+  fireEvent.change(screen.getByLabelText(proCopy.en.mint), { target: { value: 'example.testnet' } });
   fireEvent.change(screen.getByLabelText(proCopy.en.liquidity), { target: { value: '1' } });
   fireEvent.click(screen.getByRole('button', { name: proCopy.en.save }));
   await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(proCopy.en.errors.default!));
@@ -46,9 +46,9 @@ it('preserves user-entered text on failed saves', async () => {
 });
 it('renders unknown evidence and dated briefings without inventing zeros', () => {
   state.items = [{ day: '2026-10-25', generatedAt: '2026-10-25T12:00:00Z', since: '2026-10-24T12:00:00Z', radarMatches: 0, thesisChanges: 1, unknown: 1, capped: true,
-    items: [{ monitorId: 'm', name: 'My thesis', kind: 'THESIS', mint: 'wyntrax.testnet', at: '2026-10-25T12:00:00Z', previousStatus: 'MATCH', evaluation: { status: 'UNKNOWN', checks: [{ key: 'liquidity', status: 'UNKNOWN', value: null, threshold: 200000, at: null, source: null, refs: [], reason: 'MISSING_OR_STALE' }] } }] }];
+    items: [{ monitorId: 'm', name: 'My thesis', kind: 'THESIS', mint: 'example.testnet', at: '2026-10-25T12:00:00Z', previousStatus: 'MATCH', evaluation: { status: 'UNKNOWN', checks: [{ key: 'liquidity', status: 'UNKNOWN', value: null, threshold: 200000, at: null, source: null, refs: [], reason: 'MISSING_OR_STALE' }] } }] }];
   view('BRIEF'); expect(screen.getByText(proCopy.en.uncertain)).toBeVisible(); expect(screen.getByText(/Partial coverage/)).toBeVisible();
-  expect(screen.getByRole('link', { name: /Token research/ })).toHaveAttribute('href', '/app/tokens/wyntrax.testnet');
+  expect(screen.getByRole('link', { name: /Token research/ })).toHaveAttribute('href', '/app/tokens/example.testnet');
   expect(document.querySelector('.pro-evidence')).toHaveTextContent('Unknown');
   expect(document.querySelector('.pro-evidence')).not.toHaveTextContent('$0');
 });

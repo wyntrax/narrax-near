@@ -33,11 +33,8 @@ export async function setAiEnabled(db: PrismaClient, enabled: boolean): Promise<
 
 export async function tokensUsedToday(db: PrismaClient, now: Date): Promise<number> {
   const since = startOfUtcDay(now);
-  const [s, reviews] = await Promise.all([
-    db.agentAnalysis.aggregate({ where: { createdAt: { gte: since } }, _sum: { inputTokens: true, outputTokens: true } }),
-    db.positionEvaluation.aggregate({ where: { createdAt: { gte: since } }, _sum: { aiTokens: true } }),
-  ]);
-  return (s._sum.inputTokens ?? 0) + (s._sum.outputTokens ?? 0) + (reviews._sum.aiTokens ?? 0);
+  const s = await db.agentAnalysis.aggregate({ where: { createdAt: { gte: since } }, _sum: { inputTokens: true, outputTokens: true } });
+  return (s._sum.inputTokens ?? 0) + (s._sum.outputTokens ?? 0);
 }
 
 // ---------- Facts ----------
@@ -49,25 +46,24 @@ export async function collectFacts(db: PrismaClient, opportunityId: string): Pro
   const o = await db.opportunity.findUnique({
     where: { id: opportunityId },
     include: {
-      token: { include: { metrics: { orderBy: { at: 'desc' }, take: 1 }, holders: { orderBy: { at: 'desc' }, take: 1 }, consensus: { orderBy: { at: 'desc' }, take: 1 } } },
+      token: { include: { metrics: { orderBy: { at: 'desc' }, take: 1 }, holders: { orderBy: { at: 'desc' }, take: 1 } } },
       narrative: true,
     },
   });
   if (!o) return null;
   const rel = o.narrativeId ? await db.narrativeTokenRelation.findUnique({ where: { narrativeId_tokenId: { narrativeId: o.narrativeId, tokenId: o.tokenId } } }) : null;
-  const m = o.token.metrics[0], h = o.token.holders[0], c = o.token.consensus[0];
+  const m = o.token.metrics[0], h = o.token.holders[0];
   const created = o.token.createdOnChainAt;
   const d = attentionPriceDivergence(o.attentionGrowth, o.priceGrowth);
 
   const facts: OpportunityFacts = {
     opportunityScore: o.score,
-    scores: { narrative: o.narrativeScore, smartMoney: o.smartMoneyScore, liquidity: o.liquidityScore, momentum: o.momentumScore, og: o.ogScore, risk: o.riskScore },
+    scores: { narrative: o.narrativeScore, liquidity: o.liquidityScore, momentum: o.momentumScore, og: o.ogScore, risk: o.riskScore },
     relation: rel?.relation ?? null, ogScore: rel?.ogScore ?? null, ogConfidence: rel?.confidence ?? null,
     divergence: { label: d.label, attentionGrowthPct: d.attentionGrowthPct, priceGrowthPct: d.priceGrowthPct },
-    liquidityUsd: num(m?.liquidityUsd), holders: h?.holders ?? null, top10Pct: h?.top10Pct ?? null, devHoldingPct: h?.devHoldingPct ?? null,
+    liquidityUsd: num(m?.liquidityUsd), holders: h?.holders ?? null, top10Pct: h?.top10Pct ?? null,
     tokenAgeMinutes: created ? Math.round((Date.now() - created.getTime()) / 60_000) : null,
     narrative: o.narrative ? { stage: o.narrative.stage, score: o.narrative.score, velocity: o.narrative.velocity, acceleration: o.narrative.acceleration, organicScore: o.narrative.organicScore, saturationRisk: o.narrative.saturationRisk } : null,
-    smartMoney: c ? { score: c.score, walletCount: c.walletCount, independentEntities: c.independentEntities, leaderCount: c.leaderCount, netFlowSol: num(c.netFlowSol) ?? 0 } : null,
   };
   const untrusted = [
     wrapUntrusted('token.symbol', o.token.symbol, 32), wrapUntrusted('token.name', o.token.name, 80),
@@ -142,23 +138,13 @@ export async function runAiAnalysis(db: PrismaClient, deps: { llm: LlmProvider |
     });
     out.analyzed++;
     if (r.deep) out.deep++;
-    if (r.guardrails.some((g) => !['SIZE_CAPPED', 'ENTRY_LIMITS_TIGHTENED', 'STOP_LOSS_DEFAULTED'].includes(g))) out.guarded++;
+    if (r.guardrails.length) out.guarded++;
     if (r.decision.action === 'BUY') {
       out.buys++;
       await db.alert.create({
-        data: { kind: 'AI_BUY', priority: 'IMPORTANT', title: `AI buy view: ${sanitizeUntrusted(collected.symbol, 32)}`, body: `Confidence ${Math.round(r.decision.confidence * 100)}%, opportunity score ${collected.facts.opportunityScore}. The Risk Governor still decides whether anything is traded.`, refType: 'TOKEN', refId: collected.tokenId, createdAt: now },
+        data: { kind: 'AI_BUY', priority: 'IMPORTANT', title: `AI buy view: ${sanitizeUntrusted(collected.symbol, 32)}`, body: `Confidence ${Math.round(r.decision.confidence * 100)}%, opportunity score ${collected.facts.opportunityScore}. This is a research view, not an instruction or a prediction.`, refType: 'TOKEN', refId: collected.tokenId, createdAt: now },
       });
     }
   }
   return out;
-}
-
-/** Handles a wallet-event screening job: analyze the freshest ranked opportunity for that token, if there is one. */
-export async function processScreeningJob(db: PrismaClient, deps: { llm: LlmProvider | null }, job: { mint: string }, now: Date = new Date()): Promise<AnalysisSummary | 'no_opportunity'> {
-  const opp = await db.opportunity.findFirst({
-    where: { token: { mint: job.mint }, createdAt: { gte: new Date(now.getTime() - 60 * 60_000) }, analyses: { none: {} } },
-    orderBy: { createdAt: 'desc' }, select: { id: true },
-  });
-  if (!opp) return 'no_opportunity'; // not ranked yet (no liquidity or holders), so there is nothing to analyze
-  return runAiAnalysis(db, deps, now, { opportunityIds: [opp.id], limit: 1, cooldownMinutes: 15 });
 }

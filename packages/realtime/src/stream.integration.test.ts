@@ -13,13 +13,14 @@ const up = await redisUp();
 
 describe('event validation and ids (pure)', () => {
   it('rejects a user event without a user and a global event with one', () => {
-    const base = { at: new Date(), data: { positionId: 'p', evaluationId: 'e', action: 'SELL', fractionPct: 100, pnlPct: -3, blind: false } };
-    expect(() => validateNewEvent({ type: 'position.evaluated', ...base })).toThrow(/userId/);
-    expect(() => validateNewEvent({ type: 'market.sol', userId: 'u', at: new Date(), data: { priceUsd: 150 } })).toThrow(/global/);
-    expect(validateNewEvent({ type: 'position.evaluated', userId: 'u', ...base }).channel).toBe('me');
+    const narrative = { at: new Date(), data: { id: 'n', slug: 'n', name: 'N', stage: 'SEED', score: 1, velocity: 1, acceleration: 1, organicScore: 1 } };
+    const notification = { at: new Date(), data: { id: 'n', alertId: 'a', kind: 'AI_BUY', priority: 'IMPORTANT', title: 't', body: 'b', refType: null, refId: null } };
+    expect(() => validateNewEvent({ type: 'notification.created', ...notification })).toThrow(/userId/);
+    expect(() => validateNewEvent({ type: 'market.near', userId: 'u', at: new Date(), data: { priceUsd: 150 } })).toThrow(/global/);
+    expect(validateNewEvent({ type: 'narrative.updated', ...narrative }).channel).toBe('narratives');
   });
   it('rejects data that does not match the event type', () => {
-    expect(() => validateNewEvent({ type: 'market.sol', at: new Date(), data: { priceUsd: 'free' } as never })).toThrow();
+    expect(() => validateNewEvent({ type: 'market.near', at: new Date(), data: { priceUsd: 'free' } as never })).toThrow();
   });
   it('compares stream ids numerically, not as strings', () => {
     expect(compareIds('9-0', '10-0')).toBe(-1);
@@ -27,8 +28,8 @@ describe('event validation and ids (pure)', () => {
     expect(compareIds('5-5', '5-5')).toBe(0);
   });
   it('skips a malformed entry instead of throwing', () => {
-    expect(parseEntry('1-0', ['t', 'market.sol'])).toBeNull();
-    expect(parseEntry('1-0', ['t', 'market.sol', 'c', 'me', 's', 'global', 'u', '', 'a', 'x', 'd', '{}'])).toBeNull(); // channel does not match the type
+    expect(parseEntry('1-0', ['t', 'market.near'])).toBeNull();
+    expect(parseEntry('1-0', ['t', 'market.near', 'c', 'me', 's', 'global', 'u', '', 'a', 'x', 'd', '{}'])).toBeNull(); // channel does not match the type
     expect(parseEntry('1-0', ['t', 'nope', 'c', 'market', 's', 'global', 'u', '', 'a', 'x', 'd', '{}'])).toBeNull();
   });
 });
@@ -39,7 +40,7 @@ describe.skipIf(!up)('event stream (needs Redis)', () => {
   const stream = createEventStream(conn, key);
   afterAll(async () => { await conn.del(key); conn.disconnect(); });
 
-  const sol = (priceUsd: number) => ({ type: 'market.sol' as const, at: new Date(), data: { priceUsd } });
+  const sol = (priceUsd: number) => ({ type: 'market.near' as const, at: new Date(), data: { priceUsd } });
 
   it('publishes, reads a range after an id, and reports the newest id', async () => {
     expect(await stream.newestId()).toBe('0-0');
@@ -61,7 +62,7 @@ describe.skipIf(!up)('event stream (needs Redis)', () => {
 
   it('refuses to publish an invalid event and writes nothing', async () => {
     const before = await stream.newestId();
-    await expect(stream.publish({ type: 'trade.created', at: new Date(), data: {} as never })).rejects.toThrow();
+    await expect(stream.publish({ type: 'opportunity.created', at: new Date(), data: {} as never })).rejects.toThrow();
     expect(await stream.newestId()).toBe(before);
   });
 

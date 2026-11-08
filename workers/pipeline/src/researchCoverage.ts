@@ -74,10 +74,10 @@ export function renderResearchCoverage(report: Awaited<ReturnType<typeof researc
   lines.push('', '### Latest market price requests', '');
   if (!counters?.['priceCoverage.runs']) lines.push('UNKNOWN: the latest market run has no per-group request telemetry. Older runs are not backfilled.');
   else {
-    lines.push(`Run: ${market?.latest?.at} (${market?.stale ? 'STALE' : 'recent'}). Excludes the separate SOL reference-price request.`, '',
+    lines.push(`Run: ${market?.latest?.at} (${market?.stale ? 'STALE' : 'recent'}). Excludes the separate NEAR reference-price request.`, '',
       '| Selection group | Selected | Written | No usable snapshot | Request failed | Not requested |',
       '| --- | ---: | ---: | ---: | ---: | ---: |');
-    for (const lane of ['outcomes', 'discovery', 'social', 'launches', 'unpriced', 'general']) lines.push(`| ${lane} | ${['selected', 'written', 'unavailable', 'failed', 'notRequested'].map(field => counters[`price.${lane}.${field}`] ?? 'UNKNOWN').join(' | ')} |`);
+    for (const lane of ['outcomes', 'social', 'launches', 'unpriced', 'general']) lines.push(`| ${lane} | ${['selected', 'written', 'unavailable', 'failed', 'notRequested'].map(field => counters[`price.${lane}.${field}`] ?? 'UNKNOWN').join(' | ')} |`);
     lines.push('', `Instrumented UTC-day runs: ${market?.today?.counters['priceCoverage.runs'] ?? 'UNKNOWN'} / ${market?.today?.runs ?? 'UNKNOWN'} recorded runs. Partial instrumentation is not full-day coverage. No usable snapshot means a completed request returned none; it does not establish why the provider omitted it.`);
     lines.push('', '### Latest omission reasons', '');
     if (!counters['priceOmissions.runs']) lines.push('UNKNOWN: this run predates omission-reason instrumentation.');
@@ -85,7 +85,7 @@ export function renderResearchCoverage(report: Awaited<ReturnType<typeof researc
       const reasons = Object.entries(counters).filter(([key, count]) => key.startsWith('omission.') && count > 0 && SNAPSHOT_OMISSION_REASONS.some(reason => key.endsWith(`.${reason}`)));
       for (const [key, count] of reasons) lines.push(`- ${key.slice('omission.'.length)}: ${count}`);
       if (!reasons.length) lines.push('No omitted snapshots recorded in this run.');
-      lines.push('', `Reason-instrumented UTC-day runs: ${market?.today?.counters['priceOmissions.runs'] ?? 'UNKNOWN'} / ${market?.today?.runs ?? 'UNKNOWN'}. One first blocking reason per omitted token attempt, not every missing field or proof a token does not trade. NO_MATCHING_PAIR means no validated Solana base-token pair matched; UNSPECIFIED means the source supplied no reason. Failed/unrequested batches have no omission reason.`);
+      lines.push('', `Reason-instrumented UTC-day runs: ${market?.today?.counters['priceOmissions.runs'] ?? 'UNKNOWN'} / ${market?.today?.runs ?? 'UNKNOWN'}. One first blocking reason per omitted token attempt, not every missing field or proof a token does not trade. NO_MATCHING_PAIR means no validated NEAR base-token pair matched; UNSPECIFIED means the source supplied no reason. Failed/unrequested batches have no omission reason.`);
     }
   }
   return lines.join('\n');

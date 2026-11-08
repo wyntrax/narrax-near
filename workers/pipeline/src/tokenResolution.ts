@@ -47,7 +47,7 @@ export async function resolveTokens(db: PrismaClient, now: Date = new Date()): P
     const tokens = await db.token.findMany({
       where: { OR: prefixes.flatMap((p) => [{ symbol: { contains: p, mode: 'insensitive' as const } }, { name: { contains: p, mode: 'insensitive' as const } }]) },
       take: 300,
-      include: { metrics: { orderBy: { at: 'desc' }, take: 1 }, holders: { orderBy: { at: 'desc' }, take: 1 }, consensus: { orderBy: { at: 'desc' }, take: 1 }, risk: { orderBy: { at: 'desc' }, take: 1 } },
+      include: { metrics: { orderBy: { at: 'desc' }, take: 1 }, holders: { orderBy: { at: 'desc' }, take: 1 }, risk: { orderBy: { at: 'desc' }, take: 1 } },
     });
     const matched = tokens.map((t) => ({ t, match: matchScore(n.name, { symbol: t.symbol, name: t.name }) })).filter((x) => x.match >= MATCH_THRESHOLD);
 
@@ -59,7 +59,7 @@ export async function resolveTokens(db: PrismaClient, now: Date = new Date()): P
     if (linkIds.length) {
       const linked = await db.token.findMany({
         where: { id: { in: linkIds }, blacklisted: false },
-        include: { metrics: { orderBy: { at: 'desc' }, take: 1 }, holders: { orderBy: { at: 'desc' }, take: 1 }, consensus: { orderBy: { at: 'desc' }, take: 1 }, risk: { orderBy: { at: 'desc' }, take: 1 } },
+        include: { metrics: { orderBy: { at: 'desc' }, take: 1 }, holders: { orderBy: { at: 'desc' }, take: 1 }, risk: { orderBy: { at: 'desc' }, take: 1 } },
       });
       const score = new Map(links.map((l) => [l.tokenId, l.matchScore]));
       const social=await socialOpportunityEvidence(db,n.id,linked.filter(t=>matchScore(n.name,t)<MATCH_THRESHOLD),now);
@@ -85,7 +85,7 @@ export async function resolveTokens(db: PrismaClient, now: Date = new Date()): P
       if (t.deployer && t.createdOnChainAt) {
         deployerRecent = await db.token.count({ where: { deployer: t.deployer, id: { not: t.id }, createdOnChainAt: { gte: new Date(t.createdOnChainAt.getTime() - 7 * DAY), lte: new Date(t.createdOnChainAt.getTime() + 7 * DAY) } } });
       }
-      candidates.push({ id: t.id, symbol: t.symbol, createdAt: t.createdOnChainAt, deployer: t.deployer, matchScore: match, top10Pct: t.holders[0]?.top10Pct ?? null, devHoldingPct: t.holders[0]?.devHoldingPct ?? null, deployerRecentTokens: deployerRecent });
+      candidates.push({ id: t.id, symbol: t.symbol, createdAt: t.createdOnChainAt, deployer: t.deployer, matchScore: match, top10Pct: t.holders[0]?.top10Pct ?? null, deployerRecentTokens: deployerRecent });
     }
     const og = resolveCandidates({ firstDetectedAt: n.firstDetectedAt }, candidates);
     out.candidates += candidates.length;
@@ -108,8 +108,8 @@ export async function resolveTokens(db: PrismaClient, now: Date = new Date()): P
       // Ranking needs real liquidity and holders. Until then it stays a watched candidate.
       const m = t.metrics[0], h = t.holders[0];
       if (!m || !h || r.relation === 'SUSPICIOUS') continue;
-      // A confirmed honeypot is never ranked, whatever its narrative score. Other risk flags only lower the score.
-      if (t.risk[0]?.flags.includes('HONEYPOT')) continue;
+      // A token with a critical recorded risk flag is never ranked. Other flags only lower the score.
+      if (t.risk[0] && t.risk[0].riskScore >= 80) continue;
       const liquidityUsd = num(m.liquidityUsd) ?? 0;
 
       const price = num(m.priceUsd) ?? 0;
@@ -131,7 +131,7 @@ export async function resolveTokens(db: PrismaClient, now: Date = new Date()): P
         const thenRow = await db.tokenHolderMetric.findFirst({ where: { tokenId: t.id, at: { lte: new Date(now.getTime() - 3 * HOUR) } }, orderBy: { at: 'desc' }, select: { holders: true } });
         const early = evaluateEarlyBoth({
           marketCapUsd, liquidityUsd, volume24hUsd: num(m.volume24hUsd) ?? NaN, holders: h.holders, holdersThen: thenRow?.holders ?? null,
-          top10Pct: h.top10Pct, devHoldingPct: h.devHoldingPct ?? null, smartWalletHolders: h.smartWalletHolders, tokenAgeMinutes: t.createdOnChainAt ? (now.getTime() - t.createdOnChainAt.getTime()) / 60_000 : null,
+          top10Pct: h.top10Pct, tokenAgeMinutes: t.createdOnChainAt ? (now.getTime() - t.createdOnChainAt.getTime()) / 60_000 : null,
           relation: r.relation, ogScore: r.ogScore, narrativeScore: n.score, narrativeStage: n.stage, narrativeManipulationRisk: n.metrics[0]?.manipulationRisk ?? null,
           divergence: divergence.label, priceGrowth1hPct: growth1h, riskFlags: t.risk[0]?.flags ?? [],
         });
@@ -157,8 +157,8 @@ export async function resolveTokens(db: PrismaClient, now: Date = new Date()): P
       // Ranking needs real liquidity and holders. Until then it stays a watched candidate (or an early-radar alert above).
       if (!meetsFloors({ liquidityUsd, holders: h.holders, relation: r.relation })) continue;
       const sc = opportunityScore({
-        narrativeScore: n.score, smartMoneyScore: t.consensus[0]?.score ?? 0, liquidityUsd, holders: h.holders, priceGrowth1hPct: growth1h, ogScore: r.ogScore,
-        relation: r.relation, divergence: divergence.label, top10Pct: h.top10Pct, devHoldingPct: h.devHoldingPct ?? null,
+        narrativeScore: n.score, liquidityUsd, holders: h.holders, priceGrowth1hPct: growth1h, ogScore: r.ogScore,
+        relation: r.relation, divergence: divergence.label, top10Pct: h.top10Pct,
         tokenAgeMinutes: t.createdOnChainAt ? (now.getTime() - t.createdOnChainAt.getTime()) / 60_000 : null, narrativeManipulationRisk: n.metrics[0]?.manipulationRisk ?? null,
       });
 
@@ -167,7 +167,7 @@ export async function resolveTokens(db: PrismaClient, now: Date = new Date()): P
       const age = last ? now.getTime() - last.createdAt.getTime() : Infinity;
       if (!last || (age >= 15 * 60_000 && (Math.abs(last.score - sc.score) >= 2 || age >= HOUR))) {
         await db.opportunity.create({
-          data: { tokenId: t.id, narrativeId: n.id, score: sc.score, narrativeScore: sc.narrative, smartMoneyScore: sc.smartMoney, liquidityScore: sc.liquidity, momentumScore: sc.momentum, ogScore: sc.og, riskScore: sc.risk, attentionGrowth: n.velocity, priceGrowth: growth3h, createdAt: now },
+          data: { tokenId: t.id, narrativeId: n.id, score: sc.score, narrativeScore: sc.narrative, liquidityScore: sc.liquidity, momentumScore: sc.momentum, ogScore: sc.og, riskScore: sc.risk, attentionGrowth: n.velocity, priceGrowth: growth3h, createdAt: now },
         });
         out.opportunitiesWritten++;
       }

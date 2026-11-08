@@ -21,7 +21,7 @@ export function Locked({tier}:{tier?:string}){
   <div className="access-card-top"><div className="access-card-icon"><LockKeyhole aria-hidden="true" size={24}/></div><span className="access-card-eyebrow">{t('accessCard.eyebrow')}</span></div>
   <h2>{t('locked')}</h2><p className="access-card-description">{t('accessCard.description')}</p>
   {label&&<div className="access-card-tier"><span>{t('accessCard.minimum')}</span><strong>{label}</strong></div>}
-  <div className="access-card-actions"><Link href="/early-access" className="button button-primary">{t('access')}<ArrowUpRight size={16} aria-hidden="true"/></Link><Link href="/app/portfolio" className="access-card-secondary">{t('accessCard.portfolio')}</Link></div>
+  <div className="access-card-actions"><Link href="/early-access" className="button button-primary">{t('access')}<ArrowUpRight size={16} aria-hidden="true"/></Link><Link href="/app" className="access-card-secondary">{t('accessCard.workspace')}</Link></div>
   <p className="access-card-footnote">{t('accessCard.preview')}</p>
  </section>;
 }
@@ -44,7 +44,7 @@ export function Metrics({items}:{items:{label:string;value:ReactNode}[]}){return
 export function Facts({items}:{items:{label:string;value:ReactNode}[]}){return <dl className="research-facts">{items.map(item=><div key={item.label}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl>;}
 function DataRow({cells,headers,href:explicitHref}:{cells:ReactNode[];headers:string[];href?:string}){
  const router=useRouter(),locale=useLocale(),ref=useRef<HTMLTableRowElement>(null),[inferredHref,setInferredHref]=useState<string>();
- // Inspect rendered links so wrapper components (e.g. WalletName) work too. Rows
+ // Inspect rendered links so wrapper components work too. Rows
  // without an internal detail link stay non-interactive; external evidence is never hijacked.
  useEffect(()=>{const links=ref.current?.querySelectorAll<HTMLAnchorElement>('a[href]');const link=Array.from(links??[]).find(a=>{const h=a.getAttribute('href');return h?.startsWith('/')&&!h.startsWith('//')&&!a.hasAttribute('download')&&(!a.target||a.target==='_self');});const h=link?.getAttribute('href')??undefined;setInferredHref(h?.startsWith(`/${locale}/`)?h.slice(locale.length+1):h);},[cells,locale]);
  const href=explicitHref??inferredHref;

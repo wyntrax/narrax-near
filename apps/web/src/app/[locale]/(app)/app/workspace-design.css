@@ -72,14 +72,6 @@
 .workspace-entry :is(.research-control,.button,.admin-primary,.gate-primary,.research-pager button){transition:background-color .22s ease,border-color .22s ease,box-shadow .22s ease,color .22s ease,opacity .22s ease,transform .22s ease}
 .workspace-entry :is(.research-control,.button,.admin-primary,.gate-primary,.research-pager button):disabled{cursor:not-allowed;opacity:1;color:var(--tx2);border-style:dashed;border-color:color-mix(in srgb,var(--tx) 22%,transparent);background:color-mix(in srgb,var(--s2) 55%,var(--bg));box-shadow:none}
 
-/* Paper setup strip: how the caller reaches the paper order form, kept separate from the reviewed order itself. */
-.paper-setup{display:grid;gap:12px;margin:18px 0;padding:18px 20px;border:1px solid var(--bd);border-radius:16px;background:var(--s1)}
-.paper-setup label{display:grid;gap:8px;font-size:12px;color:var(--tx2);max-width:280px}
-.paper-setup .research-note{margin:0}
-.paper-setup-action{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
-.paper-setup-action .research-note{font-size:12px;max-width:62ch}
-.paper-error{margin:0;font-size:13px;color:#e97777}
-@media(max-width:480px){.paper-setup label{max-width:none}}
 
 /* Settings: a compact own-account panel, with each form's action grouped next to its status. */
 .settings-access{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px;padding:18px 20px;border:1px solid var(--bd);border-radius:16px;background:var(--s1)}

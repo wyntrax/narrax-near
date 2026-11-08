@@ -18,8 +18,6 @@ export const ScreenerQuery = z.object({
   minVolume24hUsd: nonNeg.optional(),
   minHolders: z.coerce.number().int().min(0).optional(),
   maxTop10Pct: z.coerce.number().min(0).max(100).optional(),
-  maxDevHoldingPct: z.coerce.number().min(0).max(100).optional(),
-  minSmartWalletHolders: z.coerce.number().int().min(0).optional(),
   /** Risk score is 0 to 100, higher is riskier. */
   maxRiskScore: z.coerce.number().min(0).max(100).optional(),
   minAgeMinutes: nonNeg.optional(), maxAgeMinutes: nonNeg.optional(),
@@ -27,15 +25,13 @@ export const ScreenerQuery = z.object({
   narrativeStage: NarrativeStage.optional(),
   narrative: z.string().regex(/^[a-z0-9-]{1,80}$/).optional(),
   minOgScore: z.coerce.number().min(0).max(100).optional(),
-  /** Leaves out tokens whose latest risk reading has the honeypot flag. */
-  excludeHoneypot: z.enum(['true', 'false']).optional(),
   includeBlacklisted: z.enum(['true', 'false']).optional(),
   sort: z.enum(['symbol', 'marketCap', 'liquidity', 'volume24h', 'holders', 'risk', 'age', 'og']).default('symbol'),
   order: z.enum(['asc', 'desc']).optional(),
 });
 export type ScreenerQuery = z.infer<typeof ScreenerQuery>;
 
-const FILTER_KEYS = ['minMarketCapUsd', 'maxMarketCapUsd', 'minLiquidityUsd', 'maxLiquidityUsd', 'minVolume24hUsd', 'minHolders', 'maxTop10Pct', 'maxDevHoldingPct', 'minSmartWalletHolders', 'maxRiskScore', 'minAgeMinutes', 'maxAgeMinutes', 'narrativeStage', 'narrative', 'minOgScore', 'excludeHoneypot', 'includeBlacklisted'] as const;
+const FILTER_KEYS = ['minMarketCapUsd', 'maxMarketCapUsd', 'minLiquidityUsd', 'maxLiquidityUsd', 'minVolume24hUsd', 'minHolders', 'maxTop10Pct', 'maxRiskScore', 'minAgeMinutes', 'maxAgeMinutes', 'narrativeStage', 'narrative', 'minOgScore', 'includeBlacklisted'] as const;
 
 /** True when the request needs the screener query. A plain list or text search stays on the simple path. */
 export const isScreenerRequest = (q: ScreenerQuery) => q.sort !== 'symbol' || q.order !== undefined || q.marketCapOnly !== undefined || FILTER_KEYS.some((k) => q[k] !== undefined);
@@ -83,8 +79,6 @@ export async function runScreener(db: PrismaClient, q: ScreenerQuery, now: Date)
   if (q.minVolume24hUsd !== undefined) add(Prisma.sql`m."volume24hUsd" >= ${q.minVolume24hUsd}`);
   if (q.minHolders !== undefined) add(Prisma.sql`h."holders" >= ${q.minHolders}`);
   if (q.maxTop10Pct !== undefined) add(Prisma.sql`h."top10Pct" <= ${q.maxTop10Pct}`);
-  if (q.maxDevHoldingPct !== undefined) add(Prisma.sql`h."devHoldingPct" <= ${q.maxDevHoldingPct}`);
-  if (q.minSmartWalletHolders !== undefined) add(Prisma.sql`h."smartWalletHolders" >= ${q.minSmartWalletHolders}`);
   if (q.maxRiskScore !== undefined) add(Prisma.sql`r."riskScore" <= ${q.maxRiskScore}`);
   // Age needs a known launch time. A token without one is excluded when an age filter is used.
   const ageColumn=q.verifiedOnly==='true'?poolAge:Prisma.sql`t."createdOnChainAt"`;
@@ -92,7 +86,6 @@ export async function runScreener(db: PrismaClient, q: ScreenerQuery, now: Date)
   if (q.minAgeMinutes !== undefined) add(Prisma.sql`${ageColumn} <= ${ageBoundary(q.minAgeMinutes)}`);
   if (q.maxAgeMinutes !== undefined) add(Prisma.sql`${ageColumn} >= ${ageBoundary(q.maxAgeMinutes)} AND ${ageColumn} <= ${ageBoundary(0)}`);
   if(q.verifiedOnly==='true'&&q.sort==='age') add(Prisma.sql`${poolAge} IS NOT NULL`);
-  if (q.excludeHoneypot === 'true') add(Prisma.sql`(r."tokenId" IS NOT NULL AND NOT ('HONEYPOT' = ANY(r."flags")))`); // no risk reading yet counts as unknown, so it is left out
   if (q.narrativeStage) add(Prisma.sql`EXISTS (SELECT 1 FROM "NarrativeTokenRelation" x JOIN "Narrative" nn ON nn."id" = x."narrativeId" WHERE x."tokenId" = t."id" AND nn."stage"::text = ${q.narrativeStage} AND x."relation"::text NOT IN ('UNRELATED', 'SUSPICIOUS'))`);
   if (q.narrative) add(Prisma.sql`EXISTS (SELECT 1 FROM "NarrativeTokenRelation" x JOIN "Narrative" nn ON nn."id" = x."narrativeId" WHERE x."tokenId" = t."id" AND nn."slug" = ${q.narrative} AND x."relation"::text NOT IN ('UNRELATED', 'SUSPICIOUS'))`);
   if (q.minOgScore !== undefined) add(Prisma.sql`og."best" >= ${q.minOgScore}`);

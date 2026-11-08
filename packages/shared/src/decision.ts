@@ -13,7 +13,7 @@ export const FastAgentOutputSchema = z.object({
 });
 export type FastAgentOutput = z.infer<typeof FastAgentOutputSchema>;
 
-/** Final structured decision from the deep analysis pipeline. Never trusted until it passes this schema and the Risk Governor. */
+/** Final structured research decision from the deep analysis pipeline. Never trusted until it passes this schema and the deterministic guardrails. */
 export const AgentDecisionSchema = z.object({
   action: DecisionAction,
   confidence: z.number().min(0).max(1),
@@ -21,16 +21,6 @@ export const AgentDecisionSchema = z.object({
   positiveSignals: z.array(shortText(280)).max(12),
   negativeSignals: z.array(shortText(280)).max(12),
   risks: z.array(shortText(280)).max(12),
-  suggestedPositionSizePct: z.number().min(0).max(100),
-  entry: z.object({
-    maxSlippageBps: z.number().int().min(0).max(5000),
-    maxPriceImpactPct: z.number().min(0).max(100),
-  }),
-  exit: z.object({
-    stopLossPct: z.number().min(0).max(100).nullable(),
-    takeProfitPct: z.number().min(0).max(10000).nullable(),
-    trailingStopPct: z.number().min(0).max(100).nullable(),
-  }),
   invalidationConditions: z.array(shortText(280)).max(12),
   summary: shortText(1000),
 });

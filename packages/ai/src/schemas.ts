@@ -22,12 +22,3 @@ export const JudgeSchema = z.object({
   adjustedConfidence: z.number().min(0).max(1).nullable(),
 });
 export type JudgeOutput = z.infer<typeof JudgeSchema>;
-
-/** Output of the position review. It is one input to the monitor, which can only use it to be more cautious. */
-export const PositionReviewSchema = z.object({
-  action: z.enum(['HOLD', 'REDUCE', 'SELL']),
-  confidence: z.number().min(0).max(1),
-  reasonCodes: z.array(z.string().regex(/^[A-Z0-9_]{2,48}$/)).max(8),
-  summary: z.string().max(500),
-});
-export type PositionReviewOutput = z.infer<typeof PositionReviewSchema>;

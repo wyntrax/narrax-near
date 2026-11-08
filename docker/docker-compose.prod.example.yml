@@ -1,10 +1,10 @@
 # An EXAMPLE for a single host. Copy it, read every line, and adapt it. It was not run when it was written.
 # Put TLS and a reverse proxy in front of the API. Never expose Postgres or Redis to the internet.
 #
-#   1. cp .env.example .env     (fill it in; PRIVY_*, HELIUS_*, AI_*, JUPITER_API_KEY, CORS_ORIGINS, HSTS=true, TRUST_PROXY=true)
+#   1. cp .env.example .env     (fill it in; PRIVY_*, AI_*, NEAR_*, CORS_ORIGINS, HSTS=true, TRUST_PROXY=true)
 #   2. set POSTGRES_PASSWORD in the shell or in a .env next to this file
 #   3. docker compose -f docker/docker-compose.prod.example.yml up -d --build
-# The migrate service runs first and must finish before the api, worker and executor start.
+# The migrate service runs first and must finish before the api and worker start.
 
 name: narra
 
@@ -59,15 +59,6 @@ services:
   worker:
     <<: *app
     command: ["npx", "tsx", "workers/pipeline/src/main.ts"]
-    depends_on:
-      migrate: { condition: service_completed_successfully }
-      redis: { condition: service_healthy }
-
-  # Consumes the execution queue: paper fills, shadow logs, confirmations, and (B5a) dry runs. The pipeline worker does NOT.
-  # Without this service those orders wait in the queue. It cannot sign or send, and refuses to start if a signing variable is set.
-  executor:
-    <<: *app
-    command: ["npx", "tsx", "workers/executor/src/main.ts"]
     depends_on:
       migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }

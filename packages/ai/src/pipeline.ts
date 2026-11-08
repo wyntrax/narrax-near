@@ -3,8 +3,8 @@ import { AgentDecisionSchema, FastAgentOutputSchema, type AgentDecision, type Fa
 import { MIN_HOLDERS, MIN_LIQUIDITY_USD } from '@narra/token-intel';
 import type { AiConfig } from './config';
 import { extractJson } from './parse';
-import { SYSTEM_PROMPT, buildUserMessage, type OpportunityFacts, type PositionReviewFacts, type Stage } from './prompts';
-import { ArgumentSchema, JudgeSchema, PositionReviewSchema, RiskAgentSchema, type ArgumentOutput, type JudgeOutput, type PositionReviewOutput, type RiskOutput } from './schemas';
+import { SYSTEM_PROMPT, buildUserMessage, type OpportunityFacts, type Stage } from './prompts';
+import { ArgumentSchema, JudgeSchema, RiskAgentSchema, type ArgumentOutput, type JudgeOutput, type RiskOutput } from './schemas';
 import type { LlmProvider, Usage } from './types';
 
 export interface AnalysisInput {
@@ -41,7 +41,7 @@ async function runAgent<T>(
     try {
       res = await llm.complete({ model: a.model, system: SYSTEM_PROMPT, user: a.build(note), temperature: cfg.temperature, maxTokens: cfg.maxTokensPerCall, ...(a.reasoning ? { reasoningLevel: cfg.reasoningLevel } : {}) });
     } catch {
-      return { value: null, error: 'PROVIDER_ERROR' }; // a provider outage is not retried here, and it never becomes a trade
+      return { value: null, error: 'PROVIDER_ERROR' }; // a provider outage is not retried here, and it never becomes a decision
     }
     usage.push({ stage: a.stage, model: a.model, inputTokens: res.inputTokens, outputTokens: res.outputTokens });
     const parsed = a.schema.safeParse(extractJson(res.text));
@@ -55,17 +55,15 @@ async function runAgent<T>(
 
 function plainDecision(cfg: AiConfig, action: AgentDecision['action'], reasonCodes: string[], summary: string, confidence: number): AgentDecision {
   return {
-    action, confidence: clamp(confidence, 0, 1), reasonCodes, positiveSignals: [], negativeSignals: [], risks: [], suggestedPositionSizePct: 0,
-    entry: { maxSlippageBps: cfg.maxSlippageBps, maxPriceImpactPct: cfg.maxPriceImpactPct },
-    exit: { stopLossPct: null, takeProfitPct: null, trailingStopPct: null }, invalidationConditions: [], summary,
+    action, confidence: clamp(confidence, 0, 1), reasonCodes, positiveSignals: [], negativeSignals: [], risks: [], invalidationConditions: [], summary,
   };
 }
 
-const downgrade = (d: AgentDecision, code: string): AgentDecision => ({ ...d, action: 'WATCH', confidence: Math.min(d.confidence, 0.5), suggestedPositionSizePct: 0, reasonCodes: [...d.reasonCodes, code] });
+const downgrade = (d: AgentDecision, code: string): AgentDecision => ({ ...d, action: 'WATCH', confidence: Math.min(d.confidence, 0.5), reasonCodes: [...d.reasonCodes, code] });
 
 /**
  * Deterministic checks on the model's decision. The model proposes, these rules limit. A BUY needs every one of
- * them to hold, and the Risk Governor still has the final say after this.
+ * them to hold.
  */
 export function applyGuardrails(d: AgentDecision, facts: OpportunityFacts, cfg: AiConfig, deep: boolean): { decision: AgentDecision; notes: string[] } {
   const notes: string[] = [];
@@ -73,7 +71,7 @@ export function applyGuardrails(d: AgentDecision, facts: OpportunityFacts, cfg: 
   const demote = (code: string) => { out = downgrade(out, code); notes.push(code); };
 
   if (out.action === 'HOLD' || out.action === 'REDUCE' || out.action === 'SELL') {
-    demote('NO_POSITION_CONTEXT'); // exits are decided for held positions by the position monitor, not here
+    demote('NO_POSITION_CONTEXT'); // this research surface has no positions to exit
   }
   if (out.action === 'BUY') {
     if (!deep) demote('NO_DEEP_ANALYSIS');
@@ -82,18 +80,6 @@ export function applyGuardrails(d: AgentDecision, facts: OpportunityFacts, cfg: 
     else if (facts.liquidityUsd == null || facts.holders == null || facts.liquidityUsd < MIN_LIQUIDITY_USD || facts.holders < MIN_HOLDERS) demote('BELOW_MARKET_FLOORS');
     else if (facts.opportunityScore < cfg.minOpportunityScoreForBuy) demote('OPPORTUNITY_SCORE_TOO_LOW');
     else if (out.confidence < cfg.confidenceThreshold) demote('BELOW_CONFIDENCE_THRESHOLD');
-  }
-  if (out.action === 'BUY') {
-    const size = Math.min(out.suggestedPositionSizePct, cfg.maxSuggestedSizePct);
-    const slip = Math.min(out.entry.maxSlippageBps, cfg.maxSlippageBps);
-    const impact = Math.min(out.entry.maxPriceImpactPct, cfg.maxPriceImpactPct);
-    if (size !== out.suggestedPositionSizePct) notes.push('SIZE_CAPPED');
-    if (slip !== out.entry.maxSlippageBps || impact !== out.entry.maxPriceImpactPct) notes.push('ENTRY_LIMITS_TIGHTENED');
-    let stop = out.exit.stopLossPct;
-    if (stop == null) { stop = 25; notes.push('STOP_LOSS_DEFAULTED'); }
-    out = { ...out, suggestedPositionSizePct: size, entry: { maxSlippageBps: slip, maxPriceImpactPct: impact }, exit: { ...out.exit, stopLossPct: stop } };
-  } else {
-    out = { ...out, suggestedPositionSizePct: 0 };
   }
   return { decision: out, notes };
 }
@@ -155,20 +141,4 @@ export async function analyzeOpportunity(deps: { llm: LlmProvider; config: AiCon
     }
   }
   return result(decision, { ...parts, judge }, notes);
-}
-
-export interface PositionReviewResult { review: PositionReviewOutput | null; usage: Usage[]; error?: string }
-
-/**
- * One reasoning-model look at an open position, after the deterministic rules have run. Token names and narrative text
- * reach it only under the "untrusted" key. A provider failure or an invalid answer returns review: null, and the
- * monitor then simply uses the rules. The answer cannot place a trade and can at most make an exit more cautious.
- */
-export async function reviewPosition(deps: { llm: LlmProvider; config: AiConfig }, input: { facts: PositionReviewFacts; untrusted: UntrustedField[] }): Promise<PositionReviewResult> {
-  const usage: Usage[] = [];
-  const call = await runAgent(deps.llm, deps.config, usage, {
-    stage: 'positionReview', model: deps.config.reasoningModel, reasoning: true, schema: PositionReviewSchema,
-    build: (retryNote) => buildUserMessage('positionReview', { facts: input.facts, untrusted: input.untrusted, retryNote }),
-  });
-  return { review: call.value, usage, ...(call.error ? { error: call.error } : {}) };
 }

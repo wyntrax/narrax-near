@@ -2,15 +2,14 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { Prisma, PrismaClient } from '@narra/database';
 import type { LlmProvider } from '@narra/ai';
-import { AGENT_LIMITS, TIGHTENABLE_FIELDS, describeTighten, runAgent, sanitizeUserText, validateTighten, type TightenableField } from '@narra/agent';
+import { AGENT_LIMITS, runAgent, sanitizeUserText } from '@narra/agent';
 import { aiEnabled, loadAiConfig } from '@narra/worker-pipeline';
 import { makeAuthenticate, type AccountDeps } from './account';
-import { effectiveLimits, makeAgentPorts } from './chatPorts';
+import { makeAgentPorts } from './chatPorts';
 import { researchPorts } from './entitlements/chatAccess';
 
 const Body = z.object({ conversationId: z.string().min(1).max(64).optional(), message: z.string().min(1).max(AGENT_LIMITS.maxUserMessageChars) }).strict();
 const IdParams = z.object({ id: z.string().min(1).max(64) });
-const ListQuery = z.object({ status: z.enum(['PENDING', 'ALL']).default('PENDING'), limit: z.coerce.number().int().min(1).max(50).default(20) });
 const Page = z.object({ limit: z.coerce.number().int().min(1).max(50).default(20) });
 
 const startOfUtcDay = (d: Date) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
@@ -22,21 +21,18 @@ export interface ChatDeps extends Pick<AccountDeps, 'db' | 'verifier' | 'now'> {
   questionsPerMinute?: number;
 }
 
-class ApplyError extends Error { constructor(readonly code: 'NOT_PENDING' | 'NO_LONGER_STRICTER') { super(code); } }
-
 /**
- * Agent chat. The agent reads data and may suggest caution; it has no way to trade (see packages/agent). A suggestion becomes
- * real only when the signed-in user applies it with a separate request, and applying re-checks it against their current settings.
+ * Agent chat. The agent can read research data and explain it; it has no way to trade, sign or touch a wallet
+ * (see packages/agent). Tool results are never stored and are replayed only inside one turn.
  */
 export function registerChatRoutes(app: FastifyInstance, deps: ChatDeps): void {
   const db: PrismaClient = deps.db;
   const now = deps.now ?? (() => new Date());
-  const ports = makeAgentPorts(db, now);
+  const ports = makeAgentPorts(db);
   const auth = makeAuthenticate(deps);
   const opts = { preHandler: auth, config: { rateLimit: { max: 60, timeWindow: '1 minute' } } };
   const chatOpts = { preHandler: auth, config: { rateLimit: { max: deps.questionsPerMinute ?? 20, timeWindow: '1 minute' } } };
   const busy = new Set<string>(); // one question at a time per user, per process
-  const audit = (userId: string, action: string, detail: Prisma.InputJsonValue) => db.auditLog.create({ data: { userId, action, detail } });
 
   app.post('/v1/chat', chatOpts, async (req, reply) => {
     const body = Body.safeParse(req.body);
@@ -76,15 +72,12 @@ export function registerChatRoutes(app: FastifyInstance, deps: ChatDeps): void {
         db.chatMessage.create({
           data: {
             conversationId, userId, role: 'ASSISTANT', content: result.text, inputTokens: result.inputTokens, outputTokens: result.outputTokens, model: cfg.fastModel, createdAt: new Date(now().getTime() + 1),
-            meta: { toolsUsed: result.toolsUsed, refusedCalls: result.refusedCalls, stopReason: result.stopReason, ...(result.llmError ? { llmError: result.llmError } : {}), proposalIds: result.proposals.map((p) => p.id) } as Prisma.InputJsonValue,
+            meta: { toolsUsed: result.toolsUsed, refusedCalls: result.refusedCalls, stopReason: result.stopReason, ...(result.llmError ? { llmError: result.llmError } : {}) } as Prisma.InputJsonValue,
           },
         }),
         db.chatConversation.update({ where: { id: conversationId }, data: { updatedAt: now() } }),
       ]);
-      return {
-        conversationId, reply: { text: result.text, format: 'text' as const }, toolsUsed: result.toolsUsed, stopReason: result.stopReason,
-        proposals: result.proposals.map((p) => ({ id: p.id, kind: p.kind, field: p.field, fromValue: p.fromValue, value: p.value, summary: p.summary, reason: p.reason, expiresAt: p.expiresAt })),
-      };
+      return { conversationId, reply: { text: result.text, format: 'text' as const }, toolsUsed: result.toolsUsed, stopReason: result.stopReason };
     } finally { busy.delete(userId); }
   });
 
@@ -102,68 +95,5 @@ export function registerChatRoutes(app: FastifyInstance, deps: ChatDeps): void {
     if (!conv) return reply.code(404).send({ error: 'NOT_FOUND' });
     const rows = await db.chatMessage.findMany({ where: { conversationId: conv.id }, orderBy: [{ createdAt: 'asc' }, { id: 'asc' }], take: AGENT_LIMITS.maxMessagesPerConversation });
     return { id: conv.id, messages: rows.map((m) => ({ id: m.id, role: m.role, text: m.content, format: 'text' as const, createdAt: m.createdAt })) };
-  });
-
-  app.get('/v1/chat/proposals', opts, async (req, reply) => {
-    const q = ListQuery.safeParse(req.query);
-    if (!q.success) return reply.code(400).send({ error: 'INVALID_INPUT' });
-    const at = now();
-    const rows = await db.chatProposal.findMany({ where: { userId: req.userId!, ...(q.data.status === 'PENDING' ? { status: 'PENDING', expiresAt: { gt: at } } : {}) }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: q.data.limit });
-    return {
-      items: rows.map((r) => ({
-        id: r.id, kind: r.kind, field: r.field, fromValue: r.fromValue, value: r.value, reason: r.reason, expiresAt: r.expiresAt, createdAt: r.createdAt,
-        status: r.status === 'PENDING' && r.expiresAt <= at ? 'EXPIRED' : r.status,
-        summary: r.kind === 'PAUSE_AGENT' ? 'Pause the agent' : describeTighten(r.field as TightenableField, r.fromValue ?? 0, r.value ?? 0),
-      })),
-    };
-  });
-
-  app.post('/v1/chat/proposals/:id/apply', opts, async (req, reply) => {
-    const p = IdParams.safeParse(req.params);
-    if (!p.success) return reply.code(400).send({ error: 'INVALID_INPUT' });
-    const userId = req.userId!, at = now();
-    const row = await db.chatProposal.findFirst({ where: { id: p.data.id, userId } });
-    if (!row) return reply.code(404).send({ error: 'NOT_FOUND' });
-    try {
-      await db.$transaction(async (tx) => {
-        // The claim is one conditional UPDATE: of any number of simultaneous applies exactly one matches, and none matches after expiry.
-        const claim = await tx.chatProposal.updateMany({ where: { id: row.id, userId, status: 'PENDING', expiresAt: { gt: at } }, data: { status: 'APPLIED', resolvedAt: at } });
-        if (claim.count === 0) throw new ApplyError('NOT_PENDING');
-        if (row.kind === 'PAUSE_AGENT') {
-          await tx.tradingPermission.upsert({ where: { userId }, create: { userId, agentPaused: true }, update: { agentPaused: true } });
-        } else {
-          const field = row.field;
-          if (!field || !(TIGHTENABLE_FIELDS as string[]).includes(field)) throw new ApplyError('NO_LONGER_STRICTER');
-          const profile = await tx.riskProfile.findUnique({ where: { userId } });
-          const current = effectiveLimits(profile);
-          // Checked again against what the settings are now, not what they were when the agent suggested it.
-          if (!validateTighten(field, row.value, current[field as TightenableField]).ok) throw new ApplyError('NO_LONGER_STRICTER');
-          const next = { ...current, [field]: row.value! };
-          await tx.riskProfile.upsert({ where: { userId }, create: { userId, preset: 'CUSTOM', ...next }, update: { preset: 'CUSTOM', [field]: row.value! } });
-        }
-        await tx.auditLog.create({ data: { userId, action: 'chat_proposal.applied', detail: { proposalId: row.id, kind: row.kind, field: row.field, from: row.fromValue, to: row.value } as Prisma.InputJsonValue } });
-      });
-    } catch (e) {
-      if (!(e instanceof ApplyError)) throw e;
-      if (e.code === 'NO_LONGER_STRICTER') {
-        await db.chatProposal.updateMany({ where: { id: row.id, userId, status: 'PENDING' }, data: { status: 'REJECTED', resolvedAt: at } });
-        return reply.code(409).send({ error: 'NO_LONGER_STRICTER' });
-      }
-      const latest = await db.chatProposal.findFirst({ where: { id: row.id, userId } });
-      return latest && latest.status === 'PENDING' && latest.expiresAt <= at ? reply.code(410).send({ error: 'EXPIRED' }) : reply.code(409).send({ error: 'NOT_PENDING', status: latest?.status });
-    }
-    return { id: row.id, status: 'APPLIED' };
-  });
-
-  app.post('/v1/chat/proposals/:id/reject', opts, async (req, reply) => {
-    const p = IdParams.safeParse(req.params);
-    if (!p.success) return reply.code(400).send({ error: 'INVALID_INPUT' });
-    const userId = req.userId!;
-    const row = await db.chatProposal.findFirst({ where: { id: p.data.id, userId } });
-    if (!row) return reply.code(404).send({ error: 'NOT_FOUND' });
-    const done = await db.chatProposal.updateMany({ where: { id: row.id, userId, status: 'PENDING' }, data: { status: 'REJECTED', resolvedAt: now() } });
-    if (done.count === 0) return reply.code(409).send({ error: 'NOT_PENDING', status: row.status });
-    await audit(userId, 'chat_proposal.rejected', { proposalId: row.id });
-    return { id: row.id, status: 'REJECTED' };
   });
 }

@@ -11,5 +11,5 @@ it.each(['en','id'] as const)('renders a localized, readable minimum tier with c
  const messages=locale==='en'?en:id;
  render(<NextIntlClientProvider locale={locale} messages={{workspace:messages}}><Locked tier="EARLY_ACCESS"/></NextIntlClientProvider>);
  expect(screen.getByRole('heading',{name:messages.locked})).toBeVisible();expect(screen.getByText(messages.featureAccess.tiers.EARLY_ACCESS)).toBeVisible();
- expect(screen.queryByText('EARLY_ACCESS')).toBeNull();expect(screen.getByRole('link',{name:messages.access})).toHaveAttribute('href','/early-access');expect(screen.getByRole('link',{name:messages.accessCard.portfolio})).toHaveAttribute('href','/app/portfolio');
+ expect(screen.queryByText('EARLY_ACCESS')).toBeNull();expect(screen.getByRole('link',{name:messages.access})).toHaveAttribute('href','/early-access');expect(screen.getByRole('link',{name:messages.accessCard.workspace})).toHaveAttribute('href','/app');
 });
