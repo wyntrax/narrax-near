@@ -137,7 +137,8 @@
     "errorBody": "Silakan coba lagi. Akun dan akses Anda tetap dalam kendali Anda.",
     "notFound": "Halaman ini tidak ditemukan.",
     "sample": "Data contoh",
-    "coming": "Ruang riset Anda akan hadir di Fase 2."
+    "coming": "Ruang riset Anda akan hadir di Fase 2.",
+    "researchNav": "Riset"
   },
   "access": {
     "signIn": "Masuk",

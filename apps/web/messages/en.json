@@ -137,7 +137,8 @@
     "errorBody": "Please try again. Your account and access remain under your control.",
     "notFound": "This page is off the radar.",
     "sample": "Sample data",
-    "coming": "Your research workspace is coming in Phase 2."
+    "coming": "Your research workspace is coming in Phase 2.",
+    "researchNav": "Research"
   },
   "access": {
     "signIn": "Sign in",

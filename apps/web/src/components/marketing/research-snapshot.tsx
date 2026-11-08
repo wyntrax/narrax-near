@@ -51,6 +51,7 @@ function SnapshotContent() {
       <div><h3>{copy.sample} <span>{data ? `${format(data.narrativeSampleSize)} / 5` : '—'}</span></h3><p>{copy.sampleHelp}</p></div>
       <Link href="/app/radar">{copy.radar}<ArrowUpRight size={16} aria-hidden="true" /></Link>
     </div>
+    {data && data.activeNarratives === 0 && <p className="research-note snapshot-empty" role="status">{copy.empty}</p>}
     <div className="snapshot-footer">
       <div role="status">
         {query.isPending ? copy.loading : query.isError ? copy.unavailable : data ? <>

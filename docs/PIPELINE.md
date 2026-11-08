@@ -39,3 +39,26 @@ orders or positions.
 Treg topics come from `TOPIC_PACKS` (`near`, `trencher`, `chatter`, `holder`). Posts are scanned
 in memory for NEAR account ids and `$CASHTAGS`; only extracted references and hashes are stored.
 Raw post text is never stored. Social text is untrusted and is sanitized before storage or display.
+
+### Enabling narrative ingestion
+
+The radar is empty until a social source is configured and at least one collection run finishes.
+For a local machine with an authenticated `treg` CLI:
+
+```bash
+treg login
+npm run narratives:treg -- --cli --query "NEAR" --platforms x,reddit --write
+```
+
+For a worker or server, use a Treg token instead of the CLI session:
+
+```bash
+TREG_NARRATIVE_ENABLED=true
+TREG_TOKEN=...
+TREG_NARRATIVE_PACKS=near,trencher
+TREG_NARRATIVE_PLATFORMS=x,reddit
+npm run dev:workers
+```
+
+A missing or expired Treg credential does not break the rest of the app; it only leaves the
+narrative tables empty until ingestion is configured.
