@@ -77,7 +77,7 @@ export async function runAgent(i: AgentRunInput): Promise<AgentRunResult> {
     let raw: string;
     try {
       const left = remaining();
-      const r = await withBudget(i.llm.complete({ model: i.model, system: SYSTEM_PROMPT, user: buildStepMessage({ userMessage, history, toolResults: results, stepsLeft }), temperature: i.temperature, maxTokens: i.maxTokens, ...(left != null ? { timeoutMs: left } : {}) }));
+      const r = await withBudget(i.llm.complete({ model: i.model, system: SYSTEM_PROMPT, user: buildStepMessage({ userMessage, history, toolResults: results, stepsLeft }), temperature: i.temperature, maxTokens: i.maxTokens, ...(left != null ? { timeoutMs: left } : {}), ...(i.ctx.conversationId ? { sessionId: i.ctx.conversationId } : {}) }));
       raw = r.text; out.inputTokens += r.inputTokens; out.outputTokens += r.outputTokens;
     } catch (e) {
       if (timedOut()) return timeoutResult();
