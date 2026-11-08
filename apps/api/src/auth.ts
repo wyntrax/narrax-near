@@ -1,4 +1,4 @@
-import { importSPKI, jwtVerify, type KeyLike } from 'jose';
+import { createRemoteJWKSet, importSPKI, jwtVerify, type JWTVerifyGetKey, type KeyLike } from 'jose';
 import type { RuntimeSettingsResolver } from './runtime-settings';
 
 /** A verified identity token. The email is null when the token carries none; a missing email never grants access. */
@@ -34,16 +34,54 @@ export function linkedEmail(payload: Record<string, unknown>): string | null {
   return null;
 }
 
+/** Privy publishes the app's current verification keys here. The path is documented and is not built from token claims. */
+export function privyJwksUrl(appId: string): string {
+  return `https://auth.privy.io/api/v1/apps/${encodeURIComponent(appId)}/jwks.json`;
+}
+
 /**
- * Verifies a Privy access token locally with the app's verification key, so no network call is needed per request.
+ * Verifies a Privy access token locally with the app's verification key. If the configured PEM is stale (Privy rotated
+ * it), the verifier retries against Privy's app-specific JWKS endpoint. Only a signature-key failure triggers the
+ * fallback: a wrong audience, issuer or expiry is rejected immediately and never causes a network request.
+ *
  * Privy access tokens are ES256 JWTs with issuer "privy.io", the app id as audience and the user's DID as subject.
- * Confirm these claims against Privy's current docs for your app before going live.
  */
-export function createPrivyVerifier(opts: { appId: string; verificationKey: string }): AuthVerifier {
-  let key: Promise<KeyLike> | undefined;
-  const getKey = () => (key ??= importSPKI(opts.verificationKey.replace(/\\n/g, '\n'), 'ES256'));
+export function createPrivyVerifier(opts: { appId: string; verificationKey: string; jwksUrl?: string | null }): AuthVerifier {
+  let staticKey: Promise<KeyLike | null> | undefined;
+  const getStaticKey = () => (staticKey ??= importSPKI(opts.verificationKey.replace(/\\n/g, '\n'), 'ES256').catch(() => null));
+  let remote: JWTVerifyGetKey | undefined;
+  const getRemote = () => {
+    if (!opts.jwksUrl) return undefined;
+    return (remote ??= createRemoteJWKSet(new URL(opts.jwksUrl), {
+      cacheMaxAge: 60 * 60_000,
+      cooldownDuration: 10 * 60_000,
+      timeoutDuration: 5_000,
+    }));
+  };
+  const verifyWith = (token: string, key: KeyLike | JWTVerifyGetKey) => {
+    const options = { issuer: 'privy.io', audience: opts.appId, algorithms: ['ES256'] };
+    return typeof key === 'function' ? jwtVerify(token, key, options) : jwtVerify(token, key, options);
+  };
+  const isSignatureKeyFailure = (e: unknown) => {
+    const code = typeof e === 'object' && e !== null && 'code' in e ? String((e as Record<string, unknown>).code) : '';
+    return code === 'ERR_JWS_SIGNATURE_VERIFICATION_FAILED';
+  };
   const check = async (token: string) => {
-    const { payload } = await jwtVerify(token, await getKey(), { issuer: 'privy.io', audience: opts.appId, algorithms: ['ES256'] });
+    let keyFailure: unknown;
+    const key = await getStaticKey();
+    if (key) {
+      try {
+        const { payload } = await verifyWith(token, key);
+        if (!payload.sub) throw new Error('Token has no subject');
+        return { privyUserId: payload.sub, expiresAtMs: typeof payload.exp === 'number' ? payload.exp * 1000 : null };
+      } catch (e) {
+        if (!isSignatureKeyFailure(e)) throw e;
+        keyFailure = e;
+      }
+    }
+    const keys = getRemote();
+    if (!keys) throw keyFailure ?? new Error('PRIVY_VERIFICATION_KEY could not be read');
+    const { payload } = await verifyWith(token, keys);
     if (!payload.sub) throw new Error('Token has no subject');
     return { privyUserId: payload.sub, expiresAtMs: typeof payload.exp === 'number' ? payload.exp * 1000 : null };
   };
@@ -52,7 +90,21 @@ export function createPrivyVerifier(opts: { appId: string; verificationKey: stri
     verifyWithExpiry: check,
     // The identity token carries the same subject and the linked accounts. It is only ever used to learn a verified email.
     async verifyIdentity(token) {
-      const { payload } = await jwtVerify(token, await getKey(), { issuer: 'privy.io', audience: opts.appId, algorithms: ['ES256'] });
+      let keyFailure: unknown;
+      const key = await getStaticKey();
+      if (key) {
+        try {
+          const { payload } = await verifyWith(token, key);
+          if (!payload.sub) throw new Error('Token has no subject');
+          return { privyUserId: payload.sub, email: linkedEmail(payload as Record<string, unknown>) };
+        } catch (e) {
+          if (!isSignatureKeyFailure(e)) throw e;
+          keyFailure = e;
+        }
+      }
+      const keys = getRemote();
+      if (!keys) throw keyFailure ?? new Error('PRIVY_VERIFICATION_KEY could not be read');
+      const { payload } = await verifyWith(token, keys);
       if (!payload.sub) throw new Error('Token has no subject');
       return { privyUserId: payload.sub, email: linkedEmail(payload as Record<string, unknown>) };
     },
@@ -64,7 +116,10 @@ export function createRuntimePrivyVerifier(settings: RuntimeSettingsResolver): A
   let active: { appId: string; key: string; verifier: AuthVerifier } | undefined;
   const current = async () => {
     const config = await settings.read(), appId = config.privyAppId.value, key = config.privyVerificationKey.value;
-    if (!active || active.appId !== appId || active.key !== key) active = { appId, key, verifier: createPrivyVerifier({ appId, verificationKey: key }) };
+    if (!active || active.appId !== appId || active.key !== key) {
+      const jwksUrl = process.env.PRIVY_JWKS_URL?.trim() || privyJwksUrl(appId);
+      active = { appId, key, verifier: createPrivyVerifier({ appId, verificationKey: key, jwksUrl }) };
+    }
     return active.verifier;
   };
   const check = async (token: string) => (await current()).verifyWithExpiry!(token);

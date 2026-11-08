@@ -44,6 +44,7 @@ DEX Screener, GeckoTerminal and the configured social provider.
   - NEAR NEP-141 metadata, DEX prices/liquidity, holder concentration and deterministic risk flags
   - Early Radar alerts and measured outcomes
   - AI opportunity analysis and outcome tracking
+  - a public landing snapshot of aggregate narrative, token and opportunity counts
 - **Delivery**
   - in-app notifications, WebSocket realtime events, and optional Telegram global research alerts
 
@@ -52,7 +53,9 @@ DEX Screener, GeckoTerminal and the configured social provider.
 Sign-in is handled by Privy with **email or Google**. No browser wallet connection is requested.
 Access is granted locally by an admin early-access grant; there is no token-holding or
 membership-webhook gate. The available tiers are `EARLY_ACCESS`,
-`MEMBER` and `PRO`; only `EARLY_ACCESS` is granted by the current admin UI.
+`MEMBER` and `PRO`; only `EARLY_ACCESS` is granted by the current admin UI. Access tokens are
+checked against the configured Privy verification key, with a cached fallback to the app JWKS
+endpoint (`PRIVY_JWKS_URL`, or Privy's documented default) when a key has been rotated.
 
 Set `ADMIN_PRIVY_USER_ID` or `ADMIN_EMAIL` in the server environment to make an account an
 admin. When either is set, the database admin flag is ignored.

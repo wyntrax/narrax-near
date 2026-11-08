@@ -36,7 +36,7 @@ export function registerEntitlementRoutes(app: FastifyInstance, deps: AccountDep
           const settings = await localSettings(tx);
           // An ended time window reads as closed: the same state as disabled, so the existing screens need no new shape.
           settings.enabled = settings.enabled && !earlyAccessClosed(settings.closesAt, at);
-          const occupied = settings.enabled ? (await tx.accessGrant.findMany({ where: { tier: 'EARLY_ACCESS', status: 'ACTIVE', OR: [{ validUntil: null }, { validUntil: { gt: at } }] }, distinct: ['userId'], select: { userId: true } })).length : 0;
+          const occupied = settings.enabled ? (await tx.accessGrant.findMany({ where: { source: 'EARLY_ACCESS', tier: 'EARLY_ACCESS', status: 'ACTIVE', OR: [{ validUntil: null }, { validUntil: { gt: at } }] }, distinct: ['userId'], select: { userId: true } })).length : 0;
           return { enabled: settings.enabled, seatsLeft: settings.enabled ? Math.max(0, settings.cap - occupied) : null, inviteRequired: settings.inviteRequired };
         }, { isolationLevel: 'RepeatableRead' }).then(value => { publicCache = { until: +now() + 30_000, value }; return value; }).finally(() => { publicPending = undefined; });
         await publicPending;
@@ -112,8 +112,8 @@ export function registerEntitlementRoutes(app: FastifyInstance, deps: AccountDep
   }));
   app.get('/v1/admin/early-access/stats', opts(true), handle(async () => {
     const at = now(), settings = await localSettings(db);
-    const active = { tier: 'EARLY_ACCESS' as const, status: 'ACTIVE' as const, OR: [{ validUntil: null }, { validUntil: { gt: at } }] };
+    const active = { source: 'EARLY_ACCESS' as const, tier: 'EARLY_ACCESS' as const, status: 'ACTIVE' as const, OR: [{ validUntil: null }, { validUntil: { gt: at } }] };
     const occupied = (await db.accessGrant.findMany({ where: active, distinct: ['userId'], select: { userId: true } })).length;
-    return { occupied, available: Math.max(0, settings.cap - occupied), cap: settings.cap, active: await db.accessGrant.count({ where: active }), expired: await db.accessGrant.count({ where: { OR: [{ status: 'EXPIRED' }, { status: 'ACTIVE', validUntil: { lte: at } }] } }), revoked: await db.accessGrant.count({ where: { status: 'REVOKED' } }) };
+    return { occupied, available: Math.max(0, settings.cap - occupied), cap: settings.cap, active: await db.accessGrant.count({ where: active }), expired: await db.accessGrant.count({ where: { source: 'EARLY_ACCESS', OR: [{ status: 'EXPIRED' }, { status: 'ACTIVE', validUntil: { lte: at } }] } }), revoked: await db.accessGrant.count({ where: { source: 'EARLY_ACCESS', status: 'REVOKED' } }) };
   }));
 }

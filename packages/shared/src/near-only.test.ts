@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CHAINS, CHAIN_IDS, chainFromSubdomain, resolveChainFromHost } from './chains';
 import { isImplicitNearAccount, isNearAccountId } from './near-address';
-import { ACCESS_TIERS, earlyAccessAdmission, resolveEntitlements } from './entitlements';
+import { ACCESS_TIERS, earlyAccessAdmission, resolveEntitlements, usedSeats } from './entitlements';
 
 describe('NEAR-only routing', () => {
   it('serves only NEAR and falls back to it', () => {
@@ -40,6 +40,12 @@ describe('local access', () => {
   it('ignores expired or revoked grants', () => {
     expect(resolveEntitlements({ userId: 'u', grants: [{ ...grant, validUntil: new Date('2026-11-08T11:00:00Z') }], earlyAccessEnabled: true }, now).effectiveTier).toBe('NONE');
     expect(resolveEntitlements({ userId: 'u', grants: [{ ...grant, status: 'REVOKED' }], earlyAccessEnabled: true }, now).effectiveTier).toBe('NONE');
+  });
+  it('does not count admin overrides as public seats', () => {
+    expect(usedSeats([
+      { id: 'a', userId: 'self', source: 'EARLY_ACCESS', tier: 'EARLY_ACCESS', status: 'ACTIVE', validUntil: null },
+      { id: 'b', userId: 'admin', source: 'ADMIN', tier: 'EARLY_ACCESS', status: 'ACTIVE', validUntil: null },
+    ], now)).toBe(1);
   });
   it('does not require a wallet to admit an early-access seat', () => {
     expect(earlyAccessAdmission({ enabled: true, cap: 2, occupied: 1, alreadySeated: false, inviteRequired: false, now })).toBeNull();

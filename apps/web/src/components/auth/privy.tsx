@@ -16,5 +16,9 @@ function Bridge({ children }: { children: ReactNode }) {
 
 /** NEAR-only research build: sign-in is email or Google. No browser wallet connection is requested or stored. */
 export default function AuthProvider({ children, appId }: { children: ReactNode; appId: string }) {
-  return <PrivyProvider appId={appId} config={{ loginMethods: ['google', 'email'] }}><Bridge>{children}</Bridge></PrivyProvider>;
+  return <PrivyProvider appId={appId} config={{
+    loginMethods: ['google', 'email'],
+    // This build has no wallet flow. Stop the SDK from initializing WalletConnect or external wallet connectors.
+    externalWallets: { disableAllExternalWallets: true, walletConnect: { enabled: false } },
+  }}><Bridge>{children}</Bridge></PrivyProvider>;
 }

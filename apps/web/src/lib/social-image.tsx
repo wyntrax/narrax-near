@@ -12,7 +12,7 @@ export async function renderSocialImage(locale: SeoLocale, key: string) {
   const logo = `data:image/svg+xml;base64,${Buffer.from(symbol).toString('base64')}`;
   const id = locale === 'id';
   const home = key === 'home';
-  const topics = id ? ['NARASI','WALLET','TOKEN'] : ['NARRATIVES','WALLETS','TOKENS'];
+  const topics = id ? ['NARASI','BUKTI TOKEN','RISIKO'] : ['NARRATIVES','TOKEN EVIDENCE','RISK'];
   return new ImageResponse(
     <div style={{display:'flex',position:'relative',width:'100%',height:'100%',background:'#090e15',color:'#f7fafc',fontFamily:'sans-serif',overflow:'hidden'}}>
       <div style={{display:'flex',position:'absolute',right:-100,top:-180,width:770,height:850,background:'radial-gradient(ellipse, #233d45 0%, #151f35 40%, #090e15 72%)'}}/>

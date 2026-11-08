@@ -5,6 +5,8 @@ export interface LlmRequest {
   temperature: number;
   maxTokens: number;
   reasoningLevel?: 'low' | 'medium' | 'high';
+  /** Request-specific deadline. Falls back to the provider's configured timeout. */
+  timeoutMs?: number;
 }
 
 export interface LlmResponse {

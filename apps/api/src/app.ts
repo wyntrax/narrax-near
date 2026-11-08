@@ -19,6 +19,7 @@ import { registerEntitlementRoutes } from './entitlements/routes';
 import { createRuntimeSettings, type RuntimeSettingsResolver } from './runtime-settings';
 import { registerRuntimeRoutes } from './runtime-routes';
 import { registerPersonalResearchRoutes } from './personalResearch';
+import { registerPublicResearchSnapshot } from './publicResearchSnapshot';
 
 export async function buildApp(opts: {
   account?: AccountDeps;
@@ -53,6 +54,8 @@ export async function buildApp(opts: {
 
   if (opts.account) {
     registerFeatureGates(app, opts.account.db, opts.account.now);
+    // Public aggregate counts for the landing page. Deliberately before auth-only routes and independent of tier.
+    registerPublicResearchSnapshot(app, opts.account.db, opts.account.now);
     registerPersonalResearchRoutes(app, opts.account);
     registerEntitlementRoutes(app, opts.account);
     registerAccountRoutes(app, opts.account);

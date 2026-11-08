@@ -33,7 +33,7 @@ export function checkEnv(env: Env, role: EnvRole, options: { runtimeAuth?: boole
   needUrl('REDIS_URL', ['redis:', 'rediss:'], true, 'redis:// or rediss://');
   const market = get('MARKET_DATA_ENABLED');
   if (market !== undefined && market !== 'true' && market !== 'false') errors.push('MARKET_DATA_ENABLED must be "true" or "false".');
-  for (const n of ['DEXSCREENER_BASE_URL', 'GECKOTERMINAL_BASE_URL', 'AI_BASE_URL', 'NEAR_RPC_URL', 'NEAR_EXPLORER_URL']) needUrl(n, ['http:', 'https:'], false, 'http:// or https://');
+  for (const n of ['DEXSCREENER_BASE_URL', 'GECKOTERMINAL_BASE_URL', 'AI_BASE_URL', 'NEAR_RPC_URL', 'NEAR_EXPLORER_URL', 'PRIVY_JWKS_URL']) needUrl(n, ['http:', 'https:'], false, 'http:// or https://');
 
   const nearNetwork = get('NEAR_NETWORK');
   if (nearNetwork !== undefined && !['mainnet', 'testnet'].includes(nearNetwork)) errors.push('NEAR_NETWORK must be "mainnet" or "testnet".');

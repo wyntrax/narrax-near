@@ -60,9 +60,9 @@ export class OpenAiCompatibleProvider implements LlmProvider {
     };
   }
 
-  private async post(body: Record<string, unknown>): Promise<Response> {
+  private async post(body: Record<string, unknown>, timeoutMs?: number): Promise<Response> {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), this.opts.timeoutMs ?? 60_000);
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs ?? this.opts.timeoutMs ?? 60_000);
     try {
       return await (this.opts.fetch ?? fetch)(chatCompletionsUrl(this.opts.baseUrl), {
         method: 'POST',
@@ -79,9 +79,9 @@ export class OpenAiCompatibleProvider implements LlmProvider {
 
   async complete(req: LlmRequest): Promise<LlmResponse> {
     const style: RequestStyle = this.bareModels.has(req.model) ? 'bare' : (this.opts.requestStyle ?? 'full');
-    let res = await this.post(this.body(req, style));
+    let res = await this.post(this.body(req, style), req.timeoutMs);
     if ((res.status === 400 || res.status === 422) && style !== 'bare') {
-      const retry = await this.post(this.body(req, 'bare'));
+      const retry = await this.post(this.body(req, 'bare'), req.timeoutMs);
       if (retry.ok) this.bareModels.add(req.model);
       res = retry;
     }

@@ -1,5 +1,7 @@
+import { createServer } from 'node:http';
+import type { AddressInfo } from 'node:net';
 import { describe, expect, it } from 'vitest';
-import { exportSPKI, generateKeyPair, SignJWT, type KeyLike } from 'jose';
+import { exportJWK, exportSPKI, generateKeyPair, SignJWT, type KeyLike } from 'jose';
 import { createPrivyVerifier, describeAuthFailure } from './auth';
 
 const sign = (key: KeyLike, claims: { aud: string; iss?: string; exp?: string }) =>
@@ -35,6 +37,28 @@ describe('describeAuthFailure', () => {
     expect(await reason(bad.verify('a.b.c'))).toMatch(/could not be read|not a Privy access token/);
     const { verifier } = await setup();
     expect(await reason(verifier.verify('garbage'))).toMatch(/not a Privy access token/);
+  });
+  it('falls back to the current JWKS key when the configured PEM was rotated', async () => {
+    const mine = await generateKeyPair('ES256'), rotated = await generateKeyPair('ES256');
+    const jwk = await exportJWK(rotated.publicKey);
+    const server = createServer((_req, res) => {
+      res.setHeader('content-type', 'application/json');
+      res.end(JSON.stringify({ keys: [{ ...jwk, kid: 'rotated-key', alg: 'ES256', use: 'sig' }] }));
+    });
+    await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
+    try {
+      const port = (server.address() as AddressInfo).port;
+      const verifier = createPrivyVerifier({
+        appId: 'app-1',
+        verificationKey: await exportSPKI(mine.publicKey),
+        jwksUrl: `http://127.0.0.1:${port}/jwks.json`,
+      });
+      const token = await new SignJWT({}).setProtectedHeader({ alg: 'ES256', kid: 'rotated-key' })
+        .setSubject('did:privy:rotated').setIssuer('privy.io').setAudience('app-1').setExpirationTime('5m').sign(rotated.privateKey);
+      expect(await verifier.verify(token)).toEqual({ privyUserId: 'did:privy:rotated' });
+    } finally {
+      await new Promise<void>(resolve => server.close(() => resolve()));
+    }
   });
   it('never includes the token, key or app id', async () => {
     const { mine, verifier } = await setup();
