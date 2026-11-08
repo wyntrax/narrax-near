@@ -23,6 +23,8 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/ws": "^8.18.2"
+    "@types/pg": "^8.23.1",
+    "@types/ws": "^8.18.2",
+    "pg": "^8.23.1"
   }
 }
