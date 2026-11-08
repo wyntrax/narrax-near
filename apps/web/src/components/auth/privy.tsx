@@ -20,5 +20,6 @@ export default function AuthProvider({ children, appId }: { children: ReactNode;
     loginMethods: ['google', 'email'],
     // This build has no wallet flow. Stop the SDK from initializing WalletConnect or external wallet connectors.
     externalWallets: { disableAllExternalWallets: true, walletConnect: { enabled: false } },
+    appearance: { walletList: [] },
   }}><Bridge>{children}</Bridge></PrivyProvider>;
 }
