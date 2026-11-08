@@ -8,6 +8,7 @@ export * from './notifications';
 export * from './realtimePublisher';
 export * from './socialTokens';
 export * from './telegram';
+export * from './smartMoney';
 export { evaluatePersonalWorkspace, personalResearchLock, type PersonalPermissions } from './personalResearch';
 export { researchCoverage, renderResearchCoverage } from './researchCoverage';
 export { trackEarlyRadarOutcomes, earlyRadarReport } from './earlyRadarTracking';

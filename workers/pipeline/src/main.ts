@@ -1,7 +1,7 @@
 /**
  * Worker bootstrap. Reads and writes Postgres through Prisma.
  * This process cannot sign or send transactions and does not consume an execution queue.
- * NEAR RPC is used only for NEP-141 metadata and chain reads.
+ * NEAR RPC is used only for read-only metadata, chain probes and wallet account-kind checks.
  */
 import { Worker } from 'bullmq';
 import { createPrisma } from '@narra/database';
@@ -23,6 +23,7 @@ import { runAiAnalysis } from './aiAnalysis';
 import { trackOutcomes } from './outcomeTracking';
 import { dispatchAlerts } from './notifications';
 import { publishNewEvents } from './realtimePublisher';
+import { refreshSmartMoney, smartMoneyIntervalMs, smartMoneyMaxPools, smartMoneyRulesFromEnv } from './smartMoney';
 
 // First, before any connection is opened: stop with a clear list of what is wrong. Messages never contain a value.
 assertEnv('worker');
@@ -36,25 +37,37 @@ const rpc = new NearRpc({ url: near.rpcUrl, timeoutMs: 15_000 });
 
 if (!tregConfig) console.log('no narrative providers configured: set TREG_NARRATIVE_ENABLED and Treg configuration to enable social ingestion');
 
-// Market data comes from free public APIs that need no key. Set MARKET_DATA_ENABLED=false to turn the job off.
-const marketDeps = process.env.MARKET_DATA_ENABLED === 'false' ? null : (() => {
-  const gecko = new GeckoTerminalSource({ baseUrl: process.env.GECKOTERMINAL_BASE_URL });
-  return {
-    metadata: nearMetadataSource(rpc),
-    quotes: new DexScreenerSource({ baseUrl: process.env.DEXSCREENER_BASE_URL }),
-    info: gecko,
-    launches: {
-      name: gecko.name,
-      getNewPools: async () => {
-        const results = await Promise.allSettled([gecko.getNewPools(), gecko.getTrendingPools()]);
-        if (results.every(r => r.status === 'rejected')) throw new Error('Pool discovery unavailable');
-        for (const r of results) if (r.status === 'rejected') console.error('One pool discovery source is unavailable');
-        return [...new Map(results.flatMap(r => r.status === 'fulfilled' ? r.value : []).map(pool => [pool.mint, pool])).values()];
-      },
+// Market data and public trade observations use free APIs that need no key.
+const gecko = new GeckoTerminalSource({ baseUrl: process.env.GECKOTERMINAL_BASE_URL });
+const marketDeps = process.env.MARKET_DATA_ENABLED === 'false' ? null : {
+  metadata: nearMetadataSource(rpc),
+  quotes: new DexScreenerSource({ baseUrl: process.env.DEXSCREENER_BASE_URL }),
+  info: gecko,
+  launches: {
+    name: gecko.name,
+    getNewPools: async () => {
+      const results = await Promise.allSettled([gecko.getNewPools(), gecko.getTrendingPools()]);
+      if (results.every(r => r.status === 'rejected')) throw new Error('Pool discovery unavailable');
+      for (const r of results) if (r.status === 'rejected') console.error('One pool discovery source is unavailable');
+      return [...new Map(results.flatMap(r => r.status === 'fulfilled' ? r.value : []).map(pool => [pool.mint, pool])).values()];
     },
-  };
-})();
+  },
+};
 if (!marketDeps) console.log('market data disabled');
+
+// Smart money is independent of the market refresh: it only reads the public trade feed and stored token evidence.
+// GeckoTerminal's `near` data is mainnet, so the account-kind check must not inherit a testnet NEAR_RPC_URL.
+const smartMoneyRpc = new NearRpc({
+  url: process.env.SMART_MONEY_ACCOUNT_RPC_URL?.trim() || 'https://rpc.mainnet.near.org',
+  timeoutMs: 15_000,
+});
+const smartMoneyDeps = process.env.SMART_MONEY_ENABLED === 'false' ? null : {
+  trades: gecko,
+  accountKind: { isContract: (address: string) => smartMoneyRpc.isContractAccount(address) },
+  maxPools: smartMoneyMaxPools(),
+  rules: smartMoneyRulesFromEnv(),
+};
+if (!smartMoneyDeps) console.log('smart money observation disabled');
 
 const llm = aiProviderFromEnv();
 if (!llm) console.log('no AI provider configured');
@@ -71,6 +84,7 @@ const scheduled = (async () => {
   await queues.scheduleNarrativeIngestion(tregConfig?.intervalMs);
   await queues.scheduleTokenResolution();
   await queues.scheduleMarketData();
+  if (smartMoneyDeps) await queues.scheduleSmartMoney(smartMoneyIntervalMs());
   await queues.scheduleOutcomeTracking();
   await queues.scheduleNotificationDispatch();
   await queues.scheduleRealtimePublish();
@@ -82,6 +96,12 @@ const workers = [
   new Worker(QUEUE_NAMES.aiAnalysis, async () => JSON.stringify(await runAiAnalysis(db, { llm })), { connection, concurrency: 1 }),
   new Worker(QUEUE_NAMES.tokenResolution, async () => JSON.stringify({ mentionLinks: await attributeNarrativeMentions(db), ...(await resolveTokens(db)), social: await scanSocialTokens(db, { quotes: marketDeps?.quotes ?? null }).catch(() => 'social scan failed') }), { connection, concurrency: 1 }),
   new Worker(QUEUE_NAMES.marketData, async () => (marketDeps ? JSON.stringify(await refreshMarketData(db, marketDeps)) : 'disabled'), { connection, concurrency: 1 }),
+  new Worker(QUEUE_NAMES.smartMoney, async () => {
+    if (!smartMoneyDeps) return 'disabled';
+    const summary = await refreshSmartMoney(db, smartMoneyDeps);
+    console.log(JSON.stringify({ msg: 'smart_money_observation', ...summary }));
+    return JSON.stringify(summary);
+  }, { connection, concurrency: 1 }),
   new Worker(QUEUE_NAMES.narrativeIngestion, async (job) => {
     if (!tregConfig) return 'disabled';
     return runTregJob(db, tregConfig, job);

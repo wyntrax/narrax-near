@@ -3,6 +3,7 @@ import rateLimit from '@fastify/rate-limit';
 import { getBrand } from '@narra/shared';
 import { registerAccountRoutes, type AccountDeps } from './account';
 import { registerReadRoutes } from './read';
+import { registerSmartMoneyRoutes } from './smartMoney';
 import { registerAdminRoutes, type ConnectionStatus } from './admin';
 import { registerChatRoutes } from './chat';
 import { registerAnalyticsRoutes } from './analytics';
@@ -60,6 +61,7 @@ export async function buildApp(opts: {
     registerEntitlementRoutes(app, opts.account);
     registerAccountRoutes(app, opts.account);
     registerReadRoutes(app, opts.account);
+    registerSmartMoneyRoutes(app, opts.account);
     registerAdminRoutes(app, { ...opts.account, connections: opts.connections });
     registerAlertRoutes(app, opts.account);
     registerSettingsRoutes(app, opts.account);

@@ -14,6 +14,7 @@ export const QUEUE_NAMES = {
   notificationDispatch: 'notification-dispatch',
   realtimePublish: 'realtime-publish',
   telegramDelivery: 'telegram-delivery',
+  smartMoney: 'smart-money',
 } as const;
 
 /** BullMQ workers need maxRetriesPerRequest: null. */
@@ -32,7 +33,7 @@ const RETAIN_SHORT: Pick<JobsOptions, 'removeOnComplete' | 'removeOnFail'> = {
   removeOnFail: { age: 24 * 3600, count: 500 },
 };
 
-const ALL_QUEUES = ['narrativeIngestion', 'tokenResolution', 'aiAnalysis', 'marketData', 'outcomeTracking', 'notificationDispatch', 'realtimePublish', 'telegramDelivery'] as const;
+const ALL_QUEUES = ['narrativeIngestion', 'tokenResolution', 'aiAnalysis', 'marketData', 'outcomeTracking', 'notificationDispatch', 'realtimePublish', 'telegramDelivery', 'smartMoney'] as const;
 
 export function createQueues(connection: Redis) {
   const narrativeIngestion = new Queue(QUEUE_NAMES.narrativeIngestion, { connection });
@@ -43,8 +44,9 @@ export function createQueues(connection: Redis) {
   const notificationDispatch = new Queue(QUEUE_NAMES.notificationDispatch, { connection });
   const realtimePublish = new Queue(QUEUE_NAMES.realtimePublish, { connection });
   const telegramDelivery = new Queue(QUEUE_NAMES.telegramDelivery, { connection });
+  const smartMoney = new Queue(QUEUE_NAMES.smartMoney, { connection });
 
-  const queues = { narrativeIngestion, tokenResolution, aiAnalysis, marketData, outcomeTracking, notificationDispatch, realtimePublish, telegramDelivery };
+  const queues = { narrativeIngestion, tokenResolution, aiAnalysis, marketData, outcomeTracking, notificationDispatch, realtimePublish, telegramDelivery, smartMoney };
 
   return {
     ...queues,
@@ -61,6 +63,9 @@ export function createQueues(connection: Redis) {
       realtimePublish.upsertJobScheduler('publish', { every: everyMs }, { name: 'publish', data: {}, opts: { attempts: 1, ...RETAIN_SHORT } }),
     scheduleMarketData: (everyMs = 5 * 60_000) =>
       marketData.upsertJobScheduler('refresh', { every: everyMs }, { name: 'refresh', data: {}, opts: { attempts: 1, ...RETAIN } }),
+    /** Recent public NEAR pool trades; the worker does its own deduplication and profile recompute. */
+    scheduleSmartMoney: (everyMs = 10 * 60_000) =>
+      smartMoney.upsertJobScheduler('observe', { every: everyMs }, { name: 'observe', data: {}, opts: { attempts: 1, ...RETAIN } }),
     scheduleAiAnalysis: (everyMs = 5 * 60_000) =>
       aiAnalysis.upsertJobScheduler('analyze', { every: everyMs }, { name: 'analyze', data: {}, opts: { attempts: 1, ...RETAIN } }),
     scheduleTokenResolution: (everyMs = 10 * 60_000) =>

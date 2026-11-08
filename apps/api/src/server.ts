@@ -45,6 +45,7 @@ async function main() {
       { name: 'privy', configured: !!(config.privyAppId.value && config.privyVerificationKey.value), purpose: 'Sign-in' },
       { name: 'near-rpc', configured: true, purpose: 'NEAR chain status and NEP-141 metadata' },
       { name: 'ai-provider', configured: !!process.env.AI_PROVIDER_API_KEY, purpose: 'Opportunity analysis and chat' },
+      { name: 'smart-money', configured: process.env.SMART_MONEY_ENABLED !== 'false', purpose: 'Observed public NEAR DEX wallet trades' },
     ],
     ops: { redisPing: async () => (await connection.ping()) === 'PONG', queueCounts: () => queues.counts(), queueHealth: () => queues.health(), marketDataEnabled: process.env.MARKET_DATA_ENABLED !== 'false', aiProviderConfigured: !!process.env.AI_PROVIDER_API_KEY },
     realtime: { stream: createEventStream(connection), readerStream: createEventStream(streamReaderConnection) },

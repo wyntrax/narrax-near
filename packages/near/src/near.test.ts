@@ -169,6 +169,13 @@ describe('NearRpc', () => {
     await expect(new NearRpc({ url: 'https://rpc.testnet.near.org', fetchImpl: fakeFetch({ jsonrpc: '2.0' }).fetchImpl }).latestBlock()).rejects.toThrow('no result');
   });
 
+  it('distinguishes an externally owned account from a deployed contract', async () => {
+    const empty = fakeFetch({ jsonrpc: '2.0', result: { account_id: 'alice.near', amount: '0', locked: '0', code_hash: '11111111111111111111111111111111', storage_usage: 0, block_height: 1, block_hash: 'h' } });
+    const contract = fakeFetch({ jsonrpc: '2.0', result: { account_id: 'router.near', amount: '0', locked: '0', code_hash: 'DcKu2Xv8KAomrssGk3TBTJdDgjUFFD434B2T22yRd4ag', storage_usage: 0, block_height: 1, block_hash: 'h' } });
+    await expect(new NearRpc({ url: 'https://rpc.mainnet.near.org', fetchImpl: empty.fetchImpl }).isContractAccount('alice.near')).resolves.toBe(false);
+    await expect(new NearRpc({ url: 'https://rpc.mainnet.near.org', fetchImpl: contract.fetchImpl }).isContractAccount('router.near')).resolves.toBe(true);
+  });
+
   it('encodes view-call arguments and decodes the JSON result', async () => {
     const result = [...Buffer.from(JSON.stringify({ name: 'Token', symbol: 'TKN', decimals: 6 }))];
     const { fetchImpl, calls } = fakeFetch({ jsonrpc: '2.0', result: { result, logs: ['log'], block_height: 5, block_hash: 'h' } });

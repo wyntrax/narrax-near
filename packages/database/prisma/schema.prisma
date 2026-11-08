@@ -71,6 +71,17 @@ enum OutcomeLabel {
   UNKNOWN
 }
 
+enum SmartTradeSide {
+  BUY
+  SELL
+}
+
+enum SmartWalletStatus {
+  QUALIFIED
+  PROVISIONAL
+  INSUFFICIENT
+}
+
 // ---------- Users and local access ----------
 
 model User {
@@ -353,6 +364,7 @@ model Token {
   risk             TokenRiskMetric[]
   narratives       NarrativeTokenRelation[]
   opportunities    Opportunity[]
+  smartTrades      SmartWalletTrade[]
 
   @@index([symbol])
 }
@@ -390,6 +402,80 @@ model TokenRiskMetric {
   at        DateTime @default(now())
 
   @@index([tokenId, at])
+}
+
+// ---------- Observed smart-money wallets ----------
+// Only public DEX observations. No private keys, balances, orders or execution data.
+// A wallet profile is a cost-basis calculation over the trades this deployment actually observed.
+
+model SmartWallet {
+  id          String              @id @default(cuid())
+  /// NEAR account id of the trader observed in a DEX swap.
+  address     String              @unique
+  firstSeenAt DateTime
+  lastTradeAt DateTime
+  trades      SmartWalletTrade[]
+  profile     SmartWalletProfile?
+
+  @@index([lastTradeAt])
+}
+
+model SmartWalletTrade {
+  id           String         @id @default(cuid())
+  walletId     String
+  wallet       SmartWallet    @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  tokenId      String
+  token        Token          @relation(fields: [tokenId], references: [id], onDelete: Cascade)
+  /// Provider name. Kept so a later source can be distinguished without rewriting history.
+  source       String
+  /// Provider trade id. The unique key makes overlapping poll windows idempotent.
+  externalId   String         @unique
+  poolAddress  String
+  txHash       String
+  side         SmartTradeSide
+  /// Token units received on a BUY and sent on a SELL, as reported by the source.
+  tokenAmount  Decimal        @db.Decimal(38, 18)
+  priceUsd     Decimal?       @db.Decimal(38, 18)
+  /// USD value of the swap leg at trade time, as reported by the source. Never estimated from a current price.
+  valueUsd     Decimal        @db.Decimal(38, 18)
+  at           DateTime
+  observedAt   DateTime       @default(now())
+
+  @@index([walletId, at])
+  @@index([tokenId, at])
+  @@index([at])
+}
+
+model SmartWalletProfile {
+  walletId         String            @id
+  wallet           SmartWallet       @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  updatedAt        DateTime          @default(now())
+  tradeCount       Int
+  buyCount         Int
+  sellCount        Int
+  volumeUsd        Decimal           @db.Decimal(38, 2)
+  totalBoughtUsd   Decimal           @db.Decimal(38, 2)
+  realizedPnlUsd   Decimal           @db.Decimal(38, 2)
+  closedTrades     Int
+  closedTokens     Int
+  winningTrades    Int
+  losingTrades     Int
+  winRate          Float?
+  medianRoi        Float?
+  profitFactor     Float?
+  maxDrawdown      Float?
+  score            Float?
+  status           SmartWalletStatus
+  eligible         Boolean           @default(false)
+  /// Machine-readable reasons behind the status, shown in the wallet detail.
+  reasons          String[]
+  unmatchedSells   Int
+  excessSellUnits  Int
+  observedFrom     DateTime?
+  observedTo       DateTime?
+
+  @@index([eligible, score])
+  @@index([realizedPnlUsd])
 }
 
 // ---------- Opportunities, AI and outcomes ----------

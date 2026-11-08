@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { isNearAccountId } from '@narra/shared';
 import { getJson, toNumber, type HttpOptions } from './http';
 import { RateLimiter } from './limiter';
-import { MarketDataError, NEAR_CHAIN_ID, NEAR_REFERENCE_CONTRACTS, type LaunchSource, type NewPool, type TokenInfo, type TokenInfoSource } from './types';
+import { MarketDataError, NEAR_CHAIN_ID, NEAR_REFERENCE_CONTRACTS, type LaunchSource, type NewPool, type PoolTrade, type PoolTradeSource, type TokenInfo, type TokenInfoSource } from './types';
 
 /** Documented free limit is 30 calls a minute. 2.2 s spacing leaves headroom. */
 export const GECKO_MIN_INTERVAL_MS = 2200;
@@ -31,6 +31,24 @@ const Pool = z.object({
   relationships: z.object({ base_token: z.object({ data: z.object({ id: z.string() }).nullish() }).nullish() }).nullish(),
 });
 const IncludedToken = z.object({ id: z.string(), attributes: z.object({ address: z.string().nullish(), name: z.string().nullish(), symbol: z.string().nullish() }) });
+const TradesBody = z.object({
+  data: z.array(z.object({
+    id: z.string(),
+    attributes: z.object({
+      block_timestamp: z.string(),
+      tx_hash: z.string(),
+      tx_from_address: z.string(),
+      from_token_address: z.string(),
+      to_token_address: z.string(),
+      from_token_amount: z.union([z.string(), z.number()]),
+      to_token_amount: z.union([z.string(), z.number()]),
+      price_from_in_usd: z.union([z.string(), z.number()]).nullish(),
+      price_to_in_usd: z.union([z.string(), z.number()]).nullish(),
+      volume_in_usd: z.union([z.string(), z.number()]).nullish(),
+      is_anomalous: z.boolean().nullish(),
+    }),
+  })),
+});
 
 export interface GeckoOptions extends HttpOptions { baseUrl?: string }
 
@@ -39,7 +57,7 @@ export interface GeckoOptions extends HttpOptions { baseUrl?: string }
  * The holder fields are marked beta by the provider, and the top-10 share is of total supply, so it can include
  * liquidity pool and exchange accounts and may overstate concentration. Treat both as estimates.
  */
-export class GeckoTerminalSource implements TokenInfoSource, LaunchSource {
+export class GeckoTerminalSource implements TokenInfoSource, LaunchSource, PoolTradeSource {
   readonly name = 'geckoterminal';
   private readonly baseUrl: string;
   private readonly limiter: RateLimiter;
@@ -71,6 +89,36 @@ export class GeckoTerminalSource implements TokenInfoSource, LaunchSource {
       websites: (a.websites ?? []).filter((w) => /^https?:\/\//i.test(w)).slice(0, 5),
       twitterHandle: a.twitter_handle ?? null,
     };
+  }
+
+  /**
+   * Recent public trades for one NEAR pool. The provider returns a bounded recent window, not full history.
+   * Rows without a valid account, timestamp, amount or USD volume are omitted rather than filled with estimates.
+   */
+  async getRecentTrades(poolAddress: string): Promise<PoolTrade[]> {
+    const path = `/networks/${NEAR_CHAIN_ID}/pools/${encodeURIComponent(poolAddress)}/trades`;
+    const { status, body } = await getJson(`${this.baseUrl}${path}`, this.http);
+    if (status === 404) return [];
+    const parsed = TradesBody.safeParse(body);
+    if (!parsed.success) throw new MarketDataError('shape', 'pool trades had an unexpected shape');
+    const out: PoolTrade[] = [];
+    for (const item of parsed.data.data) {
+      const a = item.attributes, at = new Date(a.block_timestamp);
+      const wallet = a.tx_from_address.trim();
+      const fromAmount = toNumber(a.from_token_amount), toAmount = toNumber(a.to_token_amount), volumeUsd = toNumber(a.volume_in_usd);
+      if (!isNearAccountId(wallet) || !Number.isFinite(at.getTime())) continue;
+      if (fromAmount == null || toAmount == null || fromAmount <= 0 || toAmount <= 0) continue;
+      if (volumeUsd == null || volumeUsd <= 0) continue;
+      const fromToken = a.from_token_address.trim(), toToken = a.to_token_address.trim();
+      if (!fromToken || !toToken) continue;
+      out.push({
+        id: item.id, poolAddress, txHash: a.tx_hash, wallet,
+        fromToken, toToken, fromAmount, toAmount,
+        fromPriceUsd: toNumber(a.price_from_in_usd), toPriceUsd: toNumber(a.price_to_in_usd),
+        volumeUsd, at, anomalous: a.is_anomalous === true,
+      });
+    }
+    return out;
   }
 
   /** Most recently created NEAR pools (one page, about 20). Pools with no readable token or time are skipped. */

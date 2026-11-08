@@ -37,11 +37,14 @@ DEX Screener, GeckoTerminal and the configured social provider.
 - **Research workspace** (bilingual EN/ID)
   - narrative radar, token screener and token detail, opportunities, decision analytics,
     personal radar/theses/briefings, alerts, agent chat and admin
+  - observed Smart Money wallets and token flows from public NEAR DEX trades, with explicit
+    cost-basis and coverage limits
   - server-enforced access tiers and locked navigation
 - **Research pipeline**
   - Treg narrative ingestion
   - social token references and narrative-token attribution
   - NEAR NEP-141 metadata, DEX prices/liquidity, holder concentration and deterministic risk flags
+  - observed wallet trades, token flows and average-cost Smart Money profiles from public DEX trades
   - Early Radar alerts and measured outcomes
   - AI opportunity analysis and outcome tracking
   - a public landing snapshot of aggregate narrative, token and opportunity counts

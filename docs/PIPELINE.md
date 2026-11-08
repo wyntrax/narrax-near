@@ -9,6 +9,7 @@ The pipeline is research-only. It has no trading, custody, portfolio or executor
 | `narrative-ingestion` | Treg social ingestion, narrative metrics and mentions |
 | `token-resolution` | Narrative-token matching, social token discovery, opportunity scoring |
 | `market-data` | NEP-141 metadata, DEX prices/liquidity, holders, deterministic risk rows |
+| `smart-money` | Public NEAR pool trades, observed wallet trades and average-cost profiles |
 | `ai-analysis` | Fast screen, bull/bear/risk roles, decision, deterministic guardrails |
 | `outcome-tracking` | 1h/24h decision outcomes and Early Radar horizons |
 | `notification-dispatch` | Global and user alerts to notifications |
@@ -26,6 +27,15 @@ fetched. Ticker matches are candidates, never identity proof.
 DEX Screener supplies price, liquidity, volume and pair age. GeckoTerminal supplies holder count
 and concentration when available. Missing values are not replaced with zero. A price older than
 15 minutes or a holder row older than 60 minutes is stale.
+
+## Smart Money
+
+The `smart-money` queue reads recent public NEAR pool trades from GeckoTerminal and stores only
+trades for tokens already in the research universe. It deduplicates by provider trade id and
+recomputes average-cost wallet profiles for affected wallets. Realized PnL uses only sells with an
+observed buy basis; open positions, unmatched sells and oversized sells are not treated as clean
+evidence. Wallets are not clustered by funding source. See `docs/SMART_MONEY.md` for exact rules,
+API routes and limits.
 
 ## Early Radar
 

@@ -1,7 +1,7 @@
 'use client';
 import {useState,type ReactNode} from 'react';
 import {useLocale,useTranslations} from 'next-intl';
-import {LayoutDashboard,Radar,Orbit,Coins,Bell,ChartColumn,FlaskConical,Bot,Settings,ShieldCheck,PanelLeftClose,PanelLeftOpen,Menu,LogOut,ArrowUpRight,LockKeyhole} from 'lucide-react';
+import {LayoutDashboard,Radar,Orbit,Coins,Bell,ChartColumn,FlaskConical,Bot,Settings,ShieldCheck,PanelLeftClose,PanelLeftOpen,Menu,LogOut,ArrowUpRight,LockKeyhole,Users} from 'lucide-react';
 import {Link,usePathname} from '@/i18n/navigation';
 import {BrandMark} from '@/components/brand-mark';
 import {PoweredBy} from '@/components/powered-by';
@@ -14,7 +14,7 @@ import {Locked,useFormat,researchErrorKey} from './ui';
 import {routeFeature} from './route-access';
 import {MeSchema} from '@/features/admin/contracts';
 import {proCopy} from '@/features/pro-research/copy';
-const navigation=[{href:'/app',key:'overview',icon:LayoutDashboard},{href:'/app/radar',key:'radar',icon:Radar},{href:'/app/opportunities',key:'opportunities',icon:Orbit},{href:'/app/tokens',key:'tokens',icon:Coins},{href:'/app/alerts',key:'alerts',icon:Bell},{href:'/app/analytics',key:'analytics',icon:ChartColumn},{href:'/app/agent',key:'agent',icon:Bot},{href:'/app/settings',key:'settings',icon:Settings}];
+const navigation=[{href:'/app',key:'overview',icon:LayoutDashboard},{href:'/app/radar',key:'radar',icon:Radar},{href:'/app/opportunities',key:'opportunities',icon:Orbit},{href:'/app/tokens',key:'tokens',icon:Coins},{href:'/app/smart-money',key:'smartMoney',icon:Users},{href:'/app/alerts',key:'alerts',icon:Bell},{href:'/app/analytics',key:'analytics',icon:ChartColumn},{href:'/app/agent',key:'agent',icon:Bot},{href:'/app/settings',key:'settings',icon:Settings}];
 export function ResearchShell({children,theme}:{children:ReactNode;theme:string}){
   const t=useTranslations('workspace'),pathname=usePathname(),auth=useAuth();
  const locale=useLocale()==='id'?'id':'en',pro=proCopy[locale],navLabel=(key:string)=>key==='personalRadar'?pro.radar:key==='theses'?pro.thesis:key==='briefing'?pro.briefing:t(key);

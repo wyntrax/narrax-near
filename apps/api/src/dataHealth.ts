@@ -6,7 +6,7 @@ import { observation } from './marketEvidence';
 
 const Evidence = z.object({ metricId: z.string(), source: z.literal('dexscreener'), at: z.string().datetime() });
 export interface HealthPorts { queueCounts?: () => Promise<Record<string, QueueCounts>>; queueHealth?: () => Promise<Record<string, QueueHealth>>; marketDataEnabled?: boolean; aiProviderConfigured?: boolean }
-const QUEUES = ['market-data', 'ai-analysis', 'narrative-ingestion'];
+const QUEUES = ['market-data', 'smart-money', 'ai-analysis', 'narrative-ingestion'];
 const SCAN_LIMIT = 2000;
 const elapsed = (at: string | null, now: Date) => at ? Math.max(0, Math.round((+now - Date.parse(at)) / 1000)) : null;
 

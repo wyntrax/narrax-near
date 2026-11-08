@@ -11,6 +11,7 @@ export function routeFeature(path:string):FeatureKey|undefined{
   case 'briefing':return 'research.personal_briefing';
   case 'radar':case 'narratives':return 'research.narratives';
   case 'tokens':return 'research.tokens';
+  case 'smart-money':return 'research.smart_money';
   case 'opportunities':return 'research.opportunities';
   case 'analytics':return 'research.decision_analytics';
   case 'agent':return 'research.chat';

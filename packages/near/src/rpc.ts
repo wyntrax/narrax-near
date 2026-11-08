@@ -64,6 +64,9 @@ interface CallFunctionResponse {
   block_hash: string;
 }
 
+/** The code hash of an externally owned account (no deployed contract). */
+export const EMPTY_CODE_HASH = '11111111111111111111111111111111';
+
 export class NearRpc {
   private readonly url: string;
   private readonly fetchImpl: typeof fetch;
@@ -115,6 +118,11 @@ export class NearRpc {
   /** Native NEAR balance and storage facts for an account. Amounts are yoctoNEAR strings. */
   async viewAccount(accountId: string): Promise<NearViewAccount> {
     return this.call<NearViewAccount>('query', { request_type: 'view_account', finality: 'final', account_id: accountId });
+  }
+
+  /** True when the account has deployed code. Used to keep contract/relayer accounts out of wallet research. */
+  async isContractAccount(accountId: string): Promise<boolean> {
+    return (await this.viewAccount(accountId)).code_hash !== EMPTY_CODE_HASH;
   }
 
   /**

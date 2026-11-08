@@ -66,6 +66,36 @@ export type Token=z.infer<typeof TokenSchema>;
 export const TokenHistorySchema=z.object({window:z.enum(['1h','24h','7d']),asOf:date,points:z.array(z.object({at:date,priceUsd:number.positive(),source:z.literal('dexscreener'),pairAddress:text})),truncated:z.boolean(),excludedUnverified:z.number().int().nonnegative()});
 export type PricePoint=z.infer<typeof TokenHistorySchema>['points'][number];
 
+// ---- Observed smart-money wallets. Nullable numbers stay null; the UI never turns unknown into zero. ----
+export const SmartMoneyStatus=z.enum(['QUALIFIED','PROVISIONAL','INSUFFICIENT']);
+export const SmartMoneyWalletSchema=z.object({
+  address:text,firstSeenAt:date,lastTradeAt:date,observedFrom:date.nullable(),observedTo:date.nullable(),updatedAt:date,
+  tradeCount:z.number().int().nonnegative(),buyCount:z.number().int().nonnegative(),sellCount:z.number().int().nonnegative(),
+  volumeUsd:nullable,totalBoughtUsd:nullable,realizedPnlUsd:nullable,closedTrades:z.number().int().nonnegative(),closedTokens:z.number().int().nonnegative(),
+  winningTrades:z.number().int().nonnegative(),losingTrades:z.number().int().nonnegative(),
+  winRate:nullable,medianRoi:nullable,profitFactor:nullable,maxDrawdown:nullable,score:nullable,
+  status:SmartMoneyStatus,eligible:z.boolean(),reasons:z.array(text),
+  unmatchedSells:z.number().int().nonnegative(),excessSellUnits:z.number().int().nonnegative(),
+});
+export type SmartMoneyWallet=z.infer<typeof SmartMoneyWalletSchema>;
+export const SmartMoneyWalletsSchema=z.object({
+  asOf:date,items:z.array(SmartMoneyWalletSchema),nextCursor:z.string().nullable(),
+  summary:z.object({trackedWallets:z.number().int().nonnegative(),eligibleWallets:z.number().int().nonnegative(),observedTrades:z.number().int().nonnegative(),volumeUsd:nullable,lastTradeAt:date.nullable()}),
+});
+export const SmartMoneyFlowsSchema=z.object({
+  asOf:date,window:z.enum(['1h','6h','24h']),items:z.array(z.object({
+    mint:text,symbol:text,name:text,buys:z.number().int().nonnegative(),sells:z.number().int().nonnegative(),tradeCount:z.number().int().nonnegative(),
+    buyVolumeUsd:number,sellVolumeUsd:number,netFlowUsd:number,walletCount:z.number().int().nonnegative(),lastTradeAt:date,
+  })),nextCursor:z.string().nullable(),
+  coverage:z.object({trades:z.number().int().nonnegative(),wallets:z.number().int().nonnegative(),from:date,to:date,truncated:z.boolean(),observedSince:date.nullable()}),
+});
+export const SmartMoneyWalletDetailSchema=z.object({
+  address:text,firstSeenAt:date,lastTradeAt:date,profile:SmartMoneyWalletSchema,
+  tokenBreakdown:z.array(z.object({mint:text,symbol:text,name:text,buyCount:z.number().int().nonnegative(),sellCount:z.number().int().nonnegative(),buyVolumeUsd:number,sellVolumeUsd:number,netFlowUsd:number,tradeCount:z.number().int().nonnegative(),lastTradeAt:date})),
+  trades:z.array(z.object({id:text,at:date,side:z.enum(['BUY','SELL']),token:TokenRef,tokenAmount:number,priceUsd:nullable,valueUsd:number,poolAddress:text,txHash:text,source:text})),
+  coverage:z.object({tradesRead:z.number().int().nonnegative(),tokenRowsRead:z.number().int().nonnegative(),tokenRowsCapped:z.boolean()}),
+});
+
 // ---- Alerts, analytics, settings and chat. ----
 export const UnreadAlertsSchema=z.object({unread:z.number().int().nonnegative(),capped:z.boolean()});
 export const alertPriorities=['INFO','WATCH','IMPORTANT','CRITICAL'] as const;

@@ -85,3 +85,29 @@ export interface LaunchSource {
   readonly name: string;
   getNewPools(): Promise<NewPool[]>;
 }
+
+/** One public DEX trade observed for a pool. Addresses and USD values are exactly as reported. */
+export interface PoolTrade {
+  /** Provider trade id. Stable enough to deduplicate overlapping requests. */
+  id: string;
+  poolAddress: string;
+  txHash: string;
+  /** Transaction signer / trader reported by the provider. */
+  wallet: string;
+  fromToken: string;
+  toToken: string;
+  fromAmount: number;
+  toAmount: number;
+  fromPriceUsd: number | null;
+  toPriceUsd: number | null;
+  volumeUsd: number;
+  at: Date;
+  /** Provider's own anomaly flag. Consumers must not infer that an unflagged trade is clean. */
+  anomalous: boolean;
+}
+
+export interface PoolTradeSource {
+  readonly name: string;
+  /** Recent trades for one pool. Returns only rows with a usable timestamp, wallet and USD volume. */
+  getRecentTrades(poolAddress: string): Promise<PoolTrade[]>;
+}

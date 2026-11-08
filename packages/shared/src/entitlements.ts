@@ -8,6 +8,7 @@ export const FEATURE_TIERS = {
   'research.narratives': 'EARLY_ACCESS', 'research.tokens': 'EARLY_ACCESS', 'research.overview': 'EARLY_ACCESS',
   'research.screener': 'EARLY_ACCESS', 'research.rotation': 'EARLY_ACCESS', 'research.opportunities': 'EARLY_ACCESS',
   'research.analysis': 'EARLY_ACCESS', 'research.decision_analytics': 'EARLY_ACCESS', 'research.chat': 'EARLY_ACCESS',
+  'research.smart_money': 'EARLY_ACCESS',
   'research.personal_radar': 'PRO', 'research.thesis_tracker': 'PRO', 'research.personal_briefing': 'PRO',
 } as const satisfies Record<string, AccessTier>;
 export type FeatureKey = keyof typeof FEATURE_TIERS;
