@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Cheap guard for mistakes that are expensive to undo: a committed secret file or a data export.
       - name: No secrets, key files or data exports are tracked
@@ -38,7 +38,7 @@ jobs:
           bad="$(git ls-files | grep -E '(^|/)\.env($|\.)|\.pem$|\.p12$|(^|/)id_(rsa|ed25519)$|(^|/)backups/|(^|/)dump\.rdb$|\.zip$' | grep -vE '(^|/)\.env\.example$' || true)"
           if [ -n "$bad" ]; then echo "::error::Tracked files that must not be in git:"; echo "$bad"; exit 1; fi
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -83,8 +83,8 @@ jobs:
       SHADOW_DATABASE_URL: postgresql://narra:narra@localhost:5432/narra_ci_shadow
       PGPASSWORD: narra
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -114,7 +114,7 @@ jobs:
 
       - name: Keep the results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backend-vitest-results
           path: vitest-results.json
@@ -133,8 +133,8 @@ jobs:
       NEXT_PUBLIC_WYNTRAX_URL: https://wyntrax.example/claim
       NEXT_TELEMETRY_DISABLED: '1'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -168,10 +168,10 @@ jobs:
           --health-cmd "pg_isready -U narra -d narra_ci_image"
           --health-interval 5s --health-timeout 3s --health-retries 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
       - name: Build the image (not pushed)
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: docker/Dockerfile
