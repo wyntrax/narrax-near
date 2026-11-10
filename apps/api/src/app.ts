@@ -21,6 +21,7 @@ import { createRuntimeSettings, type RuntimeSettingsResolver } from './runtime-s
 import { registerRuntimeRoutes } from './runtime-routes';
 import { registerPersonalResearchRoutes } from './personalResearch';
 import { registerPublicResearchSnapshot } from './publicResearchSnapshot';
+import { registerAgentRiskRoutes } from './agentRisk';
 
 export async function buildApp(opts: {
   account?: AccountDeps;
@@ -57,6 +58,8 @@ export async function buildApp(opts: {
     registerFeatureGates(app, opts.account.db, opts.account.now);
     // Public aggregate counts for the landing page. Deliberately before auth-only routes and independent of tier.
     registerPublicResearchSnapshot(app, opts.account.db, opts.account.now);
+    // Public read-only risk gate for agents. Token-level safety facts only; no narratives, wallets or user data.
+    registerAgentRiskRoutes(app, { db: opts.account.db, now: opts.account.now });
     registerPersonalResearchRoutes(app, opts.account);
     registerEntitlementRoutes(app, opts.account);
     registerAccountRoutes(app, opts.account);
