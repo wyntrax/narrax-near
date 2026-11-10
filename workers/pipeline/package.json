@@ -7,7 +7,7 @@
   "dependencies": {
     "@narra/queue": "*",
     "@narra/shared": "*",
-    "bullmq": "^5.0.0",
+    "bullmq": "^6.7.2",
     "zod": "^3.23.8",
     "@narra/database": "*",
     "@narra/narrative": "*",
