@@ -116,7 +116,8 @@ The NEAR defaults are read from `NEAR_NETWORK`, `NEAR_RPC_URL`, and `NEAR_EXPLOR
 `NEAR_NETWORK` defaults to **testnet**; mainnet requires an explicit value. The public market-data
 providers index mainnet NEAR only, so a research run needs `NEAR_NETWORK=mainnet` and
 `NEXT_PUBLIC_NEAR_NETWORK=mainnet`; the testnet default keeps an unset or misspelled value from
-ever pointing at mainnet.
+ever pointing at mainnet. The API and worker dev scripts load `.env`; the web app reads only
+inherited `NEXT_PUBLIC_*` values, so export them before `npm run dev:web`.
 
 ## Evidence snapshot
 
