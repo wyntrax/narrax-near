@@ -25,7 +25,8 @@ fetched. Ticker matches are candidates, never identity proof.
 ## Market evidence
 
 DEX Screener supplies price, liquidity, volume and pair age. GeckoTerminal supplies holder count
-and concentration when available. Missing values are not replaced with zero. A price older than
+and concentration when available; NearBlocks supplies a holder-count and top-10 fallback for NEAR
+tokens GeckoTerminal does not cover. Missing values are not replaced with zero. A price older than
 15 minutes or a holder row older than 60 minutes is stale.
 
 ## Smart Money

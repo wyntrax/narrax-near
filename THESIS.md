@@ -48,10 +48,22 @@ persists, narrative-driven activity is a real adoption channel rather than a mar
 | Narrative | Stage, velocity, mention quality, manipulation risk | Configured Treg social ingestion |
 | Identity | Exact NEAR account id, NEP-141 name and symbol | NEAR RPC `ft_metadata` |
 | Market | Price, liquidity, 24h volume, pair age | DEX Screener `near` (mainnet) |
-| Ownership | Holder count, top-10 share of supply | GeckoTerminal `near` (mainnet) |
+| Ownership | Holder count, top-10 share of supply | GeckoTerminal, then NearBlocks fallback (mainnet) |
 | Risk | Deterministic liquidity, holder, age and concentration flags | Local rules in `packages/market-data` |
 | Flow | Observed public pool trades, wallet cost basis, average-cost profiles | GeckoTerminal trades + mainnet RPC account checks |
 | Outcome | 1h/24h observations and Early Radar horizons | Stored market rows in Postgres |
+
+### Generated evidence
+
+[`THESIS_EVIDENCE.md`](./THESIS_EVIDENCE.md) is rebuilt from Postgres with:
+
+```bash
+npm run thesis:report -- --write
+```
+
+It contains the current research universe, narrative-to-token conversion, Early Radar outcomes,
+smart-money observations and collection quality. It is a dated snapshot, not a backtest, and the
+script is the only thing that should produce those numbers.
 
 ## Evidence for the thesis (design choices)
 
@@ -77,7 +89,8 @@ add nothing, and the pipeline would be over-constrained.
   (about the latest 300 trades per pool, up to 24 hours). Smart Money history starts when collection
   starts.
 - **Holder concentration is approximate.** The top-10 share is of total supply and may include pool
-  and exchange accounts, so it can overstate concentration.
+  and exchange accounts, so it can overstate concentration. NearBlocks only covers tokens it has
+  indexed; everything else stays unknown.
 - **Social data is adversarial.** Organic-quality checks are heuristics, not proof. A coordinated
   campaign can still look organic.
 - **Wallet profiles are incomplete.** Wallets are not clustered by funding source, unmatched sells

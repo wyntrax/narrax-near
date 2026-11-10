@@ -1,7 +1,7 @@
 import { Queue, Worker } from 'bullmq';
 import { createPrisma } from '@narra/database';
 import { createRedis, QUEUE_NAMES } from '@narra/queue';
-import { DexScreenerSource, GeckoTerminalSource } from '@narra/market-data';
+import { DexScreenerSource, GeckoTerminalSource, NearBlocksHolderSource } from '@narra/market-data';
 import { NearRpc, nearConfigFromEnv } from '@narra/near';
 import { refreshMarketData } from './marketData';
 import { resolveTokens } from './tokenResolution';
@@ -17,10 +17,18 @@ async function main() {
   const near = nearConfigFromEnv();
   const rpc = new NearRpc({ url: near.rpcUrl, timeoutMs: 15_000 });
   const gecko = new GeckoTerminalSource({ baseUrl: process.env.GECKOTERMINAL_BASE_URL });
+  const holderEvidence = new NearBlocksHolderSource({
+    baseUrl: process.env.NEARBLOCKS_BASE_URL,
+    totalSupply: async (mint) => {
+      const result = await rpc.callFunction<unknown>(mint, 'ft_total_supply');
+      return typeof result.value === 'string' ? result.value : null;
+    },
+  });
   const deps = {
     metadata: nearMetadataSource(rpc),
     quotes: new DexScreenerSource({ baseUrl: process.env.DEXSCREENER_BASE_URL }),
     info: gecko,
+    holders: holderEvidence,
     launches: {
       name: gecko.name,
       getNewPools: async () => {
