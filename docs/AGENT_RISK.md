@@ -68,15 +68,16 @@ be used as a shell policy gate.
 | `BLOCK` | The token is blacklisted, or its risk score is at or above 80. | Do not spend. |
 | `UNKNOWN` | The token is unknown, or required evidence is missing or stale. | Treat as blocked. Never infer low risk from missing data. |
 
-`UNKNOWN` is intentional. If GeckoTerminal has no holder row, the token has no current price, or the
-risk row is older than an hour, the gate fails closed rather than guessing.
+`UNKNOWN` is intentional. If neither GeckoTerminal nor the NearBlocks fallback has holder evidence,
+the token has no current price, or the risk row is older than an hour, the gate fails closed rather
+than guessing.
 
 ## Freshness and policy
 
 | Evidence | Maximum age | Why |
 | --- | --- | --- |
 | Price, liquidity, volume | 15 minutes | Matches the research surface's staleness rule. |
-| Holder count and concentration | 60 minutes | Refreshed less often than prices. |
+| Holder count and concentration | 60 minutes | GeckoTerminal, then NearBlocks fallback. Refreshed less often than prices. |
 | Deterministic risk row | 60 minutes | Derived from the latest market and holder evidence. |
 
 The block threshold is `riskScore >= 80`, matching the research pipeline's own critical-risk cutoff.
@@ -117,6 +118,8 @@ in two of the three cases without ever holding a key.
   codebase.
 - **No user data.** The response contains public token facts only. It does not expose narratives,
   wallets, grants or account identities.
+- **Holder fallback is not a guarantee.** NearBlocks covers indexed NEAR tokens; an unindexed token
+  stays `UNKNOWN` even if a DEX pool exists.
 - **Fail closed.** Missing or stale evidence is `UNKNOWN`, and callers must treat it as blocked.
 - **Rate limited.** 60 requests per minute per client.
 - **Deterministic rules.** Risk flags come from named thresholds, not an LLM. The same inputs produce
