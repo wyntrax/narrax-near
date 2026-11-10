@@ -38,8 +38,8 @@ reproduction steps are in [`THESIS.md`](./THESIS.md).
 `GET /v1/agent/risk/:mint` is a public, read-only check for AI agents that are about to spend. It
 returns `PASS`, `BLOCK` or `UNKNOWN` from fresh market, holder and risk evidence, and fails closed on
 missing or stale data. The agent keeps its wallet and keys; NARRAX only supplies scam and risk
-evidence and has no signing path. See [`docs/AGENT_RISK.md`](./docs/AGENT_RISK.md) for the contract
-and a policy example.
+evidence and has no signing path. The public `/agent-risk` web page exposes the same check with a
+token input. See [`docs/AGENT_RISK.md`](./docs/AGENT_RISK.md) for the contract and a policy example.
 
 ## What works today
 
