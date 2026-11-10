@@ -39,7 +39,7 @@ describe('localized canonical metadata',()=>{
   production();vi.stubEnv('NARRA_SEO_INDEXABLE','false');expect(pageMetadata('en','','Title','Description').robots).toMatchObject({index:false});
  });
  it('includes only actual public pages, reciprocal hreflang and no fabricated freshness dates',()=>{
-  production();const entries=sitemap();expect(entries).toHaveLength(10);expect(new Set(entries.map(item=>item.url)).size).toBe(10);
+  production();const entries=sitemap();expect(entries).toHaveLength(12);expect(new Set(entries.map(item=>item.url)).size).toBe(12);
   for(const entry of entries){expect(entry.url).not.toMatch(/\/app|early-access|\/en\//);expect(entry.lastModified).toBeUndefined();expect(Object.keys(entry.alternates!.languages!)).toEqual(['en','id','x-default']);}
  });
 });

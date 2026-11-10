@@ -51,6 +51,8 @@ curl -sS http://localhost:4000/v1/agent/risk/token.near
 
 The values above are an example shape, not a live reading.
 
+The public `/agent-risk` web page exposes the same check with a token input and verdict card.
+
 For a local demo, the repository ships a small read-only client:
 
 ```bash

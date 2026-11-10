@@ -4,6 +4,6 @@ import {researchGuides} from '@/content/research-guides';
 export const dynamic='force-dynamic';
 export default function sitemap():MetadataRoute.Sitemap {
  if(!searchIndexable())return [];
- const paths=['','/research','/methodology',...researchGuides.en.map(guide=>`/research/${guide.slug}`)];
+ const paths=['','/research','/methodology','/agent-risk',...researchGuides.en.map(guide=>`/research/${guide.slug}`)];
  return paths.flatMap(path=>SEO_LOCALES.map(locale=>({url:publicUrl(locale,path),alternates:{languages:languageAlternates(path)}})));
 }

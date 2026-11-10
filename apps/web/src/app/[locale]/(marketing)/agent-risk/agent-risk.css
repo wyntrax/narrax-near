@@ -1,0 +1,49 @@
+.agent-risk-page{max-width:980px}
+.agent-risk-panel{margin-top:2rem}
+.agent-risk-form{padding:clamp(1.25rem,3vw,1.75rem);border:1px solid var(--bd);border-radius:20px;background:var(--s1)}
+.agent-risk-form label{display:block;margin-bottom:.75rem;color:var(--tx2);font-size:.75rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+.agent-risk-row{display:flex;flex-wrap:wrap;gap:12px}
+.agent-risk-row input{flex:1;min-width:240px;padding:12px 16px;border:1px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--tx);font-family:var(--font-mono),monospace;font-size:.9rem}
+.agent-risk-row input::placeholder{color:var(--tx3)}
+.agent-risk-row input:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.agent-risk-example{margin-top:.9rem;padding:0;border:0;background:none;color:var(--tx2);font-size:.8rem;text-decoration:underline;text-underline-offset:.25em}
+.agent-risk-example:hover{color:var(--tx)}
+.agent-risk-example-note{margin:.45rem 0 0;font-size:.75rem;color:var(--tx3)}
+.agent-risk-verdict{margin-top:1.5rem;padding:clamp(1.25rem,3vw,2rem);border:2px solid var(--bd);border-radius:20px;background:var(--s1)}
+.agent-risk-verdict[data-verdict=PASS]{border-color:var(--ac);box-shadow:0 0 0 1px color-mix(in srgb,var(--ac) 20%,transparent)}
+.agent-risk-verdict[data-verdict=BLOCK]{border-style:double;border-width:6px;border-color:var(--tx)}
+.agent-risk-verdict[data-verdict=UNKNOWN]{border-style:dashed;border-color:var(--tx2)}
+.agent-risk-verdict-head{display:flex;align-items:center;gap:16px;margin-bottom:1rem}
+.agent-risk-verdict-head .eyebrow{margin-bottom:4px}
+.agent-risk-verdict-head h2{margin:0;font-size:clamp(1.9rem,4.5vw,3rem);letter-spacing:.02em}
+.agent-risk-verdict-head .badge{margin-left:auto;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.agent-risk-verdict-icon{display:grid;place-items:center;flex:none;width:52px;height:52px;border:1px solid var(--bd);border-radius:14px;background:var(--s2);font-family:var(--font-display),sans-serif;font-size:1.6rem}
+.agent-risk-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:1.5rem 0}
+.agent-risk-facts div{padding:14px;border:1px solid var(--bd);border-radius:12px;background:var(--bg)}
+.agent-risk-facts dt{margin-bottom:.35rem;color:var(--tx2);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase}
+.agent-risk-facts dd{margin:0;color:var(--tx);font-family:var(--font-display),sans-serif;font-size:1.35rem;line-height:1.1}
+.agent-risk-flags{margin-top:1.25rem}
+.agent-risk-flags h3{margin:0 0 .6rem;font-family:var(--font-body),sans-serif;font-size:.95rem}
+.agent-risk-flags p{margin:0;font-size:.85rem}
+.agent-risk-flags ul{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.agent-risk-flags li{padding:4px 10px;border:1px solid var(--bd);border-radius:999px;color:var(--tx2);font-size:.72rem;letter-spacing:.04em}
+.agent-risk-meta{margin-top:1.25rem;font-size:.8rem;color:var(--tx2)}
+.agent-risk-policy{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--bd)}
+.agent-risk-policy summary{cursor:pointer;color:var(--tx2);font-size:.85rem}
+.agent-risk-policy dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:1rem 0 0}
+.agent-risk-policy dt{color:var(--tx2);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase}
+.agent-risk-policy dd{margin:.25rem 0 0;font-family:var(--font-display),sans-serif;font-size:1.1rem}
+.agent-risk-disclaimer{margin:1.25rem 0 0;padding-top:1rem;border-top:1px solid var(--bd);font-size:.78rem;color:var(--tx2)}
+.agent-risk-how{max-width:800px;margin-top:3rem;padding-top:2rem;border-top:1px solid var(--bd)}
+.agent-risk-how p{font-size:.95rem}
+@media(max-width:700px){
+  .agent-risk-facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .agent-risk-policy dl{grid-template-columns:1fr}
+  .agent-risk-verdict-head{align-items:flex-start;flex-wrap:wrap}
+  .agent-risk-verdict-head .badge{margin-left:0}
+}
+@media(max-width:420px){
+  .agent-risk-facts{grid-template-columns:1fr}
+  .agent-risk-row{flex-direction:column}
+  .agent-risk-row .button{width:100%}
+}
