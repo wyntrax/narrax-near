@@ -15,6 +15,7 @@
     "early-radar:report": "node --require ./apps/web/scripts/no-env-files.cjs --import tsx scripts/early-radar-report.ts",
     "narratives:link-tokens": "node --require ./apps/web/scripts/no-env-files.cjs --import tsx scripts/link-narrative-tokens.ts",
     "research:coverage": "node --require ./apps/web/scripts/no-env-files.cjs --import tsx scripts/research-coverage.ts",
+    "thesis:report": "tsx --env-file=.env scripts/thesis-report.ts",
     "telegram:send": "node --require ./apps/web/scripts/no-env-files.cjs --import tsx scripts/telegram-send.ts",
     "settings": "tsx scripts/settings.ts",
     "near:status": "tsx scripts/near-status.ts",

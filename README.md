@@ -5,8 +5,8 @@ conversation and public market data into one evidence-first workspace: what is f
 is moving, and what still needs checking.
 
 This repository is **NEAR-only**. Legacy chain adapters, trading, custody and executor code have
-been removed. Research data comes from NEAR token contracts,
-DEX Screener, GeckoTerminal and the configured social provider.
+been removed. Research data comes from NEAR token contracts, DEX Screener, GeckoTerminal, NearBlocks
+and the configured social provider.
 
 > **Status: NEAR HACKATHON research build.** Narrative ingestion, token discovery, market and holder
 > observations, early-radar alerts, AI research analysis, analytics, agent chat, Telegram delivery
@@ -65,7 +65,8 @@ and a policy example.
 - **Research pipeline**
   - Treg narrative ingestion
   - social token references and narrative-token attribution
-  - NEAR NEP-141 metadata, DEX prices/liquidity, holder concentration and deterministic risk flags
+  - NEAR NEP-141 metadata, DEX prices/liquidity, holder concentration (GeckoTerminal with a
+    NearBlocks fallback) and deterministic risk flags
   - observed wallet trades, token flows and average-cost Smart Money profiles from public DEX trades
   - Early Radar alerts and measured outcomes
   - AI opportunity analysis and outcome tracking
@@ -116,6 +117,16 @@ The NEAR defaults are read from `NEAR_NETWORK`, `NEAR_RPC_URL`, and `NEAR_EXPLOR
 providers index mainnet NEAR only, so a research run needs `NEAR_NETWORK=mainnet` and
 `NEXT_PUBLIC_NEAR_NETWORK=mainnet`; the testnet default keeps an unset or misspelled value from
 ever pointing at mainnet.
+
+## Evidence snapshot
+
+```bash
+npm run thesis:report -- --write
+```
+
+Rebuilds [`THESIS_EVIDENCE.md`](./THESIS_EVIDENCE.md) from the local Postgres research database:
+coverage, narrative-to-token conversion, Early Radar outcomes, smart-money observations and
+collection quality. The snapshot is generated; no number in it is hardcoded.
 
 ## Test
 

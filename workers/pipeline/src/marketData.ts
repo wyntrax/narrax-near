@@ -1,6 +1,6 @@
 import type { Prisma, PrismaClient } from '@narra/database';
 import { sanitizeUntrusted } from '@narra/shared';
-import { MarketDataError, NEAR_REFERENCE_CONTRACTS, WNEAR_CONTRACT, tokenRisk, type LaunchSource, type MarketQuoteSource, type MarketSnapshot, type SnapshotOmissionReason, type TokenInfo, type TokenInfoSource } from '@narra/market-data';
+import { MarketDataError, NEAR_REFERENCE_CONTRACTS, WNEAR_CONTRACT, tokenRisk, type HolderSource, type LaunchSource, type MarketQuoteSource, type MarketSnapshot, type SnapshotOmissionReason, type TokenInfo, type TokenInfoSource } from '@narra/market-data';
 import { refreshTokenMetadata, type MetadataSource } from './tokenMetadata';
 import { saveResearchDiagnostics } from './researchDiagnostics';
 
@@ -33,6 +33,8 @@ export interface MarketDataDeps {
   quotes: MarketQuoteSource;
   /** Optional. Without it no holder or risk rows are written, so tokens stay unranked (fail closed). */
   info: TokenInfoSource | null;
+  /** Optional fallback when the primary info source has no holder data. Same fail-closed rule. */
+  holders?: HolderSource | null;
   /** Optional. Without it new launches are only found through narrative and social references. */
   launches: LaunchSource | null;
 }
@@ -50,6 +52,8 @@ export interface MarketDataSummary {
   fdvUsedAsMarketCap: number;
   infoCalls: number;
   infoUnavailable: number;
+  holderFallbackCalls: number;
+  holderFallbackRows: number;
   holderRowsWritten: number;
   riskRowsWritten: number;
   nearUsd: number | null;
@@ -75,7 +79,7 @@ export async function refreshMarketData(
     launchesSeen: 0, tokensCreated: 0, tokensConsidered: 0, tokensWithPrice: 0, tokensWithoutData: 0,
     priceCoverage: { outcomes: emptyCoverage(), social: emptyCoverage(), launches: emptyCoverage(), unpriced: emptyCoverage(), general: emptyCoverage() },
     priceOmissions: {}, metricsWritten: 0, fdvUsedAsMarketCap: 0, infoCalls: 0, infoUnavailable: 0,
-    holderRowsWritten: 0, riskRowsWritten: 0, nearUsd: null, errors: [],
+    holderFallbackCalls: 0, holderFallbackRows: 0, holderRowsWritten: 0, riskRowsWritten: 0, nearUsd: null, errors: [],
   };
   if (deps.metadata) { try { await refreshTokenMetadata(db, deps.metadata, now); } catch (e) { out.errors.push(errText('token metadata', e)); } }
   const refs = referenceContracts();
@@ -226,12 +230,32 @@ export async function refreshMarketData(
         if (e instanceof MarketDataError && e.kind === 'rate_limited') break;
         continue;
       }
+
+      // GeckoTerminal has no holder data for many NEAR tokens. NearBlocks is the fallback; if both
+      // sources are silent, the token stays unknown and unranked.
+      let holders = info?.holders ?? null;
+      let top10Pct = info?.top10Pct ?? null;
+      if ((holders == null || top10Pct == null) && deps.holders) {
+        out.holderFallbackCalls++;
+        try {
+          const fallback = await deps.holders.getHolderEvidence(t.mint);
+          if (fallback) {
+            holders = holders ?? fallback.holders;
+            top10Pct = top10Pct ?? fallback.top10Pct;
+            out.holderFallbackRows++;
+          }
+        } catch (e) {
+          out.errors.push(errText(deps.holders.name, e));
+          if (e instanceof MarketDataError && e.kind === 'rate_limited') break;
+        }
+      }
+
       const created = t.createdOnChainAt ?? s.pairCreatedAt;
       const pairAgeMinutes = created ? (now.getTime() - created.getTime()) / 60_000 : null;
-      const risk = tokenRisk({ liquidityUsd: s.liquidityUsd, holders: info?.holders ?? null, top10Pct: info?.top10Pct ?? null, pairAgeMinutes });
-      if (!info) { out.infoUnavailable++; risk.flags.push('INFO_UNAVAILABLE'); }
-      if (info && info.holders != null && info.top10Pct != null) {
-        await db.tokenHolderMetric.create({ data: { tokenId: t.id, holders: info.holders, top10Pct: info.top10Pct, at: now } });
+      const risk = tokenRisk({ liquidityUsd: s.liquidityUsd, holders, top10Pct, pairAgeMinutes });
+      if (holders == null || top10Pct == null) { out.infoUnavailable++; risk.flags.push('INFO_UNAVAILABLE'); }
+      if (holders != null && top10Pct != null) {
+        await db.tokenHolderMetric.create({ data: { tokenId: t.id, holders, top10Pct, at: now } });
         out.holderRowsWritten++;
       }
       await db.tokenRiskMetric.create({ data: { tokenId: t.id, riskScore: risk.riskScore, flags: risk.flags, at: now } });

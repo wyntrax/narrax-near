@@ -9,7 +9,7 @@ import { QUEUE_NAMES, createQueues, createRedis } from '@narra/queue';
 import { readTregConfig } from '@narra/narrative';
 import { runTregJob } from './tregJob';
 import { trackEarlyRadarOutcomes } from './earlyRadarTracking';
-import { DexScreenerSource, GeckoTerminalSource } from '@narra/market-data';
+import { DexScreenerSource, GeckoTerminalSource, NearBlocksHolderSource } from '@narra/market-data';
 import { aiProviderFromEnv } from '@narra/ai';
 import { NearRpc, nearConfigFromEnv } from '@narra/near';
 import { assertEnv } from '@narra/shared';
@@ -39,10 +39,18 @@ if (!tregConfig) console.log('no narrative providers configured: set TREG_NARRAT
 
 // Market data and public trade observations use free APIs that need no key.
 const gecko = new GeckoTerminalSource({ baseUrl: process.env.GECKOTERMINAL_BASE_URL });
+const holderEvidence = new NearBlocksHolderSource({
+  baseUrl: process.env.NEARBLOCKS_BASE_URL,
+  totalSupply: async (mint) => {
+    const result = await rpc.callFunction<unknown>(mint, 'ft_total_supply');
+    return typeof result.value === 'string' ? result.value : null;
+  },
+});
 const marketDeps = process.env.MARKET_DATA_ENABLED === 'false' ? null : {
   metadata: nearMetadataSource(rpc),
   quotes: new DexScreenerSource({ baseUrl: process.env.DEXSCREENER_BASE_URL }),
   info: gecko,
+  holders: holderEvidence,
   launches: {
     name: gecko.name,
     getNewPools: async () => {
