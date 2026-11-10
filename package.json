@@ -1,6 +1,7 @@
 {
   "name": "narrax-near",
   "private": true,
+  "license": "MIT",
   "packageManager": "npm@10.9.4",
   "workspaces": [
     "apps/*",
@@ -17,6 +18,7 @@
     "telegram:send": "node --require ./apps/web/scripts/no-env-files.cjs --import tsx scripts/telegram-send.ts",
     "settings": "tsx scripts/settings.ts",
     "near:status": "tsx scripts/near-status.ts",
+    "agent:risk": "tsx scripts/agent-risk.ts",
     "make-admin": "tsx scripts/make-admin.ts",
     "entitlements:expire": "tsx --env-file=.env scripts/entitlements-expire.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json && npm run typecheck -w @narra/web",

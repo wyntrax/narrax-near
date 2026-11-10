@@ -57,6 +57,8 @@ npm run dev:workers           # pipeline
 | Account validation | `packages/near/src/account.ts` |
 | Explorer links | `packages/near/src/explorer.ts` |
 | Chain status API | `apps/api/src/chain.ts` |
+| Agent risk gate | `apps/api/src/agentRisk.ts` |
+| Agent risk contract | `docs/AGENT_RISK.md` |
 | Access resolution | `packages/shared/src/entitlements.ts` |
 | Access trace / feature gates | `apps/api/src/entitlements/access.ts` |
 | Network config | `packages/near/src/config.ts` |

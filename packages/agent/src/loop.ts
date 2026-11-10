@@ -13,6 +13,11 @@ const StepSchema = z.discriminatedUnion('type', [
 
 export type StopReason = 'final' | 'max_steps' | 'bad_output' | 'llm_error' | 'timeout';
 
+/** Internal sentinel: the turn budget expired, even if the wall clock has not quite caught up. */
+class DeadlineExceeded extends Error {
+  constructor() { super('deadline'); this.name = 'DeadlineExceeded'; }
+}
+
 export interface AgentRunInput {
   llm: LlmProvider;
   model: string;
@@ -63,7 +68,7 @@ export async function runAgent(i: AgentRunInput): Promise<AgentRunResult> {
     try {
       return await Promise.race([
         work,
-        new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('deadline')), Math.max(1, left)); }),
+        new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new DeadlineExceeded()), Math.max(1, left)); }),
       ]);
     } finally {
       if (timer !== null) clearTimeout(timer);
@@ -80,7 +85,7 @@ export async function runAgent(i: AgentRunInput): Promise<AgentRunResult> {
       const r = await withBudget(i.llm.complete({ model: i.model, system: SYSTEM_PROMPT, user: buildStepMessage({ userMessage, history, toolResults: results, stepsLeft }), temperature: i.temperature, maxTokens: i.maxTokens, ...(left != null ? { timeoutMs: left } : {}), ...(i.ctx.conversationId ? { sessionId: i.ctx.conversationId } : {}) }));
       raw = r.text; out.inputTokens += r.inputTokens; out.outputTokens += r.outputTokens;
     } catch (e) {
-      if (timedOut()) return timeoutResult();
+      if (e instanceof DeadlineExceeded || timedOut()) return timeoutResult();
       return { ...out, text: FALLBACK.llmError, stopReason: 'llm_error', llmError: e instanceof LlmError ? e.message.slice(0, 200) : 'unexpected error' };
     }
     if (timedOut()) return timeoutResult();
@@ -107,7 +112,8 @@ export async function runAgent(i: AgentRunInput): Promise<AgentRunResult> {
       if (r.error) { results.push({ tool: tool.name, ok: false, error: r.error, facts: r.facts }); continue; }
       const entry = { tool: tool.name, ok: true, facts: r.facts, ...(r.untrusted?.length ? { untrusted: r.untrusted } : {}) };
       results.push(JSON.stringify(entry).length > AGENT_LIMITS.maxToolResultChars ? { tool: tool.name, ok: false, error: 'result_too_large' } : entry);
-    } catch {
+    } catch (error) {
+      if (error instanceof DeadlineExceeded) return timeoutResult();
       results.push({ tool: tool.name, ok: false, error: 'tool_failed' }); // the error text can hold query details, so the model never sees it
     }
     if (timedOut()) return timeoutResult();
