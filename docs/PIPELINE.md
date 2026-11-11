@@ -20,7 +20,8 @@ The pipeline is research-only. It has no trading, custody, portfolio or executor
 
 A token is identified by its exact NEAR account id (named `.near`/`.testnet` account or 64-hex
 implicit id). NEP-141 metadata is read with `ft_metadata`; no token-controlled metadata URL is
-fetched. Ticker matches are candidates, never identity proof.
+fetched. Ticker matches are candidates, never identity proof. Bridged assets (`*.omft.near`,
+`*.omdep.near`, `*.bridge.near`) are reference/quote assets and are never narrative candidates.
 
 ## Market evidence
 

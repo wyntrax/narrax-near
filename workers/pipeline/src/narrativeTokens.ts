@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@narra/database';
 import { SOCIAL_RULES, groupBuzzByNarrative } from '@narra/narrative';
 import { NEAR_REFERENCE_CONTRACTS } from '@narra/market-data';
+import { isBridgedAsset } from '@narra/shared';
 import { matchScore, resolveCandidates, type Candidate } from '@narra/token-intel';
 
 export interface MentionTokenSummary {
@@ -71,15 +72,15 @@ export async function attributeNarrativeMentions(db: PrismaClient, now: Date = n
     };
     for (const g of groups) {
       if (g.kind === 'CONTRACT') {
-        if (NEAR_REFERENCE_CONTRACTS.has(g.ref)) continue;
+        if (NEAR_REFERENCE_CONTRACTS.has(g.ref) || isBridgedAsset(g.ref)) continue;
         const t = await db.token.findUnique({ where: { mint: g.ref }, select: { id: true, symbol: true, name: true, createdOnChainAt: true, deployer: true, blacklisted: true, holders: { orderBy: { at: 'desc' }, take: 1, select: { top10Pct: true } } } });
         if (!t || t.blacklisted) { out.unresolvedMints++; continue; }
         add(t.id, { symbol: t.symbol, name: t.name, createdAt: t.createdOnChainAt, deployer: t.deployer, top10Pct: t.holders[0]?.top10Pct ?? null }, MINT_MATCH);
       } else {
-        const matches = await db.token.findMany({
+        const matches = (await db.token.findMany({
           where: { symbol: { equals: g.ref, mode: 'insensitive' }, blacklisted: false, metrics: { some: { at: { gte: cashtagSince } } } },
-          select: { id: true, symbol: true, name: true, createdOnChainAt: true, deployer: true, holders: { orderBy: { at: 'desc' }, take: 1, select: { top10Pct: true } } }, take: 2,
-        });
+          select: { id: true, mint: true, symbol: true, name: true, createdOnChainAt: true, deployer: true, holders: { orderBy: { at: 'desc' }, take: 1, select: { top10Pct: true } } }, take: 4,
+        })).filter(t => !isBridgedAsset(t.mint));
         if (matches.length !== 1) { out.ambiguousCashtags++; continue; }
         const t = matches[0]!;
         add(t.id, { symbol: t.symbol, name: t.name, createdAt: t.createdOnChainAt, deployer: t.deployer, top10Pct: t.holders[0]?.top10Pct ?? null }, CASHTAG_MATCH);

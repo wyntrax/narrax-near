@@ -1,5 +1,5 @@
 import type { PrismaClient } from '@narra/database';
-import { sanitizeUntrusted } from '@narra/shared';
+import { sanitizeUntrusted, isBridgedAsset } from '@narra/shared';
 import { SOCIAL_RULES, computeNarrativeMetrics, groupBuzz, qualifiedBuzz, type BuzzGroup } from '@narra/narrative';
 import { EARLY_RULES, attentionPriceDivergence, evaluateEarlyBoth } from '@narra/token-intel';
 import { NEAR_REFERENCE_CONTRACTS, type MarketQuoteSource } from '@narra/market-data';
@@ -17,6 +17,7 @@ export interface SocialScanSummary {
   tokensEvaluated: number;
   earlyCandidates: number;
   alerts: number;
+  bridgedSkipped: number;
   pruned: number;
   errors: string[];
 }
@@ -36,7 +37,7 @@ const num = (v: { toString(): string } | null | undefined) => (v == null ? null 
  */
 export async function scanSocialTokens(db: PrismaClient, deps: { quotes: MarketQuoteSource | null }, now: Date = new Date()): Promise<SocialScanSummary> {
   const R = SOCIAL_RULES;
-  const out: SocialScanSummary = { rowsRead: 0, groupsQualified: 0, tokensCreated: 0, mintsUnverified: 0, cashtagsResolved: 0, cashtagsAmbiguous: 0, tokensEvaluated: 0, earlyCandidates: 0, alerts: 0, pruned: 0, errors: [] };
+  const out: SocialScanSummary = { rowsRead: 0, groupsQualified: 0, tokensCreated: 0, mintsUnverified: 0, cashtagsResolved: 0, cashtagsAmbiguous: 0, tokensEvaluated: 0, earlyCandidates: 0, alerts: 0, bridgedSkipped: 0, pruned: 0, errors: [] };
 
   out.pruned = (await db.tokenMention.deleteMany({ where: { at: { lt: new Date(now.getTime() - R.retentionDays * 24 * HOUR) } } })).count;
 
@@ -54,15 +55,16 @@ export async function scanSocialTokens(db: PrismaClient, deps: { quotes: MarketQ
   for (const g of groups) {
     if (g.kind === 'CONTRACT') {
       if (NEAR_REFERENCE_CONTRACTS.has(g.ref)) continue;
+      if (isBridgedAsset(g.ref)) { out.bridgedSkipped++; continue; }
       const t = await db.token.findUnique({ where: { mint: g.ref }, select: { id: true, blacklisted: true } });
       if (t?.blacklisted) continue;
       if (t) resolved.set(t.id, { group: g, via: 'CONTRACT' }); else unknownMints.push(g);
     } else {
       if (cashtagLookups++ >= R.maxCashtagLookupsPerRun) continue;
-      const matches = await db.token.findMany({
+      const matches = (await db.token.findMany({
         where: { symbol: { equals: g.ref, mode: 'insensitive' }, blacklisted: false, metrics: { some: { at: { gte: new Date(now.getTime() - 24 * HOUR) } } } },
-        select: { id: true }, take: 2,
-      });
+        select: { id: true, mint: true }, take: 4,
+      })).filter(t => !isBridgedAsset(t.mint));
       if (matches.length !== 1) { out.cashtagsAmbiguous++; continue; }
       out.cashtagsResolved++;
       if (!resolved.has(matches[0]!.id)) resolved.set(matches[0]!.id, { group: g, via: 'CASHTAG' });
@@ -71,7 +73,9 @@ export async function scanSocialTokens(db: PrismaClient, deps: { quotes: MarketQ
 
   // 2. Unknown mints become tokens only after a market source confirms they trade and are small enough to matter here.
   if (unknownMints.length && deps.quotes) {
-    const wanted = unknownMints.slice(0, R.maxNewTokensPerRun * 3);
+    const researchMints = unknownMints.filter(g => !isBridgedAsset(g.ref));
+    out.bridgedSkipped += unknownMints.length - researchMints.length;
+    const wanted = researchMints.slice(0, R.maxNewTokensPerRun * 3);
     let snaps: Awaited<ReturnType<MarketQuoteSource['getSnapshots']>> = new Map();
     try { snaps = await deps.quotes.getSnapshots(wanted.map((g) => g.ref)); } catch (e) { out.errors.push(`quotes: ${(e as Error).message}`.slice(0, 200)); }
     for (const g of wanted) {
@@ -85,7 +89,11 @@ export async function scanSocialTokens(db: PrismaClient, deps: { quotes: MarketQ
         resolved.set(t.id, { group: g, via: 'CONTRACT' });
       } catch (e) { out.errors.push(`create ${g.ref.slice(0, 6)}: ${(e as Error).message}`.slice(0, 200)); }
     }
-  } else out.mintsUnverified += unknownMints.length;
+  } else {
+    const bridged = unknownMints.filter(g => isBridgedAsset(g.ref)).length;
+    out.bridgedSkipped += bridged;
+    out.mintsUnverified += unknownMints.length - bridged;
+  }
 
   // 3. Score each resolved token. A token without a stored price or holder row is skipped until market data fills it in.
   for (const [tokenId, { group, via }] of resolved) {

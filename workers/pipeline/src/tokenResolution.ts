@@ -1,4 +1,5 @@
 import type { PrismaClient } from '@narra/database';
+import { isBridgedAsset } from '@narra/shared';
 import { createEarlyRadarAlert } from './earlyRadarTracking';
 import { socialOpportunityEvidence } from './socialOpportunity';
 import {
@@ -44,11 +45,11 @@ export async function resolveTokens(db: PrismaClient, now: Date = new Date()): P
     out.narrativesChecked++;
 
     const prefixes = [...new Set(ws.map((w) => w.slice(0, 4)))];
-    const tokens = await db.token.findMany({
+    const tokens = (await db.token.findMany({
       where: { OR: prefixes.flatMap((p) => [{ symbol: { contains: p, mode: 'insensitive' as const } }, { name: { contains: p, mode: 'insensitive' as const } }]) },
       take: 300,
       include: { metrics: { orderBy: { at: 'desc' }, take: 1 }, holders: { orderBy: { at: 'desc' }, take: 1 }, risk: { orderBy: { at: 'desc' }, take: 1 } },
-    });
+    })).filter(t => !isBridgedAsset(t.mint));
     const matched = tokens.map((t) => ({ t, match: matchScore(n.name, { symbol: t.symbol, name: t.name }) })).filter((x) => x.match >= MATCH_THRESHOLD);
 
     // A related-token link alone is not opportunity evidence. Non-name matches
@@ -57,10 +58,10 @@ export async function resolveTokens(db: PrismaClient, now: Date = new Date()): P
     const seen = new Set(matched.map((x) => x.t.id));
     const linkIds = links.map((l) => l.tokenId).filter((id) => !seen.has(id));
     if (linkIds.length) {
-      const linked = await db.token.findMany({
+      const linked = (await db.token.findMany({
         where: { id: { in: linkIds }, blacklisted: false },
         include: { metrics: { orderBy: { at: 'desc' }, take: 1 }, holders: { orderBy: { at: 'desc' }, take: 1 }, risk: { orderBy: { at: 'desc' }, take: 1 } },
-      });
+      })).filter(t => !isBridgedAsset(t.mint));
       const score = new Map(links.map((l) => [l.tokenId, l.matchScore]));
       const social=await socialOpportunityEvidence(db,n.id,linked.filter(t=>matchScore(n.name,t)<MATCH_THRESHOLD),now);
       for (const t of linked) {

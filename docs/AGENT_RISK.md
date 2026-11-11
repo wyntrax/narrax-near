@@ -53,6 +53,8 @@ The values above are an example shape, not a live reading.
 
 The public `/agent-risk` web page exposes the same check with a token input and verdict card.
 
+![Agent risk gate showing an UNKNOWN verdict](./screenshots/agent-risk-unknown.png)
+
 For a local demo, the repository ships a small read-only client:
 
 ```bash

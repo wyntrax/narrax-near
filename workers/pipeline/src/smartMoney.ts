@@ -11,7 +11,7 @@ import {
   assessSmartWallet, computeSmartWalletStats, smartWalletScore, SMART_MONEY_RULES,
   type SmartMoneyRules, type SmartTradeRow,
 } from '@narra/token-intel';
-import { isNearAccountId } from '@narra/shared';
+import { isNearAccountId, isBridgedAsset } from '@narra/shared';
 
 export const SMART_MONEY_HEALTH_KEY = 'research.smartMoney.health';
 export const SMART_MONEY_DEFAULTS = {
@@ -133,7 +133,7 @@ async function candidateTokens(db: PrismaClient, maxPools: number, now: Date): P
   const seenPools = new Set<string>();
   const out: CandidateToken[] = [];
   for (const row of active) {
-    if (NEAR_REFERENCE_CONTRACTS.has(row.mint)) continue;
+    if (NEAR_REFERENCE_CONTRACTS.has(row.mint) || isBridgedAsset(row.mint)) continue;
     const pairAddress = pairByToken.get(row.id);
     if (!pairAddress || seenPools.has(pairAddress)) continue;
     seenPools.add(pairAddress);

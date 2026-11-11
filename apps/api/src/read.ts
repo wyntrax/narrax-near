@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { PrismaClient } from '@narra/database';
+import { isBridgedAsset } from '@narra/shared';
 import { makeAuthenticate, type AccountDeps } from './account';
 import { IdCursor, Limit, decodeCursor, encodeCursor, likeEscape } from './paging';
 import { ScreenerQuery, isScreenerRequest, runScreener } from './screener';
@@ -44,7 +45,7 @@ export function registerReadRoutes(app: FastifyInstance, deps: Pick<AccountDeps,
         // Only creators attributed to this narrative, capped so a busy narrative
         // cannot ship an unbounded payload. Originators sort first (enum order).
         creators: { orderBy: [{ role: 'asc' }, { id: 'asc' }], take: 50, include: { creator: { select: { platform: true, handle: true } } } },
-        tokens: { orderBy: { ogScore: 'desc' }, take: 20, include: { token: { select: { mint: true, symbol: true, name: true, metrics: { orderBy: { at: 'desc' }, take: 1 } } } } },
+        tokens: { orderBy: { ogScore: 'desc' }, take: 40, include: { token: { select: { mint: true, symbol: true, name: true, metrics: { orderBy: { at: 'desc' }, take: 1 } } } } },
       },
     });
     if (!r) return reply.code(404).send({ error: 'NOT_FOUND' });
@@ -52,7 +53,7 @@ export function registerReadRoutes(app: FastifyInstance, deps: Pick<AccountDeps,
     return {
       ...narrative, latestMetric: metrics[0] ?? null,
       creators: creators.map((c) => ({ platform: c.creator.platform, handle: c.creator.handle, role: c.role })),
-      tokens: tokens.map((t) => {
+      tokens: tokens.filter((t) => !isBridgedAsset(t.token.mint)).slice(0, 20).map((t) => {
         const m = t.token.metrics[0];
         return { mint: t.token.mint, symbol: t.token.symbol, name: t.token.name, relation: t.relation, ogScore: t.ogScore, confidence: t.confidence, marketCapUsd: n(m?.marketCapUsd), liquidityUsd: n(m?.liquidityUsd) };
       }),
