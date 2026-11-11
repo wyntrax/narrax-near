@@ -176,6 +176,15 @@ Rebuilds [`THESIS_EVIDENCE.md`](./THESIS_EVIDENCE.md) from the local Postgres re
 coverage, narrative-to-token conversion, Early Radar outcomes, smart-money observations and
 collection quality. The snapshot is generated; no number in it is hardcoded.
 
+The NEAR macro backdrop is separate and keyless:
+
+```bash
+npm run thesis:context -- --write
+```
+
+It rebuilds [`THESIS_CONTEXT.md`](./THESIS_CONTEXT.md) and its chart from DefiLlama, CoinGecko,
+NearBlocks and NEAR mainnet RPC. It is the slow macro clock, not a price prediction.
+
 ## Test
 
 ```bash

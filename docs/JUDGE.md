@@ -63,6 +63,7 @@ No Docker? Use a local Postgres 16 and set `DATABASE_URL` in `.env`. The default
 | Open `http://localhost:4000/v1/public-research-snapshot` | Aggregate research counts. |
 | Open `http://localhost:4000/v1/agent/risk/nearly-993927.nearlytrade.near` | The raw `PASS` verdict JSON. |
 | Read `THESIS_EVIDENCE.md` and `THESIS_EVIDENCE.svg` | The generated thesis evidence and chart. |
+| Read `THESIS_CONTEXT.md` and `THESIS_CONTEXT.svg` | The keyless NEAR macro backdrop (TVL, stablecoins, price, market cap) and its chart. |
 | Read `docs/AGENT_RISK.md` | The public risk-gate contract, policy example and security model. |
 | Read `docs/DEMO.md` | The video walkthrough and X post draft. |
 | Browse `docs/screenshots/` | Real screenshots of the landing page and both risk verdicts. |
@@ -123,7 +124,7 @@ isolated test services; see the README's Test section.
 
 | Track | Where to look |
 | --- | --- |
-| `thesis` | `THESIS.md`, `THESIS_EVIDENCE.md`, `scripts/thesis-report.ts`, the research workspace. |
+| `thesis` | `THESIS.md`, `THESIS_EVIDENCE.md`, `THESIS_CONTEXT.md`, `scripts/thesis-report.ts`, `scripts/thesis-context.ts`, the research workspace. |
 | `security` | `docs/AGENT_RISK.md`, `apps/api/src/agentRisk.ts`, `/agent-risk`, the public risk JSON. |
 | `open` | The public research workspace, methodology pages and the reproducible pipeline. |
 

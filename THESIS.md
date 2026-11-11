@@ -68,6 +68,28 @@ It contains the current research universe, narrative-to-token conversion, Early 
 smart-money observations and collection quality. It is a dated snapshot, not a backtest, and the
 script is the only thing that should produce those numbers.
 
+[`THESIS_CONTEXT.md`](./THESIS_CONTEXT.md) is the separate NEAR macro backdrop, rebuilt from public
+data with no database or keys:
+
+```bash
+npm run thesis:context -- --write
+```
+
+It covers TVL, stablecoin supply, price, market cap, node count and the latest final block from
+DefiLlama, CoinGecko, NearBlocks and NEAR mainnet RPC. It is deliberately not a claim that narrative
+attention predicts NEAR price.
+
+## The two clocks
+
+NEAR macro fundamentals and narrative attention move on different clocks. TVL, stablecoin supply,
+price and market cap are slow network-level series. Narrative attention and token-level
+liquidity/holders move much faster, and most of that movement never becomes durable adoption.
+
+NARRAX tests the conversion, not the prediction: does attention become liquidity, distributed
+ownership and observed trade flow? The macro series is the backdrop, not the answer. This keeps the
+thesis honest: a rising macro series does not validate an individual token, and a loud narrative does
+not validate itself.
+
 ## Evidence for the thesis (design choices)
 
 The product encodes the claim in what it refuses to do:
