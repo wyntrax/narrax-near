@@ -1,6 +1,7 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import rateLimit from '@fastify/rate-limit';
 import { getBrand } from '@narra/shared';
+import type { PrismaClient } from '@narra/database';
 import { registerAccountRoutes, type AccountDeps } from './account';
 import { registerReadRoutes } from './read';
 import { registerSmartMoneyRoutes } from './smartMoney';
@@ -25,6 +26,10 @@ import { registerAgentRiskRoutes } from './agentRisk';
 
 export async function buildApp(opts: {
   account?: AccountDeps;
+  /** Database for public-only routes when no authenticated account deps are wired. */
+  publicDb?: PrismaClient;
+  /** Skip runtime settings and authenticated routes. Used by the judge demo API. */
+  publicOnly?: boolean;
   runtime?: RuntimeSettingsResolver;
   /** The model behind agent chat. Without it chat answers 503. */
   chatLlm?: LlmProvider | null;
@@ -52,14 +57,19 @@ export async function buildApp(opts: {
   });
 
   app.get('/health', async () => ({ status: 'ok', brand: getBrand().name }));
-  registerRuntimeRoutes(app, opts.runtime ?? (opts.account ? createRuntimeSettings(opts.account.db) : undefined), opts.account);
+  if (!opts.publicOnly) {
+    registerRuntimeRoutes(app, opts.runtime ?? (opts.account ? createRuntimeSettings(opts.account.db) : undefined), opts.account);
+  }
+
+  // Public routes are independent of sign-in. The judge demo API uses them without Privy.
+  const publicDb = opts.publicDb ?? opts.account?.db;
+  if (publicDb) {
+    registerPublicResearchSnapshot(app, publicDb, opts.account?.now);
+    registerAgentRiskRoutes(app, { db: publicDb, now: opts.account?.now });
+  }
 
   if (opts.account) {
     registerFeatureGates(app, opts.account.db, opts.account.now);
-    // Public aggregate counts for the landing page. Deliberately before auth-only routes and independent of tier.
-    registerPublicResearchSnapshot(app, opts.account.db, opts.account.now);
-    // Public read-only risk gate for agents. Token-level safety facts only; no narratives, wallets or user data.
-    registerAgentRiskRoutes(app, { db: opts.account.db, now: opts.account.now });
     registerPersonalResearchRoutes(app, opts.account);
     registerEntitlementRoutes(app, opts.account);
     registerAccountRoutes(app, opts.account);
