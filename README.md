@@ -25,6 +25,7 @@ npm ci
 npx prisma generate --schema packages/database/prisma/schema.prisma
 npx prisma migrate deploy --schema packages/database/prisma/schema.prisma
 DEMO_SEED_CONFIRM=yes npm run demo:seed
+npm run demo:refresh
 npm run dev:api:public
 ```
 
@@ -44,6 +45,7 @@ For the seed step on PowerShell:
 Copy-Item .env.example .env
 $env:DEMO_SEED_CONFIRM='yes'
 npm run demo:seed
+npm run demo:refresh
 ```
 
 Then open `http://localhost:4010/agent-risk` and click **Use example**. You should see `PASS` for
@@ -51,9 +53,11 @@ NEARLY with 2,680 holders and 19.1% top-10 concentration. Open `http://localhost
 landing snapshot.
 
 `demo:seed` replaces the research tables in the target database, so point `DATABASE_URL` at a demo
-database, not production. The authenticated workspace (`/app/...`), including the `/app/agent`
-research chat, requires a Privy app and an AI provider key; it is shown in the demo video. Full judge
-checklist: [`docs/JUDGE.md`](./docs/JUDGE.md).
+database, not production. `demo:refresh` then fetches current public market, holder and risk evidence
+for the seeded tokens; without it a dated seed ages out of the freshness window and the gate correctly
+returns `UNKNOWN`. It never shifts timestamps or invents a value. The authenticated workspace
+(`/app/...`), including the `/app/agent` research chat, requires a Privy app and an AI provider key; it
+is shown in the demo video. Full judge checklist: [`docs/JUDGE.md`](./docs/JUDGE.md).
 
 ---
 

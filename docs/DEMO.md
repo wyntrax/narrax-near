@@ -73,6 +73,9 @@ Close on the repo:
 - Use a 16:9 browser window at 1440px or wider.
 - Hide bookmarks, terminal history and `.env` contents.
 - Use the mainnet research build; testnet has no DEX market feed.
+- Run `npm run demo:refresh` immediately before recording, so the `PASS` is a current observation
+  rather than a dated seed. If the refresh fails, record `UNKNOWN` and say that is the fail-closed
+  behavior; do not fake freshness.
 - Keep the mouse still during each narration line.
 - Add captions. The first caption should state the problem, not the project name.
 - Do not show long setup or install steps. The README covers reproducibility.
@@ -109,6 +112,7 @@ token gets UNKNOWN, which the policy treats as blocked. NARRAX never holds the k
 - [ ] CI and Security checks are green on the final `main`.
 - [ ] `THESIS_EVIDENCE.md` is regenerated after the final collection window.
 - [ ] `THESIS_CONTEXT.md` is regenerated on the final day; its timestamp is visible.
+- [ ] `npm run demo:refresh` was run after the final seed, so the recorded `PASS` is a current observation.
 - [ ] The demo video is public and the X post is published.
 - [ ] The X post says "built at NEAR HACKATHON", tags `@NEARProtocol` and `#NEARHackathon`.
 - [ ] Submission tracks are `thesis`, `security`, `open`.

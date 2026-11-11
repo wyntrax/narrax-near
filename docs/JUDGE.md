@@ -19,11 +19,15 @@ npm ci
 npx prisma generate --schema packages/database/prisma/schema.prisma
 npx prisma migrate deploy --schema packages/database/prisma/schema.prisma
 DEMO_SEED_CONFIRM=yes npm run demo:seed
+npm run demo:refresh
 npm run dev:api:public
 ```
 
 `demo:seed` loads a real read-only research snapshot. It removes and replaces the research tables in
-the target database, so point `DATABASE_URL` at a demo database, not production.
+the target database, so point `DATABASE_URL` at a demo database, not production. `demo:refresh`
+fetches current public market, holder and risk evidence for the seeded tokens. Without it, a dated
+seed ages out of the freshness window and the gate correctly returns `UNKNOWN`; the refresh never
+shifts timestamps or invents values. It needs network access and may take about a minute.
 
 In a second terminal:
 
@@ -47,6 +51,7 @@ Seed step on PowerShell:
 Copy-Item .env.example .env
 $env:DEMO_SEED_CONFIRM='yes'
 npm run demo:seed
+npm run demo:refresh
 ```
 
 No Docker? Use a local Postgres 16 and set `DATABASE_URL` in `.env`. The default
