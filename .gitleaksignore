@@ -1,0 +1,3 @@
+# False positive: a documentation sentence listing environment-only credentials, not a secret.
+# The file was removed later; the historical diff still contains the word list.
+2f32ed663da28c33834525be08af029d9896c0f8:docs/RUNTIME_SETTINGS_API.md:generic-api-key:54
