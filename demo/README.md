@@ -1,20 +1,20 @@
 # Demo seed
 
-`seed.json` is a read-only research snapshot exported from a NARRAX mainnet run. It populates the
-public judge demo without waiting for the pipeline to collect data.
+`seed.json` is a small read-only research snapshot exported from a NARRAX mainnet run. It populates
+the public judge demo without waiting for the pipeline to collect data.
 
 ## What is included
 
 - narratives and narrative metrics
-- tokens, price metrics, holder metrics and risk rows
+- named, non-bridged research tokens with their latest price, holder and risk rows
 - narrative-token relations
 - opportunities and global alerts
-- observed smart-money wallets and profiles
-- market evidence settings
 
-No users, access grants, chats, notifications, private research, keys or provider credentials are
-included. Smart-money trade rows are omitted from the public seed; run the workers to collect trade
-evidence.
+No users, access grants, chats, notifications, private research, smart-money rows, transaction
+hashes, system settings, keys or provider credentials are included.
+
+Smart-money evidence and full metric history are intentionally omitted from the public seed. Run the
+workers against a demo database if you want to populate those surfaces.
 
 ## Refresh
 

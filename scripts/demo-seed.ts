@@ -62,7 +62,7 @@ async function main() {
     }, { timeout: 60_000, maxWait: 10_000 });
 
     console.log(`Seeded demo data from ${seed.exportedAt}`);
-    for (const name of ['narrative', 'token', 'tokenMetric', 'tokenHolderMetric', 'tokenRiskMetric', 'opportunity', 'alert', 'smartWallet']) {
+    for (const name of ['narrative', 'token', 'tokenMetric', 'tokenHolderMetric', 'tokenRiskMetric', 'opportunity', 'alert']) {
       console.log(`${name}: ${count(name)}`);
     }
   } finally {
