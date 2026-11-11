@@ -9,11 +9,12 @@ public judge demo without waiting for the pipeline to collect data.
 - tokens, price metrics, holder metrics and risk rows
 - narrative-token relations
 - opportunities and global alerts
-- observed smart-money wallets, profiles and trades
+- observed smart-money wallets and profiles
 - market evidence settings
 
 No users, access grants, chats, notifications, private research, keys or provider credentials are
-included.
+included. Smart-money trade rows are omitted from the public seed; run the workers to collect trade
+evidence.
 
 ## Refresh
 

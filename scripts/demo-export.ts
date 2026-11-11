@@ -12,7 +12,7 @@ async function main() {
   try {
     const [
       narrative, narrativeMetric, token, tokenMetric, tokenHolderMetric, tokenRiskMetric,
-      narrativeTokenRelation, opportunity, alert, smartWallet, smartWalletProfile, smartWalletTrade,
+      narrativeTokenRelation, opportunity, alert, smartWallet, smartWalletProfile,
       systemSetting,
     ] = await Promise.all([
       db.narrative.findMany(),
@@ -27,7 +27,6 @@ async function main() {
       db.alert.findMany({ where: { userId: null } }),
       db.smartWallet.findMany(),
       db.smartWalletProfile.findMany(),
-      db.smartWalletTrade.findMany(),
       db.systemSetting.findMany({
         where: {
           OR: [
@@ -40,7 +39,7 @@ async function main() {
 
     const tables = {
       narrative, narrativeMetric, token, tokenMetric, tokenHolderMetric, tokenRiskMetric,
-      narrativeTokenRelation, opportunity, alert, smartWallet, smartWalletProfile, smartWalletTrade,
+      narrativeTokenRelation, opportunity, alert, smartWallet, smartWalletProfile,
       systemSetting,
     };
     const payload = {
