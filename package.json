@@ -31,6 +31,7 @@
     "dev:workers": "tsx --env-file=.env workers/pipeline/src/main.ts",
     "demo:export": "tsx --env-file=.env scripts/demo-export.ts",
     "demo:seed": "tsx --env-file=.env scripts/demo-seed.ts",
+    "demo:refresh": "tsx --env-file=.env scripts/demo-refresh.ts",
     "dev:narratives": "node --require ./apps/web/scripts/no-env-files.cjs --import tsx workers/pipeline/src/narrativesMain.ts",
     "dev:market": "node --require ./apps/web/scripts/no-env-files.cjs --import tsx workers/pipeline/src/marketMain.ts",
     "video:studio": "npm run studio -w @narra/video",
