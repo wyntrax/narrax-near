@@ -1,0 +1,11 @@
+title = "NARRAX gitleaks configuration"
+
+# Extend the default rule set; only narrow allowlists are added below.
+[extend]
+useDefault = true
+
+[[allowlists]]
+targetRules = ["generic-api-key"]
+description = "Public cuid token ids in the generated demo snapshot are identifiers, not API keys."
+regexTarget = "match"
+regexes = ['''tokenId"\s*:\s*"c[a-z0-9]{20,}"''']
