@@ -64,6 +64,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+          # Keep .gitleaks.toml compatible with the action's pinned gitleaks version.
           GITLEAKS_CONFIG: .gitleaks.toml
 
   codeql:
