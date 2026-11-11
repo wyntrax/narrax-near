@@ -51,8 +51,9 @@ NEARLY with 2,680 holders and 19.1% top-10 concentration. Open `http://localhost
 landing snapshot.
 
 `demo:seed` replaces the research tables in the target database, so point `DATABASE_URL` at a demo
-database, not production. The authenticated workspace (`/app/...`) requires a Privy app and is shown
-in the demo video. Full judge checklist: [`docs/JUDGE.md`](./docs/JUDGE.md).
+database, not production. The authenticated workspace (`/app/...`), including the `/app/agent`
+research chat, requires a Privy app and an AI provider key; it is shown in the demo video. Full judge
+checklist: [`docs/JUDGE.md`](./docs/JUDGE.md).
 
 ---
 
