@@ -14,6 +14,38 @@ and the configured social provider.
 
 ![NARRAX landing page](./docs/screenshots/landing.png)
 
+## Judge quickstart
+
+The public path needs **Node 22 + Postgres 16**. No Privy, wallet, Redis or AI key is required.
+
+```bash
+cp .env.example .env
+docker compose up -d postgres
+npm ci
+npx prisma generate --schema packages/database/prisma/schema.prisma
+npx prisma migrate deploy --schema packages/database/prisma/schema.prisma
+DEMO_SEED_CONFIRM=yes npm run demo:seed
+npm run dev:api:public
+```
+
+In a second terminal:
+
+```bash
+export NEXT_PUBLIC_API_URL=http://localhost:4000
+export NEXT_PUBLIC_SITE_URL=http://localhost:4010
+npm run dev:web
+```
+
+PowerShell: set those two variables with `$env:NAME='value'` instead of `export`.
+
+Then open `http://localhost:4010/agent-risk` and click **Use example**. You should see `PASS` for
+NEARLY with 2,680 holders and 19.1% top-10 concentration. Open `http://localhost:4010/` for the
+landing snapshot.
+
+`demo:seed` replaces the research tables in the target database, so point `DATABASE_URL` at a demo
+database, not production. The authenticated workspace (`/app/...`) requires a Privy app and is shown
+in the demo video. Full judge checklist: [`docs/JUDGE.md`](./docs/JUDGE.md).
+
 ---
 
 ## Hackathon tracks
