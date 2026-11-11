@@ -39,6 +39,14 @@ $env:NEXT_PUBLIC_SITE_URL='http://localhost:4010'
 npm run dev:web
 ```
 
+Seed step on PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+$env:DEMO_SEED_CONFIRM='yes'
+npm run demo:seed
+```
+
 No Docker? Use a local Postgres 16 and set `DATABASE_URL` in `.env`. The default
 `postgresql://narra:narra@localhost:5432/narra` matches the included compose service.
 

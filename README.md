@@ -38,6 +38,14 @@ npm run dev:web
 
 PowerShell: set those two variables with `$env:NAME='value'` instead of `export`.
 
+For the seed step on PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+$env:DEMO_SEED_CONFIRM='yes'
+npm run demo:seed
+```
+
 Then open `http://localhost:4010/agent-risk` and click **Use example**. You should see `PASS` for
 NEARLY with 2,680 holders and 19.1% top-10 concentration. Open `http://localhost:4010/` for the
 landing snapshot.
