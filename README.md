@@ -64,8 +64,8 @@ Entering **Investment Thesis** (`thesis`), **AI Security & Defense** (`security`
 
 | Track | What the submission shows |
 | --- | --- |
-| **Thesis** | An evidence-first NEAR ecosystem thesis: attention only matters when it converts into liquidity, distributed ownership, and observed trade flow. The workspace exposes the evidence, the counter-evidence, and the reproducible pipeline behind both. See [`THESIS.md`](./THESIS.md). |
-| **Security** | A public, fail-closed risk gate for AI agents: an agent checks token risk before it spends and blocks on `BLOCK` or `UNKNOWN`. NARRAX supplies scam and risk evidence and never holds keys or signs. See [`docs/AGENT_RISK.md`](./docs/AGENT_RISK.md). |
+| **Thesis** | An evidence-first NEAR ecosystem thesis: attention only matters when it converts into liquidity, distributed ownership, and observed trade flow. The workspace exposes the evidence, the counter-evidence, and the reproducible pipeline behind both. The keyless macro backdrop is in [`THESIS_CONTEXT.md`](./THESIS_CONTEXT.md). See [`THESIS.md`](./THESIS.md). |
+| **Security** | A public, fail-closed risk gate for AI agents: an agent checks token risk before it spends and blocks on `BLOCK` or `UNKNOWN`. It verifies the target is a deployed contract (including a global contract), not an EOA or deleted account, and reports full-access keys as a warning. NARRAX supplies scam and risk evidence and never holds keys or signs. See [`docs/AGENT_RISK.md`](./docs/AGENT_RISK.md). |
 | **Open** | A public research workspace and methodology that does not fit a single category: social narrative → NEP-141 identity → market and holder evidence → written research. |
 
 ## Thesis
