@@ -38,26 +38,30 @@ score once, not five times.
 
 Open `/agent-risk`.
 
-1. Click **Use example** → `PASS` for NEARLY, with 2,680 holders and 19.1% top-10 concentration.
+1. Click **Use example** → `PASS` for NEARLY, with 2,680 holders, 19.1% top-10 concentration, and
+   the contract row showing a deployed contract with 0 full-access keys.
 2. Enter an unknown account id → `UNKNOWN`.
 3. Mention that `UNKNOWN` and `BLOCK` are both treated as blocked by the agent policy.
 
 > NARRAX never holds the agent's keys. The agent keeps its wallet and policy; NARRAX only supplies
-> the scam and risk evidence. If the evidence is missing or stale, the gate fails closed.
+> the scam and risk evidence. It also checks that the account is a real NEAR contract, not an EOA or
+> a deleted account. If the evidence is missing or stale, the gate fails closed.
 
 This is the moment the AI Security & Defense track is judged on. Keep it concrete.
 
 ### 2:10–2:30 — The thesis evidence and close
 
-Show `THESIS_EVIDENCE.md` or the terminal:
+Show `THESIS_EVIDENCE.md` and `THESIS_CONTEXT.md`, or the terminals:
 
 ```bash
 npm run thesis:report -- --write
+npm run thesis:context -- --write
 ```
 
-> The thesis is not a hardcoded opinion. This report is generated from Postgres: narrative-to-token
-> conversion, Early Radar outcomes, smart-money observations and collection quality. If the data does
-> not support the claim, the report says so.
+> The thesis is not a hardcoded opinion. The evidence report is generated from Postgres:
+> narrative-to-token conversion, Early Radar outcomes, smart-money observations and collection
+> quality. The macro context is separate, keyless and deliberately slower: TVL, stablecoins and
+> price are the backdrop, not the answer. If the data does not support the claim, the report says so.
 
 Close on the repo:
 
@@ -95,8 +99,8 @@ Reply with one concrete result from the demo:
 
 ```text
 In the demo, NARRAX checks a real NEAR token before an agent spends: 2,680 holders, 19.1% top-10,
-fresh liquidity. The agent gets PASS. An unknown token gets UNKNOWN, which the policy treats as
-blocked. NARRAX never holds the keys.
+fresh liquidity, and a deployed contract with 0 full-access keys. The agent gets PASS. An unknown
+token gets UNKNOWN, which the policy treats as blocked. NARRAX never holds the keys.
 ```
 
 ## Before submitting
@@ -104,6 +108,7 @@ blocked. NARRAX never holds the keys.
 - [ ] Repository is public.
 - [ ] CI and Security checks are green on the final `main`.
 - [ ] `THESIS_EVIDENCE.md` is regenerated after the final collection window.
+- [ ] `THESIS_CONTEXT.md` is regenerated on the final day; its timestamp is visible.
 - [ ] The demo video is public and the X post is published.
 - [ ] The X post says "built at NEAR HACKATHON", tags `@NEARProtocol` and `#NEARHackathon`.
 - [ ] Submission tracks are `thesis`, `security`, `open`.
