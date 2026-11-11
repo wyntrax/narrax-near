@@ -21,6 +21,8 @@ const pass = {
   observedAt: '2026-11-10T16:31:01.342Z',
   riskAt: '2026-11-10T16:31:01.342Z',
   reasons: [],
+  warnings: [],
+  contract: {status: 'CONTRACT', fullAccessKeys: 0, functionCallKeys: 0},
   policy: {maxRiskScore: 80, metricMaxAgeMs: 900_000, evidenceMaxAgeMs: 3_600_000},
   disclaimer: 'PASS is not a safety guarantee.',
 };
@@ -46,6 +48,7 @@ describe('agent risk panel', () => {
     await waitFor(() => expect(screen.getByText('PASS')).toBeVisible());
     expect(screen.getByText(/2[,.]?680/)).toBeVisible();
     expect(screen.getByText('19.1%')).toBeVisible();
+    expect(screen.getByText('Contract')).toBeVisible();
     expect(screen.getByText('Fresh', {exact: false})).toBeVisible();
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining('/v1/agent/risk/nearly-993927.nearlytrade.near'),

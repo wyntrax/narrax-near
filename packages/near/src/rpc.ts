@@ -31,10 +31,27 @@ export interface NearViewAccount {
   amount: string;
   locked: string;
   code_hash: string;
+  /** Set when the account uses a global contract; code_hash can be the empty hash. */
+  global_contract_hash?: string | null;
   storage_usage: number;
   storage_paid_at?: number;
   block_height: number;
   block_hash: string;
+}
+
+export type NearAccessKeyPermission =
+  | 'FullAccess'
+  | { FunctionCall: { allowance: string | null; receiver_id: string; method_names: string[] } };
+
+export interface NearAccessKeyInfo {
+  public_key: string;
+  access_key: { nonce: number; permission: NearAccessKeyPermission };
+}
+
+export interface NearAccessKeyList {
+  block_height: number;
+  block_hash: string;
+  keys: NearAccessKeyInfo[];
 }
 
 export interface NearBlock {
@@ -66,6 +83,12 @@ interface CallFunctionResponse {
 
 /** The code hash of an externally owned account (no deployed contract). */
 export const EMPTY_CODE_HASH = '11111111111111111111111111111111';
+
+/** True when an account has deployed code, including a global contract whose code_hash is empty. */
+export function hasDeployedCode(account: Pick<NearViewAccount, 'code_hash' | 'global_contract_hash'>): boolean {
+  return (!!account.code_hash && account.code_hash !== EMPTY_CODE_HASH)
+    || (typeof account.global_contract_hash === 'string' && account.global_contract_hash.length > 0);
+}
 
 export class NearRpc {
   private readonly url: string;
@@ -120,9 +143,14 @@ export class NearRpc {
     return this.call<NearViewAccount>('query', { request_type: 'view_account', finality: 'final', account_id: accountId });
   }
 
+  /** Access keys for an account. Read-only; used to distinguish contract and owner-controlled accounts. */
+  async viewAccessKeyList(accountId: string): Promise<NearAccessKeyList> {
+    return this.call<NearAccessKeyList>('query', { request_type: 'view_access_key_list', finality: 'final', account_id: accountId });
+  }
+
   /** True when the account has deployed code. Used to keep contract/relayer accounts out of wallet research. */
   async isContractAccount(accountId: string): Promise<boolean> {
-    return (await this.viewAccount(accountId)).code_hash !== EMPTY_CODE_HASH;
+    return hasDeployedCode(await this.viewAccount(accountId));
   }
 
   /**

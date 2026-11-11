@@ -2,6 +2,7 @@ import { buildApp } from './app';
 import { createPrisma } from '@narra/database';
 import { NearRpc, nearConfigFromEnv } from '@narra/near';
 import { registerChainRoutes } from './chain';
+import { createContractSafety } from './contractSafety';
 import { parseCorsOrigins } from './http';
 
 /**
@@ -14,10 +15,17 @@ async function main() {
   const db = createPrisma();
   const near = nearConfigFromEnv();
   const rpc = new NearRpc({ url: near.rpcUrl, timeoutMs: 15_000 });
+  // The risk gate is mainnet-only because all market evidence is mainnet-only. Keep its contract
+  // check on mainnet even when NEAR_NETWORK is testnet for the chain-status probe.
+  const riskRpc = new NearRpc({
+    url: process.env.AGENT_RISK_NEAR_RPC_URL || 'https://rpc.mainnet.near.org',
+    timeoutMs: 15_000,
+  });
 
   const app = await buildApp({
     publicDb: db,
     publicOnly: true,
+    contractSafety: createContractSafety(riskRpc),
     // Exact origins only. Empty means browsers on other origins are refused.
     http: { corsOrigins: parseCorsOrigins(process.env.CORS_ORIGINS), hsts: process.env.HSTS === 'true' },
     trustProxy: process.env.TRUST_PROXY === 'true',

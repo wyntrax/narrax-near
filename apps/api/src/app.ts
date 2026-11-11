@@ -23,11 +23,14 @@ import { registerRuntimeRoutes } from './runtime-routes';
 import { registerPersonalResearchRoutes } from './personalResearch';
 import { registerPublicResearchSnapshot } from './publicResearchSnapshot';
 import { registerAgentRiskRoutes } from './agentRisk';
+import type { ContractSafetySource } from './contractSafety';
 
 export async function buildApp(opts: {
   account?: AccountDeps;
   /** Database for public-only routes when no authenticated account deps are wired. */
   publicDb?: PrismaClient;
+  /** Read-only contract facts for the agent risk gate. Without it the gate omits contract checks. */
+  contractSafety?: ContractSafetySource;
   /** Skip runtime settings and authenticated routes. Used by the judge demo API. */
   publicOnly?: boolean;
   runtime?: RuntimeSettingsResolver;
@@ -65,7 +68,7 @@ export async function buildApp(opts: {
   const publicDb = opts.publicDb ?? opts.account?.db;
   if (publicDb) {
     registerPublicResearchSnapshot(app, publicDb, opts.account?.now);
-    registerAgentRiskRoutes(app, { db: publicDb, now: opts.account?.now });
+    registerAgentRiskRoutes(app, { db: publicDb, contracts: opts.contractSafety, now: opts.account?.now });
   }
 
   if (opts.account) {

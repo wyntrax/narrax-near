@@ -57,7 +57,7 @@ No Docker? Use a local Postgres 16 and set `DATABASE_URL` in `.env`. The default
 | Do this | See this |
 | --- | --- |
 | Open `http://localhost:4010/` | The landing page and the public research snapshot counts from the seeded DB. |
-| Open `http://localhost:4010/agent-risk` and click **Use example** | `PASS` for `nearly-993927.nearlytrade.near`: 2,680 holders, 19.1% top-10 concentration, fresh evidence. |
+| Open `http://localhost:4010/agent-risk` and click **Use example** | `PASS` for `nearly-993927.nearlytrade.near`: 2,680 holders, 19.1% top-10 concentration, fresh evidence, contract account with 0 full-access keys. |
 | Enter an unknown account id and submit | `UNKNOWN`, explicitly treated as blocked by the agent policy. |
 | Open `http://localhost:4000/health` | `{"status":"ok","brand":"NARRAX"}`. |
 | Open `http://localhost:4000/v1/public-research-snapshot` | Aggregate research counts. |
@@ -125,7 +125,7 @@ isolated test services; see the README's Test section.
 | Track | Where to look |
 | --- | --- |
 | `thesis` | `THESIS.md`, `THESIS_EVIDENCE.md`, `THESIS_CONTEXT.md`, `scripts/thesis-report.ts`, `scripts/thesis-context.ts`, the research workspace. |
-| `security` | `docs/AGENT_RISK.md`, `apps/api/src/agentRisk.ts`, `/agent-risk`, the public risk JSON. |
+| `security` | `docs/AGENT_RISK.md`, `apps/api/src/agentRisk.ts`, `apps/api/src/contractSafety.ts`, `/agent-risk`, the public risk JSON. |
 | `open` | The public research workspace, methodology pages and the reproducible pipeline. |
 
 ## Honest limits
