@@ -1,6 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
 import { createPrisma } from '@narra/database';
+import { isBridgedAsset } from '@narra/shared';
 import { MIN_HOLDERS, MIN_LIQUIDITY_USD } from '@narra/token-intel';
 import { researchCoverage, renderResearchCoverage } from '@narra/worker-pipeline';
 import { earlyRadarReport } from '../workers/pipeline/src/earlyRadarTracking';
@@ -57,7 +58,7 @@ async function buildReport(db: ReturnType<typeof createPrisma>, now: Date, days:
     db.smartWalletTrade.findFirst({ orderBy: { at: 'desc' }, select: { at: true } }),
   ]);
 
-  const linkedTokens = await db.token.findMany({
+  const allLinkedTokens = await db.token.findMany({
     where: { blacklisted: false, narratives: { some: {} } },
     select: {
       id: true, mint: true, symbol: true,
@@ -67,6 +68,8 @@ async function buildReport(db: ReturnType<typeof createPrisma>, now: Date, days:
       narratives: { select: { relation: true } },
     },
   });
+  const bridgedTokens = allLinkedTokens.filter(token => isBridgedAsset(token.mint)).length;
+  const linkedTokens = allLinkedTokens.filter(token => !isBridgedAsset(token.mint));
 
   let nonSuspicious = 0, withLiquidity = 0, withHolders = 0, withBoth = 0;
   let freshPrice = 0, freshHolders = 0, freshBoth = 0, freshConfirmed = 0;
@@ -114,6 +117,7 @@ async function buildReport(db: ReturnType<typeof createPrisma>, now: Date, days:
     },
     conversion: {
       linkedTokens: linkedTokens.length,
+      bridgedTokens,
       nonSuspicious,
       withLiquidity,
       withHolders,
@@ -148,7 +152,7 @@ async function buildReport(db: ReturnType<typeof createPrisma>, now: Date, days:
   };
 }
 
-function renderMarkdown(report: Awaited<ReturnType<typeof buildReport>>): string {
+function renderMarkdown(report: Awaited<ReturnType<typeof buildReport>>, includeChart = false): string {
   const lines: string[] = [
     '# NARRAX evidence snapshot',
     '',
@@ -157,6 +161,7 @@ function renderMarkdown(report: Awaited<ReturnType<typeof buildReport>>): string
     '',
     'This is a generated snapshot of the local research database, not a backtest and not a price prediction. No value is hardcoded; missing data stays unknown.',
     '',
+    ...(includeChart ? ['![NARRAX evidence snapshot](./THESIS_EVIDENCE.svg)', ''] : []),
     '## Research universe',
     '',
     '| Metric | Value |',
@@ -176,6 +181,9 @@ function renderMarkdown(report: Awaited<ReturnType<typeof buildReport>>): string
     '',
     `Floors: liquidity >= $${fmt(report.conversion.floors.liquidityUsd)} and holders >= ${fmt(report.conversion.floors.holders)}.`,
     '',
+    ...(report.conversion.bridgedTokens
+      ? [`Excluded ${fmt(report.conversion.bridgedTokens)} bridged-asset tokens (*.omft.near, *.omdep.near, *.bridge.near) from this cohort.`, '']
+      : []),
     '| Cohort | Tokens | Share of linked |',
     '| --- | ---: | ---: |',
     `| Linked to a narrative | ${fmt(report.conversion.linkedTokens)} | 100.0% |`,
@@ -232,6 +240,56 @@ function renderMarkdown(report: Awaited<ReturnType<typeof buildReport>>): string
   return lines.join('\n');
 }
 
+function escapeXml(value: string): string {
+  return value.replace(/[<>&"']/g, ch => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&apos;' }[ch]!));
+}
+
+function renderEvidenceSvg(report: Awaited<ReturnType<typeof buildReport>>): string {
+  const width = 1000, height = 620;
+  const conversionMax = Math.max(1, report.conversion.linkedTokens);
+  const coverageMax = Math.max(1, report.universe.tokensObserved);
+  const bar = (label: string, value: number, max: number, y: number, color: string): string => {
+    const x = 300, w = 520, h = 22;
+    const fill = value <= 0 ? 0 : Math.max(2, Math.min(w, (value / max) * w));
+    return `<text x="40" y="${y + 16}" font-size="13" fill="#111">${escapeXml(label)}</text>
+      <rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#eeeeee" rx="3"/>
+      <rect x="${x}" y="${y}" width="${fill.toFixed(1)}" height="${h}" fill="${color}" rx="3"/>
+      <text x="${x + w + 16}" y="${y + 16}" font-size="13" fill="#111" font-weight="600">${fmt(value)}</text>`;
+  };
+  const conversionRows = [
+    ['Linked to a narrative', report.conversion.linkedTokens],
+    ['Non-suspicious relation', report.conversion.nonSuspicious],
+    [`Liquidity >= $${fmt(report.conversion.floors.liquidityUsd)}`, report.conversion.withLiquidity],
+    [`Holders >= ${fmt(report.conversion.floors.holders)}`, report.conversion.withHolders],
+    ['Both floors (confirmed)', report.conversion.withBoth],
+    ['With an opportunity', report.conversion.withOpportunity],
+    ['With an Early Radar alert', report.conversion.withEarlyRadar],
+  ].map(([label, value], index) => bar(String(label), Number(value), conversionMax, 112 + index * 32, '#111')).join('\n');
+  const coverageRows = [
+    ['Tokens observed', report.universe.tokensObserved],
+    ['Fresh price', report.universe.tokensWithPrice],
+    ['Fresh holder evidence', report.universe.tokensWithHolders],
+    ['Fresh risk row', report.universe.tokensWithRisk],
+  ].map(([label, value], index) => bar(String(label), Number(value), coverageMax, 400 + index * 32, '#777')).join('\n');
+  const empty = report.conversion.linkedTokens === 0
+    ? '<text x="300" y="128" font-size="13" fill="#777">No linked research tokens yet.</text>'
+    : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="NARRAX evidence snapshot" font-family="Arial, Helvetica, sans-serif">
+  <rect width="${width}" height="${height}" fill="#ffffff"/>
+  <text x="40" y="42" font-size="22" font-weight="700" fill="#111">NARRAX evidence snapshot</text>
+  <text x="40" y="66" font-size="12" fill="#666">Generated ${escapeXml(report.generatedAt)} · window ${report.window.days} days</text>
+  <text x="40" y="96" font-size="15" font-weight="700" fill="#111">Narrative-to-token conversion</text>
+  ${conversionRows}
+  ${empty}
+  <line x1="40" y1="360" x2="960" y2="360" stroke="#dddddd" stroke-width="1"/>
+  <text x="40" y="388" font-size="15" font-weight="700" fill="#111">Evidence coverage</text>
+  ${coverageRows}
+  <text x="40" y="552" font-size="11" fill="#666">Bridged assets (*.omft.near, *.omdep.near, *.bridge.near) are excluded from the conversion cohort.</text>
+  <text x="40" y="572" font-size="11" fill="#666">Generated from Postgres by npm run thesis:report. No value is hardcoded; missing data stays unknown.</text>
+  <text x="40" y="592" font-size="11" fill="#666">Early Radar returns are gross observed price returns, not executable PnL.</text>
+</svg>`;
+}
+
 async function main() {
   const { values } = parseArgs({
     options: {
@@ -242,7 +300,7 @@ async function main() {
     },
   });
   if (values.help) {
-    console.log('npm run thesis:report -- [--days 7] [--write] [--json]\nRead-only evidence snapshot from the local research database. --write writes THESIS_EVIDENCE.md.');
+    console.log('npm run thesis:report -- [--days 7] [--write] [--json]\nRead-only evidence snapshot from the local research database. --write writes THESIS_EVIDENCE.md and THESIS_EVIDENCE.svg.');
     return;
   }
   if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
@@ -256,10 +314,11 @@ async function main() {
       console.log(JSON.stringify(report, null, 2));
       return;
     }
-    const markdown = renderMarkdown(report);
+    const markdown = renderMarkdown(report, values.write);
     if (values.write) {
       await writeFile(OUTPUT, markdown, 'utf8');
-      console.log(`Wrote ${OUTPUT}`);
+      await writeFile('THESIS_EVIDENCE.svg', renderEvidenceSvg(report), 'utf8');
+      console.log(`Wrote ${OUTPUT} and THESIS_EVIDENCE.svg`);
     } else {
       console.log(markdown);
     }

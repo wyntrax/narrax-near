@@ -1,5 +1,5 @@
 import type { Prisma, PrismaClient } from '@narra/database';
-import { sanitizeUntrusted } from '@narra/shared';
+import { sanitizeUntrusted, isBridgedAsset } from '@narra/shared';
 import { MarketDataError, NEAR_REFERENCE_CONTRACTS, WNEAR_CONTRACT, tokenRisk, type HolderSource, type LaunchSource, type MarketQuoteSource, type MarketSnapshot, type SnapshotOmissionReason, type TokenInfo, type TokenInfoSource } from '@narra/market-data';
 import { refreshTokenMetadata, type MetadataSource } from './tokenMetadata';
 import { saveResearchDiagnostics } from './researchDiagnostics';
@@ -58,6 +58,8 @@ export interface MarketDataSummary {
   riskRowsWritten: number;
   nearUsd: number | null;
   errors: string[];
+  /** Tokens skipped because they are bridged assets, not research candidates. */
+  bridgedSkipped: number;
 }
 
 const errText = (source: string, e: unknown) => `${source}: ${e instanceof MarketDataError ? `${e.kind} (${e.message})` : (e as Error).message}`;
@@ -79,7 +81,7 @@ export async function refreshMarketData(
     launchesSeen: 0, tokensCreated: 0, tokensConsidered: 0, tokensWithPrice: 0, tokensWithoutData: 0,
     priceCoverage: { outcomes: emptyCoverage(), social: emptyCoverage(), launches: emptyCoverage(), unpriced: emptyCoverage(), general: emptyCoverage() },
     priceOmissions: {}, metricsWritten: 0, fdvUsedAsMarketCap: 0, infoCalls: 0, infoUnavailable: 0,
-    holderFallbackCalls: 0, holderFallbackRows: 0, holderRowsWritten: 0, riskRowsWritten: 0, nearUsd: null, errors: [],
+    holderFallbackCalls: 0, holderFallbackRows: 0, holderRowsWritten: 0, riskRowsWritten: 0, nearUsd: null, errors: [], bridgedSkipped: 0,
   };
   if (deps.metadata) { try { await refreshTokenMetadata(db, deps.metadata, now); } catch (e) { out.errors.push(errText('token metadata', e)); } }
   const refs = referenceContracts();
@@ -102,7 +104,7 @@ export async function refreshMarketData(
       const pools = await deps.launches.getNewPools();
       out.launchesSeen = pools.length;
       for (const p of pools.filter(p => p.liquidityUsd != null && p.liquidityUsd >= L.launchMinLiquidityUsd).slice(0, L.maxLaunchesPerRun)) {
-        if (p.liquidityUsd == null || p.liquidityUsd < L.launchMinLiquidityUsd || refs.has(p.mint)) continue;
+        if (p.liquidityUsd == null || p.liquidityUsd < L.launchMinLiquidityUsd || refs.has(p.mint) || isBridgedAsset(p.mint)) continue;
         try {
           const existing = await db.token.findUnique({ where: { mint: p.mint }, select: { id: true, symbol: true, createdOnChainAt: true, blacklisted: true } });
           if (existing?.blacklisted) continue;
@@ -147,7 +149,9 @@ export async function refreshMarketData(
     },
     orderBy: { id: 'asc' }, take: cap - takenIds.length, select: tokenSelect,
   });
-  const tokens = [...priority, ...unpriced, ...rest];
+  const candidates = [...priority, ...unpriced, ...rest];
+  const tokens = candidates.filter(t => !isBridgedAsset(t.mint));
+  out.bridgedSkipped = candidates.length - tokens.length;
   out.tokensConsidered = tokens.length;
 
   // 4. Prices. One batch failing does not lose the others, and a 429 stops the step.

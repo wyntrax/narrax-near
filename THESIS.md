@@ -53,6 +53,9 @@ persists, narrative-driven activity is a real adoption channel rather than a mar
 | Flow | Observed public pool trades, wallet cost basis, average-cost profiles | GeckoTerminal trades + mainnet RPC account checks |
 | Outcome | 1h/24h observations and Early Radar horizons | Stored market rows in Postgres |
 
+Bridged assets (`*.omft.near`, `*.omdep.near`, `*.bridge.near`) are reference/quote assets and are
+excluded from narrative links, launch candidates and the thesis conversion cohort.
+
 ### Generated evidence
 
 [`THESIS_EVIDENCE.md`](./THESIS_EVIDENCE.md) is rebuilt from Postgres with:
@@ -91,6 +94,9 @@ add nothing, and the pipeline would be over-constrained.
 - **Holder concentration is approximate.** The top-10 share is of total supply and may include pool
   and exchange accounts, so it can overstate concentration. NearBlocks only covers tokens it has
   indexed; everything else stays unknown.
+- **Bridged assets are excluded.** Tokens under `*.omft.near`, `*.omdep.near` or `*.bridge.near` are
+  reference/quote assets, not narrative research candidates, and are removed from narrative links and
+  the conversion cohort.
 - **Social data is adversarial.** Organic-quality checks are heuristics, not proof. A coordinated
   campaign can still look organic.
 - **Wallet profiles are incomplete.** Wallets are not clustered by funding source, unmatched sells

@@ -9,4 +9,5 @@ export * from './entitlements';
 export * from './runtime-settings';
 export * from './access-config';
 export * from './near-address';
+export * from './assets';
 export * from './pro-research';

@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.mts",
+    "screenshots:public": "node scripts/screenshot-agent-risk.mjs",
     "e2e": "playwright test"
   },
   "dependencies": {

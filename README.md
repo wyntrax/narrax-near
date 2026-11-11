@@ -12,6 +12,8 @@ and the configured social provider.
 > observations, early-radar alerts, AI research analysis, analytics, agent chat, Telegram delivery
 > and local access grants work. Nothing signs or sends a transaction.
 
+![NARRAX landing page](./docs/screenshots/landing.png)
+
 ---
 
 ## Hackathon tracks
@@ -41,6 +43,8 @@ missing or stale data. The agent keeps its wallet and keys; NARRAX only supplies
 evidence and has no signing path. The public `/agent-risk` web page exposes the same check with a
 token input. See [`docs/AGENT_RISK.md`](./docs/AGENT_RISK.md) for the contract and a policy example.
 
+![Agent risk gate showing a PASS verdict](./docs/screenshots/agent-risk-pass.png)
+
 ## What works today
 
 - **NEAR chain package** (`packages/near`)
@@ -67,6 +71,8 @@ token input. See [`docs/AGENT_RISK.md`](./docs/AGENT_RISK.md) for the contract a
   - social token references and narrative-token attribution
   - NEAR NEP-141 metadata, DEX prices/liquidity, holder concentration (GeckoTerminal with a
     NearBlocks fallback) and deterministic risk flags
+  - bridged assets (`*.omft.near`, `*.omdep.near`, `*.bridge.near`) are excluded from narrative
+    links and launch candidates
   - observed wallet trades, token flows and average-cost Smart Money profiles from public DEX trades
   - Early Radar alerts and measured outcomes
   - AI opportunity analysis and outcome tracking
