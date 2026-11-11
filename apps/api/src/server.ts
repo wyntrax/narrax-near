@@ -6,6 +6,7 @@ import { NearRpc, nearConfigFromEnv } from '@narra/near';
 import { registerChainRoutes } from './chain';
 import { aiProviderFromEnv } from '@narra/ai';
 import { createRuntimePrivyVerifier } from './auth';
+import { createContractSafety } from './contractSafety';
 import { createRuntimeSettings } from './runtime-settings';
 import { parseCorsOrigins } from './http';
 import { assertEnv } from '@narra/shared';
@@ -27,6 +28,11 @@ if (!chatLlm) console.log('no AI provider configured: chat is off');
 // Testnet by default. nearConfigFromEnv validates the URL before the first request.
 const near = nearConfigFromEnv();
 const nearRpc = new NearRpc({ url: near.rpcUrl });
+// The risk gate is mainnet-only because all market evidence is mainnet-only. Keep its contract
+// check on mainnet even when NEAR_NETWORK is testnet for the chain-status probe.
+const riskRpc = new NearRpc({
+  url: process.env.AGENT_RISK_NEAR_RPC_URL || 'https://rpc.mainnet.near.org',
+});
 
 // An async function because this file runs as CommonJS under tsx, which has no top-level await.
 async function main() {
@@ -35,6 +41,7 @@ async function main() {
   const app = await buildApp({
     runtime,
     chatLlm,
+    contractSafety: createContractSafety(riskRpc),
     account: { db, verifier: createRuntimePrivyVerifier(runtime), requestPersonalResearch: userId => personalResearch.request(userId) },
     // Exact origins only (comma separated). Empty means browsers on other origins are refused.
     http: { corsOrigins: parseCorsOrigins(process.env.CORS_ORIGINS), resolveCorsOrigins: runtime.origins, hsts: process.env.HSTS === 'true' },

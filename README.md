@@ -80,9 +80,11 @@ reproduction steps are in [`THESIS.md`](./THESIS.md).
 
 `GET /v1/agent/risk/:mint` is a public, read-only check for AI agents that are about to spend. It
 returns `PASS`, `BLOCK` or `UNKNOWN` from fresh market, holder and risk evidence, and fails closed on
-missing or stale data. The agent keeps its wallet and keys; NARRAX only supplies scam and risk
-evidence and has no signing path. The public `/agent-risk` web page exposes the same check with a
-token input. See [`docs/AGENT_RISK.md`](./docs/AGENT_RISK.md) for the contract and a policy example.
+missing or stale data. It also verifies that the account is a deployed contract—not an EOA or a
+deleted account—and reports full-access key counts as a warning. The agent keeps its wallet and keys;
+NARRAX only supplies scam and risk evidence and has no signing path. The public `/agent-risk` web
+page exposes the same check with a token input. See [`docs/AGENT_RISK.md`](./docs/AGENT_RISK.md) for
+the contract and a policy example.
 
 ![Agent risk gate showing a PASS verdict](./docs/screenshots/agent-risk-pass.png)
 
@@ -99,8 +101,9 @@ token input. See [`docs/AGENT_RISK.md`](./docs/AGENT_RISK.md) for the contract a
   - `GET /v1/chain/status` — latest final block height and measured latency; fails closed
     with 503 when the probe is unavailable
 - **Agent risk gate**
-  - `GET /v1/agent/risk/:mint` — public, fail-closed `PASS` / `BLOCK` / `UNKNOWN` token risk verdict
-    for AI agents, with no keys and no signing path; see [`docs/AGENT_RISK.md`](./docs/AGENT_RISK.md)
+  - `GET /v1/agent/risk/:mint` - public, fail-closed `PASS` / `BLOCK` / `UNKNOWN` token risk verdict
+    for AI agents, with no keys and no signing path; includes contract existence and access-key facts;
+    see [`docs/AGENT_RISK.md`](./docs/AGENT_RISK.md)
 - **Research workspace** (bilingual EN/ID)
   - narrative radar, token screener and token detail, opportunities, decision analytics,
     personal radar/theses/briefings, alerts, agent chat and admin

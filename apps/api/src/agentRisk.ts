@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { PrismaClient } from '@narra/database';
 import { isNearAccountId } from '@narra/shared';
 import { z } from 'zod';
+import type { ContractSafety, ContractSafetySource } from './contractSafety';
 
 /** A public, read-only safety verdict for agents that are about to spend. It never holds keys or signs. */
 export type AgentRiskVerdict = 'PASS' | 'BLOCK' | 'UNKNOWN';
@@ -16,7 +17,7 @@ export const AGENT_RISK_POLICY = {
 } as const;
 
 export const AGENT_RISK_DISCLAIMER =
-  'PASS means the latest observation did not cross the critical risk policy; it is not a safety guarantee. Flags may still be present. UNKNOWN and BLOCK must be treated as blocked by the caller.';
+  'PASS means the latest observation did not cross the critical risk policy; it is not a safety guarantee. Flags and warnings may still be present. UNKNOWN and BLOCK must be treated as blocked by the caller.';
 
 export interface AgentRiskToken {
   mint: string;
@@ -52,6 +53,8 @@ export interface AgentRiskInput {
   metric: AgentRiskMetric | null;
   holders: AgentRiskHolders | null;
   risk: AgentRiskRow | null;
+  /** Undefined means no contract source is configured; null means the check failed. */
+  contract?: ContractSafety | null;
   now: Date;
 }
 
@@ -75,6 +78,12 @@ export interface AgentRiskResponse {
   observedAt: string | null;
   riskAt: string | null;
   reasons: string[];
+  warnings: string[];
+  contract: {
+    status: 'CONTRACT' | 'NOT_CONTRACT' | 'NOT_FOUND' | 'UNKNOWN';
+    fullAccessKeys: number | null;
+    functionCallKeys: number | null;
+  } | null;
   policy: {
     maxRiskScore: number;
     metricMaxAgeMs: number;
@@ -101,12 +110,14 @@ const fresh = (at: Date | null | undefined, now: Date, maxAgeMs: number): boolea
  */
 export function evaluateAgentRisk(input: AgentRiskInput): AgentRiskResponse {
   const { mint, token, metric, holders, risk, now } = input;
+  const contract = input.contract;
   const riskScore = num(risk?.riskScore);
   const flags = risk?.flags ?? [];
   const metricFresh = fresh(metric?.at, now, AGENT_RISK_POLICY.metricMaxAgeMs);
   const evidenceFresh = fresh(risk?.at, now, AGENT_RISK_POLICY.evidenceMaxAgeMs);
   const holderFresh = fresh(holders?.at, now, AGENT_RISK_POLICY.evidenceMaxAgeMs);
   const reasons: string[] = [];
+  const warnings: string[] = [];
   let verdict: AgentRiskVerdict = 'PASS';
 
   if (!token) {
@@ -124,6 +135,20 @@ export function evaluateAgentRisk(input: AgentRiskInput): AgentRiskResponse {
 
     if (!holders) { reasons.push('HOLDER_DATA_UNAVAILABLE'); verdict = 'UNKNOWN'; }
     else if (!holderFresh) { reasons.push('STALE_HOLDER_DATA'); verdict = 'UNKNOWN'; }
+
+    if (contract === null) {
+      reasons.push('CONTRACT_CHECK_UNAVAILABLE');
+      verdict = 'UNKNOWN';
+    } else if (contract?.status === 'NOT_FOUND') {
+      reasons.push('TOKEN_CONTRACT_NOT_FOUND');
+      verdict = 'BLOCK';
+    } else if (contract?.status === 'NOT_CONTRACT') {
+      reasons.push('NOT_A_CONTRACT');
+      verdict = 'BLOCK';
+    } else if (contract?.status === 'CONTRACT') {
+      if (contract.fullAccessKeys == null) warnings.push('KEY_LIST_UNAVAILABLE');
+      else if (contract.fullAccessKeys > 0) warnings.push('FULL_ACCESS_KEYS');
+    }
 
     if (verdict === 'PASS' && riskScore == null) {
       reasons.push('RISK_SCORE_UNAVAILABLE');
@@ -155,6 +180,8 @@ export function evaluateAgentRisk(input: AgentRiskInput): AgentRiskResponse {
     observedAt: iso(metric?.at),
     riskAt: iso(risk?.at),
     reasons,
+    warnings,
+    contract: contract === undefined ? null : contract ?? { status: 'UNKNOWN', fullAccessKeys: null, functionCallKeys: null },
     policy: { ...AGENT_RISK_POLICY },
     disclaimer: AGENT_RISK_DISCLAIMER,
   };
@@ -164,7 +191,10 @@ export function evaluateAgentRisk(input: AgentRiskInput): AgentRiskResponse {
  * Public agent risk gate. It reads the same stored observations as the research surface and returns only
  * token-level safety facts: no narratives, wallets, users or private research. Rate-limited and read-only.
  */
-export function registerAgentRiskRoutes(app: FastifyInstance, deps: { db: PrismaClient; now?: () => Date }): void {
+export function registerAgentRiskRoutes(
+  app: FastifyInstance,
+  deps: { db: PrismaClient; contracts?: ContractSafetySource; now?: () => Date },
+): void {
   const now = deps.now ?? (() => new Date());
   app.get('/v1/agent/risk/:mint', { config: { rateLimit: { max: 60, timeWindow: '1 minute' } } }, async (request, reply) => {
     const params = z.object({ mint: z.string().min(2).max(64) }).safeParse(request.params);
@@ -193,6 +223,15 @@ export function registerAgentRiskRoutes(app: FastifyInstance, deps: { db: Prisma
       },
     });
 
+    let contract: ContractSafety | null | undefined;
+    if (token && deps.contracts) {
+      try {
+        contract = await deps.contracts.inspect(mint);
+      } catch {
+        contract = null;
+      }
+    }
+
     reply.header('cache-control', 'no-store');
     return evaluateAgentRisk({
       mint,
@@ -200,6 +239,7 @@ export function registerAgentRiskRoutes(app: FastifyInstance, deps: { db: Prisma
       metric: token?.metrics[0] ?? null,
       holders: token?.holders[0] ?? null,
       risk: token?.risk[0] ?? null,
+      contract,
       now: at,
     });
   });

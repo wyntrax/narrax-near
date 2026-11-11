@@ -26,6 +26,12 @@ interface AgentRisk {
   observedAt: string | null;
   riskAt: string | null;
   reasons: string[];
+  warnings?: string[];
+  contract: {
+    status: 'CONTRACT' | 'NOT_CONTRACT' | 'NOT_FOUND' | 'UNKNOWN';
+    fullAccessKeys: number | null;
+    functionCallKeys: number | null;
+  } | null;
   policy: { maxRiskScore: number; metricMaxAgeMs: number; evidenceMaxAgeMs: number };
   disclaimer: string;
 }
@@ -120,6 +126,8 @@ export function AgentRiskPanel({ copy }: { copy: AgentRiskCopy }) {
         <div><dt>{copy.holders}</dt><dd>{result.holders ? result.holders.count.toLocaleString() : copy.none}</dd></div>
         <div><dt>{copy.top10}</dt><dd>{result.holders ? `${result.holders.top10Pct.toFixed(1)}%` : copy.none}</dd></div>
         <div><dt>{copy.liquidity}</dt><dd>{result.metrics ? money(result.metrics.liquidityUsd) : copy.none}</dd></div>
+        <div><dt>{copy.contract}</dt><dd>{result.contract ? copy.contractStatus[result.contract.status] : copy.none}</dd></div>
+        <div><dt>{copy.fullAccess}</dt><dd>{result.contract?.fullAccessKeys ?? copy.none}</dd></div>
       </dl>
 
       <div className="agent-risk-flags">
@@ -128,6 +136,11 @@ export function AgentRiskPanel({ copy }: { copy: AgentRiskCopy }) {
           ? <ul>{result.flags.map(flag => <li key={flag}>{flag}</li>)}</ul>
           : <p>{copy.noFlags}</p>}
       </div>
+
+      {(result.warnings?.length ?? 0) > 0 && <div className="agent-risk-flags">
+        <h3>{copy.warnings}</h3>
+        <ul>{result.warnings?.map(warning => <li key={warning}>{warning}</li>)}</ul>
+      </div>}
 
       {result.reasons.length > 0 && <div className="agent-risk-flags">
         <h3>{copy.reasons}</h3>

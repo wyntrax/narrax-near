@@ -172,8 +172,10 @@ describe('NearRpc', () => {
   it('distinguishes an externally owned account from a deployed contract', async () => {
     const empty = fakeFetch({ jsonrpc: '2.0', result: { account_id: 'alice.near', amount: '0', locked: '0', code_hash: '11111111111111111111111111111111', storage_usage: 0, block_height: 1, block_hash: 'h' } });
     const contract = fakeFetch({ jsonrpc: '2.0', result: { account_id: 'router.near', amount: '0', locked: '0', code_hash: 'DcKu2Xv8KAomrssGk3TBTJdDgjUFFD434B2T22yRd4ag', storage_usage: 0, block_height: 1, block_hash: 'h' } });
+    const globalContract = fakeFetch({ jsonrpc: '2.0', result: { account_id: 'token.near', amount: '0', locked: '0', code_hash: '11111111111111111111111111111111', global_contract_hash: '5qScjXG9uRG82Yrh36XZNZgVUYiqPtuC9ep5DvV42eGQ', storage_usage: 0, block_height: 1, block_hash: 'h' } });
     await expect(new NearRpc({ url: 'https://rpc.mainnet.near.org', fetchImpl: empty.fetchImpl }).isContractAccount('alice.near')).resolves.toBe(false);
     await expect(new NearRpc({ url: 'https://rpc.mainnet.near.org', fetchImpl: contract.fetchImpl }).isContractAccount('router.near')).resolves.toBe(true);
+    await expect(new NearRpc({ url: 'https://rpc.mainnet.near.org', fetchImpl: globalContract.fetchImpl }).isContractAccount('token.near')).resolves.toBe(true);
   });
 
   it('encodes view-call arguments and decodes the JSON result', async () => {
@@ -185,5 +187,21 @@ describe('NearRpc', () => {
     const body = JSON.parse(String(calls[0]!.init?.body));
     expect(body.params).toMatchObject({ request_type: 'call_function', account_id: 'token.testnet', method_name: 'ft_balance_of' });
     expect(body.params.args_base64).toBe(Buffer.from('{"account_id":"alice.testnet"}').toString('base64'));
+  });
+
+  it('reads the access key list for an account', async () => {
+    const { fetchImpl, calls } = fakeFetch({ jsonrpc: '2.0', result: {
+      block_height: 7, block_hash: 'h',
+      keys: [
+        { public_key: 'ed25519:aaa', access_key: { nonce: 1, permission: 'FullAccess' } },
+        { public_key: 'ed25519:bbb', access_key: { nonce: 2, permission: { FunctionCall: { allowance: null, receiver_id: 'token.near', method_names: ['ft_transfer'] } } } },
+      ],
+    } });
+    const rpc = new NearRpc({ url: 'https://rpc.mainnet.near.org', fetchImpl });
+    const list = await rpc.viewAccessKeyList('token.near');
+    expect(list.keys).toHaveLength(2);
+    expect(list.keys[1]!.access_key.permission).toMatchObject({ FunctionCall: { receiver_id: 'token.near' } });
+    const body = JSON.parse(String(calls[0]!.init?.body));
+    expect(body).toEqual({ jsonrpc: '2.0', id: 'narrax', method: 'query', params: { request_type: 'view_access_key_list', finality: 'final', account_id: 'token.near' } });
   });
 });

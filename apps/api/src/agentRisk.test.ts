@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import { describe, expect, it } from 'vitest';
 import type { PrismaClient } from '@narra/database';
 import { registerAgentRiskRoutes } from './agentRisk';
+import type { ContractSafetySource } from './contractSafety';
 
 const NOW = new Date('2026-11-10T12:00:00Z');
 
@@ -21,14 +22,18 @@ function tokenRow(overrides: Record<string, unknown> = {}) {
   };
 }
 
-async function get(url: string, row: unknown = tokenRow()) {
+async function get(url: string, row: unknown = tokenRow(), contracts?: ContractSafetySource) {
   const app = Fastify();
   const db = { token: { findUnique: async () => row } } as unknown as PrismaClient;
-  registerAgentRiskRoutes(app, { db, now: () => NOW });
+  registerAgentRiskRoutes(app, { db, contracts, now: () => NOW });
   const response = await app.inject({ method: 'GET', url });
   await app.close();
   return response;
 }
+
+const contractSource = (value: unknown): ContractSafetySource => ({
+  inspect: async () => value as Awaited<ReturnType<ContractSafetySource['inspect']>>,
+});
 
 describe('agent risk gate', () => {
   it('passes only fresh, known, below-threshold evidence', async () => {
@@ -75,6 +80,49 @@ describe('agent risk gate', () => {
   it('returns UNKNOWN when holder evidence is missing', async () => {
     const response = await get('/v1/agent/risk/token.near', tokenRow({ holders: [] }));
     expect(response.json()).toMatchObject({ verdict: 'UNKNOWN', fresh: false, reasons: ['HOLDER_DATA_UNAVAILABLE'] });
+  });
+
+  it('passes a contract account with no full-access keys and reports contract facts', async () => {
+    const response = await get('/v1/agent/risk/token.near', tokenRow(), contractSource({
+      status: 'CONTRACT', fullAccessKeys: 0, functionCallKeys: 3,
+    }));
+    expect(response.json()).toMatchObject({
+      verdict: 'PASS', warnings: [],
+      contract: { status: 'CONTRACT', fullAccessKeys: 0, functionCallKeys: 3 },
+    });
+  });
+
+  it('warns, but does not block, when a contract keeps full-access keys', async () => {
+    const response = await get('/v1/agent/risk/token.near', tokenRow(), contractSource({
+      status: 'CONTRACT', fullAccessKeys: 2, functionCallKeys: 1,
+    }));
+    expect(response.json()).toMatchObject({ verdict: 'PASS', warnings: ['FULL_ACCESS_KEYS'] });
+  });
+
+  it('blocks an account that has no deployed contract', async () => {
+    const response = await get('/v1/agent/risk/token.near', tokenRow(), contractSource({
+      status: 'NOT_CONTRACT', fullAccessKeys: null, functionCallKeys: null,
+    }));
+    expect(response.json()).toMatchObject({ verdict: 'BLOCK', reasons: ['NOT_A_CONTRACT'] });
+  });
+
+  it('blocks a stored token whose account does not exist on chain', async () => {
+    const response = await get('/v1/agent/risk/token.near', tokenRow(), contractSource({
+      status: 'NOT_FOUND', fullAccessKeys: null, functionCallKeys: null,
+    }));
+    expect(response.json()).toMatchObject({ verdict: 'BLOCK', reasons: ['TOKEN_CONTRACT_NOT_FOUND'] });
+  });
+
+  it('treats an unavailable contract check as UNKNOWN, not PASS', async () => {
+    const response = await get('/v1/agent/risk/token.near', tokenRow(), contractSource(null));
+    expect(response.json()).toMatchObject({ verdict: 'UNKNOWN', reasons: ['CONTRACT_CHECK_UNAVAILABLE'] });
+  });
+
+  it('warns when the contract exists but its key list is unavailable', async () => {
+    const response = await get('/v1/agent/risk/token.near', tokenRow(), contractSource({
+      status: 'CONTRACT', fullAccessKeys: null, functionCallKeys: null,
+    }));
+    expect(response.json()).toMatchObject({ verdict: 'PASS', warnings: ['KEY_LIST_UNAVAILABLE'] });
   });
 
   it('rejects a string that cannot be a NEAR account id', async () => {
