@@ -175,17 +175,26 @@ so explorer links resolve to the same network as the evidence.
 
 ### Do X → see Y
 
-1. Open `/radar` → see narrative stages, velocity, and the evidence behind each narrative.
-2. Open `/tokens` → see observed liquidity, volume, holder count, and deterministic risk flags.
+**Public judge path (`npm run dev:api:public` + `npm run dev:web`, no Privy or AI key required; see [`docs/JUDGE.md`](./docs/JUDGE.md)):**
+
+1. Run `npm run thesis:context` → see the live NEAR macro backdrop (DefiLlama TVL & stablecoins, CoinGecko price/cap, NearBlocks nodes, NEAR mainnet final block).
+2. Run `npm run thesis:report` → see the live Postgres research universe, narrative-to-token conversion funnel, smart-money observations, and collection telemetry.
+3. Open `http://localhost:4010/` → see the landing page and public research snapshot counts (`GET /v1/public-research-snapshot`).
+4. Open `http://localhost:4010/agent-risk` and click **Use example** → see the fail-closed `PASS` / `BLOCK` / `UNKNOWN` verdict for `nearly-993927.nearlytrade.near`, including live NEAR RPC contract code (`global_contract_hash`), 0 full-access keys, 2,680 holders, and 19.1% top-10 concentration.
+
+**Authenticated research workspace (`npm run dev:api` + `npm run dev:web` with Privy configured):**
+
+1. Open `/app/radar` → see narrative stages, velocity, and the evidence behind each narrative.
+2. Open `/app/tokens` → see observed liquidity, volume, holder count, and deterministic risk flags.
    Unknown values stay unknown.
-3. Open `/tokens/<account-id>` → see the exact NEP-141 identity, narrative attribution, holder
+3. Open `/app/tokens/<account-id>` → see the exact NEP-141 identity, narrative attribution, holder
    concentration, risk flags, and observed wallet flow for one token.
-4. Open `/opportunities` → see which tokens cleared the liquidity and holder floors. A name match
+4. Open `/app/opportunities` → see which tokens cleared the liquidity and holder floors. A name match
    alone is only a candidate.
-5. Open `/smart-money` → see wallets observed in public mainnet pool trades, their average-cost
+5. Open `/app/smart-money` → see wallets observed in public mainnet pool trades, their average-cost
    profiles, and mainnet explorer links.
-6. Open `/alerts` → see Early Radar alerts and the gates they had to pass. No alert creates an order.
-7. Open `/analytics` → see decision outcomes tracked at 1h and 24h.
+6. Open `/app/alerts` → see Early Radar alerts and the gates they had to pass. No alert creates an order.
+7. Open `/app/analytics` → see decision outcomes tracked at 1h and 24h.
 
 ### Where the numbers live
 
