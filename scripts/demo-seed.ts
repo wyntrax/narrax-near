@@ -33,9 +33,12 @@ async function main() {
   try {
     await db.$transaction(async tx => {
       // Reverse dependency order. User-owned alerts are left alone.
-      await tx.smartWalletTrade.deleteMany();
-      await tx.smartWalletProfile.deleteMany();
-      await tx.smartWallet.deleteMany();
+      // Smart-money and systemSetting tables are only replaced when present in the seed file.
+      if (count('smartWallet') || count('smartWalletProfile') || count('smartWalletTrade')) {
+        await tx.smartWalletTrade.deleteMany();
+        await tx.smartWalletProfile.deleteMany();
+        await tx.smartWallet.deleteMany();
+      }
       await tx.opportunity.deleteMany();
       await tx.narrativeTokenRelation.deleteMany();
       await tx.tokenRiskMetric.deleteMany();
@@ -45,14 +48,16 @@ async function main() {
       await tx.narrativeMetric.deleteMany();
       await tx.narrative.deleteMany();
       await tx.alert.deleteMany({ where: { userId: null } });
-      await tx.systemSetting.deleteMany({
-        where: {
-          OR: [
-            { key: { startsWith: 'research.market.' } },
-            { key: 'research.smartMoney.health' },
-          ],
-        },
-      });
+      if (count('systemSetting')) {
+        await tx.systemSetting.deleteMany({
+          where: {
+            OR: [
+              { key: { startsWith: 'research.market.' } },
+              { key: 'research.smartMoney.health' },
+            ],
+          },
+        });
+      }
 
       // Dependency order.
       if (count('narrative')) await tx.narrative.createMany({ data: tables.narrative as never });

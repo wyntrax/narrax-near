@@ -2,6 +2,7 @@ import { createPrisma } from '@narra/database';
 import { NearRpc, nearConfigFromEnv } from '@narra/near';
 import { DexScreenerSource, GeckoTerminalSource, NearBlocksHolderSource } from '@narra/market-data';
 import { refreshMarketData } from '../workers/pipeline/src/marketData';
+import { resolveTokens } from '../workers/pipeline/src/tokenResolution';
 
 /**
  * Refreshes the existing demo rows from the same public sources as the research worker.
@@ -40,14 +41,16 @@ async function main() {
     });
 
     const started = Date.now();
+    const now = new Date();
     const summary = await refreshMarketData(db, {
       metadata: null,
       quotes: new DexScreenerSource({ baseUrl: process.env.DEXSCREENER_BASE_URL }),
       info: gecko,
       holders,
       launches: null,
-    }, new Date(), { maxTokens: 60, maxInfoCalls: 40 });
-    console.log(JSON.stringify({ ms: Date.now() - started, summary }, null, 2));
+    }, now, { maxTokens: 60, maxInfoCalls: 40 });
+    const resolution = await resolveTokens(db, new Date());
+    console.log(JSON.stringify({ ms: Date.now() - started, summary, resolution }, null, 2));
 
     const token = await db.token.findUnique({
       where: { mint: EXAMPLE_MINT },
