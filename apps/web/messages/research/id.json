@@ -145,6 +145,21 @@
     "evaluateBody": "Baca waktu harga, likuiditas, konsentrasi holder, dan risiko.",
     "verify": "Jaga ketidakpastian",
     "verifyBody": "Tandai observasi hilang atau kedaluwarsa sebagai tidak diketahui, bukan nol.",
+    "capRange": "Rentang kapitalisasi pasar",
+    "marketSort": "Urutan pasar",
+    "caps": {
+      "all": "Semua ukuran",
+      "micro": "Mikro: $5k-$50k",
+      "small": "Kecil: $50k-$100k",
+      "growing": "Bertumbuh: $100k-$500k",
+      "mid": "Menengah: $500k-$1m",
+      "large": "Besar: $1m-$10m",
+      "major": "Mayor: $10m+"
+    },
+    "capAsc": "Kapitalisasi pasar naik",
+    "capDesc": "Kapitalisasi pasar turun",
+    "resetFilters": "Atur ulang filter",
+    "capBasis": "Kapitalisasi pasar memakai nilai teramati terbaru. FDV diberi label saat penyedia melaporkannya.",
     "historyNote": "Catatan yang disimpan dapat mencakup riwayat pengembangan. Harga dan skor modelnya bukan sinyal terkini. Catatan dipertahankan untuk riwayat akun dan analisis terkait."
   },
   "trench": {
