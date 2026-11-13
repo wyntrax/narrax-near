@@ -39,6 +39,7 @@ describe('public thesis desk panel', () => {
           score: 72,
           velocity: 4.5,
           observedAt: '2026-11-11T11:30:00.000Z',
+          fresh: true,
           organicScore: 81,
           manipulationRisk: 14,
           linkedTokenCount: 2,
@@ -55,7 +56,33 @@ describe('public thesis desk panel', () => {
           riskScore: 0,
           flags: [],
           passesFloors: true,
+          marketAt: '2026-11-11T12:00:00.000Z',
+          holdersAt: '2026-11-11T11:30:00.000Z',
+          riskAt: '2026-11-11T11:30:00.000Z',
+          marketFresh: true,
+          holdersFresh: true,
+          riskFresh: true,
+          freshness: 'FRESH',
           links: [{slug: 'near', name: 'Near', stage: 'EMERGING', relation: 'OG', ogScore: 84, matchScore: 95}],
+        },
+        {
+          mint: 'stale.near',
+          symbol: 'STALE',
+          name: 'Stale Token',
+          liquidityUsd: 100000,
+          holders: 100,
+          top10Pct: 10,
+          riskScore: 10,
+          flags: [],
+          passesFloors: false,
+          marketAt: '2026-11-10T12:00:00.000Z',
+          holdersAt: '2026-11-10T12:00:00.000Z',
+          riskAt: '2026-11-10T12:00:00.000Z',
+          marketFresh: false,
+          holdersFresh: false,
+          riskFresh: false,
+          freshness: 'STALE',
+          links: [],
         },
       ],
     }), {status: 200, headers: {'content-type': 'application/json'}})));
@@ -65,7 +92,10 @@ describe('public thesis desk panel', () => {
     await waitFor(() => expect(screen.getByText('NEARLY')).toBeVisible());
     expect(screen.getByText('21 Bridged assets excluded')).toBeVisible();
     expect(screen.getByText('Meets floors')).toBeVisible();
-    expect(screen.getByRole('link', {name: 'Run risk gate →'})).toHaveAttribute(
+    expect(screen.getByText('Fresh', {exact: true})).toBeVisible();
+    expect(screen.getByText('Stale', {exact: true})).toBeVisible();
+    const gateLinks = screen.getAllByRole('link', {name: 'Run risk gate →'});
+    expect(gateLinks[0]).toHaveAttribute(
       'href',
       '/agent-risk?mint=nearly-993927.nearlytrade.near',
     );

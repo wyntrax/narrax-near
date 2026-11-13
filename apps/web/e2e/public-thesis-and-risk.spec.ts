@@ -23,6 +23,7 @@ test.describe('public thesis desk and agent risk gate E2E', () => {
       await expect(page.getByRole('heading', { name: 'Public thesis desk' })).toBeVisible();
       await expect(page.getByText('NEARLY', { exact: true })).toBeVisible();
       await expect(page.getByText('Meets floors')).toBeVisible();
+      await expect(page.getByText('Fresh', { exact: true }).first()).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
 

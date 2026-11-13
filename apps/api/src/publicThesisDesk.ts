@@ -12,6 +12,7 @@ export interface PublicThesisNarrative {
   velocity: number;
   firstDetectedAt: string;
   observedAt: string | null;
+  fresh: boolean;
   organicScore: number | null;
   manipulationRisk: number | null;
   linkedTokenCount: number;
@@ -43,6 +44,10 @@ export interface PublicThesisToken {
   flags: string[];
   riskAt: string | null;
   passesFloors: boolean;
+  marketFresh: boolean;
+  holdersFresh: boolean;
+  riskFresh: boolean;
+  freshness: 'FRESH' | 'STALE' | 'MISSING';
   links: PublicThesisTokenLink[];
 }
 
@@ -75,6 +80,9 @@ const num = (value: unknown): number | null => {
 
 const iso = (at: Date | null | undefined): string | null =>
   at && Number.isFinite(+at) ? at.toISOString() : null;
+
+const freshAt = (at: Date | null | undefined, maxAgeMs: number, now: Date): boolean =>
+  !!at && Number.isFinite(+at) && +at <= +now && +now - +at <= maxAgeMs;
 
 /**
  * Loads public research evidence for the keyless `/thesis` desk: watched narratives,
@@ -161,6 +169,7 @@ export async function loadPublicThesisDesk(db: PrismaClient, at: Date): Promise<
       velocity: row.velocity,
       firstDetectedAt: row.firstDetectedAt.toISOString(),
       observedAt: iso(latest?.at),
+      fresh: freshAt(latest?.at, AGENT_RISK_POLICY.evidenceMaxAgeMs, at),
       organicScore: latest?.organicScore ?? null,
       manipulationRisk: latest?.manipulationRisk ?? null,
       linkedTokenCount: linkedNative,
@@ -176,7 +185,15 @@ export async function loadPublicThesisDesk(db: PrismaClient, at: Date): Promise<
     const r = row.risk[0];
     const liquidityUsd = num(m?.liquidityUsd);
     const holders = h?.holders ?? null;
-    const passesFloors = liquidityUsd != null && holders != null && liquidityUsd >= MIN_LIQUIDITY_USD && holders >= MIN_HOLDERS;
+    const marketFresh = freshAt(m?.at, AGENT_RISK_POLICY.metricMaxAgeMs, at);
+    const holdersFresh = freshAt(h?.at, AGENT_RISK_POLICY.evidenceMaxAgeMs, at);
+    const riskFresh = freshAt(r?.at, AGENT_RISK_POLICY.evidenceMaxAgeMs, at);
+    const passesFloors = marketFresh && holdersFresh
+      && liquidityUsd != null && liquidityUsd >= MIN_LIQUIDITY_USD
+      && holders != null && holders >= MIN_HOLDERS;
+    const freshness = !m && !h && !r
+      ? 'MISSING'
+      : marketFresh && holdersFresh && riskFresh ? 'FRESH' : 'STALE';
 
     return {
       mint: row.mint,
@@ -194,6 +211,10 @@ export async function loadPublicThesisDesk(db: PrismaClient, at: Date): Promise<
       flags: r?.flags ?? [],
       riskAt: iso(r?.at),
       passesFloors,
+      marketFresh,
+      holdersFresh,
+      riskFresh,
+      freshness,
       links: row.narratives.map((rel) => ({
         slug: rel.narrative.slug,
         name: sanitizeUntrusted(rel.narrative.name, 80),

@@ -46,6 +46,15 @@ describe('public thesis desk', () => {
             narratives: [],
           },
           {
+            mint: 'stale.near',
+            symbol: 'STALE',
+            name: 'Stale Token',
+            metrics: [{ priceUsd: 1, marketCapUsd: 1_000_000, liquidityUsd: 100_000, volume24hUsd: 5_000, at: new Date('2026-11-11T09:00:00Z') }],
+            holders: [{ holders: 100, top10Pct: 10, at: new Date('2026-11-11T09:00:00Z') }],
+            risk: [{ riskScore: 10, flags: [], at: new Date('2026-11-11T09:00:00Z') }],
+            narratives: [],
+          },
+          {
             mint: 'nearly-993927.nearlytrade.near',
             symbol: 'NEARLY',
             name: 'NEARLY',
@@ -76,21 +85,25 @@ describe('public thesis desk', () => {
       const body = response.json();
       expect(body.funnel).toEqual({
         activeNarratives: 1,
-        catalogTokens: 3,
+        catalogTokens: 4,
         bridgedExcluded: 1,
-        nativeTokens: 2,
+        nativeTokens: 3,
         narrativeLinkedTokens: 1,
-        holderCoveredTokens: 1,
+        holderCoveredTokens: 2,
         floorPassingTokens: 1,
         opportunities24h: 1,
       });
-      expect(body.narratives[0]).toMatchObject({ slug: 'near', linkedTokenCount: 1, organicScore: 81 });
+      expect(body.narratives[0]).toMatchObject({ slug: 'near', linkedTokenCount: 1, organicScore: 81, fresh: true });
       expect(body.tokens.map((t: { mint: string }) => t.mint)).toEqual([
         'nearly-993927.nearlytrade.near',
+        'stale.near',
         'thin.v2-launchpad.justhoot.near',
       ]);
       expect(body.tokens[0].passesFloors).toBe(true);
-      expect(body.tokens[1].passesFloors).toBe(false);
+      expect(body.tokens[0].freshness).toBe('FRESH');
+      expect(body.tokens[1]).toMatchObject({ passesFloors: false, freshness: 'STALE', marketFresh: false, holdersFresh: false });
+      expect(body.tokens[2].passesFloors).toBe(false);
+      expect(body.tokens[2].freshness).toBe('STALE');
     } finally {
       await app.close();
     }

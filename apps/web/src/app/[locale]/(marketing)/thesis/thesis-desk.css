@@ -26,6 +26,13 @@
 .thesis-risk-flags{display:block;margin-top:2px;color:var(--tx3);font-size:.72rem;max-width:220px}
 .thesis-floor-pill{display:inline-block;padding:3px 9px;border:1px solid var(--bd);border-radius:999px;font-size:.72rem;white-space:nowrap}
 .thesis-floor-pill[data-pass=true]{border-color:var(--ac);color:var(--ac)}
+.thesis-freshness{display:inline-block;padding:3px 9px;border:1px solid var(--bd);border-radius:999px;font-size:.72rem;white-space:nowrap}
+.thesis-freshness[data-fresh=fresh]{border-color:var(--ac);color:var(--ac)}
+.thesis-freshness[data-fresh=stale]{border-color:#c98a2e;color:#c98a2e}
+.thesis-freshness[data-fresh=missing]{color:var(--tx3)}
+.thesis-freshness-at{display:block;margin-top:4px;color:var(--tx3);font-size:.66rem;white-space:nowrap}
+.thesis-evidence-note{margin:.85rem 0 0;padding:0 14px 14px;color:var(--tx3);font-size:.74rem}
+.thesis-narrative-observed{margin:.75rem 0 0!important;color:var(--tx3)!important;font-size:.72rem!important}
 .thesis-gate-link{color:var(--ac);font-size:.8rem;font-weight:600;white-space:nowrap;text-decoration:none}
 .thesis-gate-link:hover{text-decoration:underline}
 .thesis-fetched{margin:0;font-size:.78rem;color:var(--tx3)}

@@ -11,6 +11,7 @@ interface PublicThesisNarrative {
   score: number;
   velocity: number;
   observedAt: string | null;
+  fresh: boolean;
   organicScore: number | null;
   manipulationRisk: number | null;
   linkedTokenCount: number;
@@ -35,6 +36,13 @@ interface PublicThesisToken {
   riskScore: number | null;
   flags: string[];
   passesFloors: boolean;
+  marketAt: string | null;
+  holdersAt: string | null;
+  riskAt: string | null;
+  marketFresh: boolean;
+  holdersFresh: boolean;
+  riskFresh: boolean;
+  freshness: 'FRESH' | 'STALE' | 'MISSING';
   links: PublicThesisTokenLink[];
 }
 
@@ -151,6 +159,10 @@ export function ThesisDeskPanel({ copy }: { copy: ThesisDeskCopy }) {
                   <div><dt>{copy.manipulation}</dt><dd>{num(n.manipulationRisk, copy.unknown)}</dd></div>
                   <div><dt>{copy.linkedCount}</dt><dd>{n.linkedTokenCount}</dd></div>
                 </dl>
+                <p className="thesis-narrative-observed">
+                  {copy.observed}: {n.observedAt ? utcDate(n.observedAt) : copy.unknown}
+                  {!n.fresh && ` · ${copy.stale}`}
+                </p>
               </article>
             ))}
           </div>
@@ -164,7 +176,7 @@ export function ThesisDeskPanel({ copy }: { copy: ThesisDeskCopy }) {
             <p>{copy.tokensIntro}</p>
           </div>
           <button type="button" className="button button-ghost" onClick={() => void load()} disabled={loading}>
-            {copy.retry}
+            {copy.refresh}
           </button>
         </div>
 
@@ -180,6 +192,7 @@ export function ThesisDeskPanel({ copy }: { copy: ThesisDeskCopy }) {
                   <th>{copy.cols.holders}</th>
                   <th>{copy.cols.top10}</th>
                   <th>{copy.cols.risk}</th>
+                  <th>{copy.cols.freshness}</th>
                   <th>{copy.cols.status}</th>
                   <th>{copy.cols.action}</th>
                 </tr>
@@ -191,6 +204,14 @@ export function ThesisDeskPanel({ copy }: { copy: ThesisDeskCopy }) {
                     : token.holders == null || token.liquidityUsd == null
                       ? copy.missingFloor
                       : copy.belowFloor;
+                  const freshnessText = token.freshness === 'FRESH'
+                    ? copy.fresh
+                    : token.freshness === 'STALE' ? copy.stale : copy.missing;
+                  const freshnessTitle = [
+                    `Market: ${token.marketAt ? utcDate(token.marketAt) : copy.unknown}`,
+                    `Holders: ${token.holdersAt ? utcDate(token.holdersAt) : copy.unknown}`,
+                    `Risk: ${token.riskAt ? utcDate(token.riskAt) : copy.unknown}`,
+                  ].join(' · ');
                   return (
                     <tr key={token.mint}>
                       <td>
@@ -212,6 +233,14 @@ export function ThesisDeskPanel({ copy }: { copy: ThesisDeskCopy }) {
                         </span>
                       </td>
                       <td>
+                        <span className="thesis-freshness" data-fresh={token.freshness.toLowerCase()} title={freshnessTitle}>
+                          {freshnessText}
+                        </span>
+                        <small className="thesis-freshness-at">
+                          {token.marketAt ? utcDate(token.marketAt) : copy.missing}
+                        </small>
+                      </td>
+                      <td>
                         <span className="thesis-floor-pill" data-pass={token.passesFloors ? 'true' : 'false'}>
                           {floorText}
                         </span>
@@ -226,6 +255,7 @@ export function ThesisDeskPanel({ copy }: { copy: ThesisDeskCopy }) {
                 })}
               </tbody>
             </table>
+            <p className="thesis-evidence-note">{copy.evidenceNote}</p>
           </div>
         )}
       </section>
