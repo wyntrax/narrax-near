@@ -180,7 +180,8 @@ so explorer links resolve to the same network as the evidence.
 1. Run `npm run thesis:context` → see the live NEAR macro backdrop (DefiLlama TVL & stablecoins, CoinGecko price/cap, NearBlocks nodes, NEAR mainnet final block).
 2. Run `npm run thesis:report` → see the live Postgres research universe, narrative-to-token conversion funnel, smart-money observations, and collection telemetry.
 3. Open `http://localhost:4010/` → see the landing page and public research snapshot counts (`GET /v1/public-research-snapshot`).
-4. Open `http://localhost:4010/agent-risk` and click **Use example** → see the fail-closed `PASS` / `BLOCK` / `UNKNOWN` verdict for `nearly-993927.nearlytrade.near`, including live NEAR RPC contract code (`global_contract_hash`), 0 full-access keys, 2,680 holders, and 19.1% top-10 concentration.
+4. Open `http://localhost:4010/thesis` → see the keyless public thesis desk (`GET /v1/public-thesis-desk`): H1/H2 narrative-to-token conversion funnel (bridged assets excluded), watched narratives, and native NEAR token evidence with one-click links into the risk gate.
+5. Open `http://localhost:4010/agent-risk` and click **Use example** or any of the three scenario presets (`PASS · Verified token`, `BLOCK · Non-NEP-141 contract` for `social.near`, `UNKNOWN · Unverified token`) → see the fail-closed verdict including live NEAR RPC contract code (`global_contract_hash`), NEP-141 `ft_metadata` check, 0 full-access keys, 2,680 holders, and 19.1% top-10 concentration.
 
 **Authenticated research workspace (`npm run dev:api` + `npm run dev:web` with Privy configured):**
 

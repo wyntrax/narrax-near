@@ -62,10 +62,12 @@ No Docker? Use a local Postgres 16 and set `DATABASE_URL` in `.env`. The default
 | Do this | See this |
 | --- | --- |
 | Open `http://localhost:4010/` | The landing page and the public research snapshot counts from the seeded DB. |
-| Open `http://localhost:4010/agent-risk` and click **Use example** | `PASS` for `nearly-993927.nearlytrade.near`: 2,680 holders, 19.1% top-10 concentration, fresh evidence, contract account with 0 full-access keys. |
+| Open `http://localhost:4010/thesis` | The keyless public thesis desk: live H1/H2 narrative-to-token conversion funnel, watched narratives, and native NEAR token evidence linking directly to the agent risk gate. |
+| Open `http://localhost:4010/agent-risk` and click **Use example** or scenario presets | `PASS` for `nearly-993927.nearlytrade.near` (2,680 holders, 19.1% top-10 concentration, NEP-141 `ft_metadata` verified, 0 full-access keys), `BLOCK` for `social.near` (`NOT_NEP141_CONTRACT`), and `UNKNOWN` for `unknown-token.near`. |
 | Enter an unknown account id and submit | `UNKNOWN`, explicitly treated as blocked by the agent policy. |
 | Open `http://localhost:4000/health` | `{"status":"ok","brand":"NARRAX"}`. |
 | Open `http://localhost:4000/v1/public-research-snapshot` | Aggregate research counts. |
+| Open `http://localhost:4000/v1/public-thesis-desk` | Keyless public thesis funnel, narratives, and native token evidence. |
 | Open `http://localhost:4000/v1/agent/risk/nearly-993927.nearlytrade.near` | The raw `PASS` verdict JSON. |
 | Read `THESIS_EVIDENCE.md` and `THESIS_EVIDENCE.svg` | The generated thesis evidence and chart. |
 | Read `THESIS_CONTEXT.md` and `THESIS_CONTEXT.svg` | The keyless NEAR macro backdrop (TVL, stablecoins, price, market cap) and its chart. |

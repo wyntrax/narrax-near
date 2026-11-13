@@ -22,6 +22,7 @@ import { createRuntimeSettings, type RuntimeSettingsResolver } from './runtime-s
 import { registerRuntimeRoutes } from './runtime-routes';
 import { registerPersonalResearchRoutes } from './personalResearch';
 import { registerPublicResearchSnapshot } from './publicResearchSnapshot';
+import { registerPublicThesisDesk } from './publicThesisDesk';
 import { registerAgentRiskRoutes } from './agentRisk';
 import type { ContractSafetySource } from './contractSafety';
 
@@ -68,6 +69,7 @@ export async function buildApp(opts: {
   const publicDb = opts.publicDb ?? opts.account?.db;
   if (publicDb) {
     registerPublicResearchSnapshot(app, publicDb, opts.account?.now);
+    registerPublicThesisDesk(app, publicDb, opts.account?.now);
     registerAgentRiskRoutes(app, { db: publicDb, contracts: opts.contractSafety, now: opts.account?.now });
   }
 
