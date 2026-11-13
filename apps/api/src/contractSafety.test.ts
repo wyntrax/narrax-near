@@ -100,4 +100,44 @@ describe('contract safety', () => {
     await expect(safety.inspect('token.near')).resolves.toMatchObject({ status: 'CONTRACT' });
     expect(source.viewAccount).toHaveBeenCalledTimes(2);
   });
+
+  it('verifies NEP-141 ft_metadata when callFunction is available', async () => {
+    const source = {
+      ...rpc(),
+      callFunction: vi.fn(async () => ({
+        value: { spec: 'ft-1.0.0', name: 'Token', symbol: 'TOK', decimals: 18 },
+        logs: [],
+        blockHeight: 1,
+        blockHash: 'h',
+      })),
+    } as unknown as NearRpc;
+    await expect(createContractSafety(source).inspect('token.near')).resolves.toEqual({
+      status: 'CONTRACT', fullAccessKeys: 0, functionCallKeys: 0, nep141: true,
+    });
+  });
+
+  it('marks deployed contracts without ft_metadata as non-NEP-141', async () => {
+    const source = {
+      ...rpc(),
+      callFunction: vi.fn(async () => {
+        throw new NearRpcError('Server error', -32000, {
+          name: 'HANDLER_ERROR',
+          cause: { name: 'CONTRACT_EXECUTION_ERROR', info: { message: 'MethodNotFound' } },
+        });
+      }),
+    };
+    await expect(createContractSafety(source).inspect('social.near')).resolves.toEqual({
+      status: 'CONTRACT', fullAccessKeys: 0, functionCallKeys: 0, nep141: false,
+    });
+  });
+
+  it('returns null nep141 instead of false when ft_metadata fails on RPC transport', async () => {
+    const source = {
+      ...rpc(),
+      callFunction: vi.fn(async () => { throw new NearRpcError('timeout', 'TRANSPORT'); }),
+    };
+    await expect(createContractSafety(source).inspect('token.near')).resolves.toEqual({
+      status: 'CONTRACT', fullAccessKeys: 0, functionCallKeys: 0, nep141: null,
+    });
+  });
 });

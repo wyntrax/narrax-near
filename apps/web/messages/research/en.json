@@ -145,6 +145,21 @@
     "evaluateBody": "Read price, liquidity, holder concentration and risk timestamps.",
     "verify": "Keep uncertainty",
     "verifyBody": "Mark missing or stale observations unknown, not zero.",
+    "capRange": "Market cap range",
+    "marketSort": "Market sort",
+    "caps": {
+      "all": "All caps",
+      "micro": "Micro: $5k-$50k",
+      "small": "Small: $50k-$100k",
+      "growing": "Growing: $100k-$500k",
+      "mid": "Mid: $500k-$1m",
+      "large": "Large: $1m-$10m",
+      "major": "Major: $10m+"
+    },
+    "capAsc": "Market cap ascending",
+    "capDesc": "Market cap descending",
+    "resetFilters": "Reset filters",
+    "capBasis": "Market cap uses the latest observed value. FDV is labeled where the provider reports it.",
     "historyNote": "These retained records may include development history. Their prices and model scores are not current signals. Records are retained for linked account and analysis history."
   },
   "trench": {

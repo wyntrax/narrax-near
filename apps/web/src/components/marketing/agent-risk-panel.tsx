@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { isNearAccountId } from '@narra/shared';
 import type { AgentRiskCopy } from '@/content/agent-risk';
 
@@ -31,6 +31,7 @@ interface AgentRisk {
     status: 'CONTRACT' | 'NOT_CONTRACT' | 'NOT_FOUND' | 'UNKNOWN';
     fullAccessKeys: number | null;
     functionCallKeys: number | null;
+    nep141?: boolean | null;
   } | null;
   policy: { maxRiskScore: number; metricMaxAgeMs: number; evidenceMaxAgeMs: number };
   disclaimer: string;
@@ -41,12 +42,29 @@ const money = (value: number | null): string => value == null ? '—' : `$${comp
 const date = (value: string | null): string =>
   value ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—';
 
+const nep141Label = (value: boolean | null | undefined, copy: AgentRiskCopy): string => {
+  if (value === true) return copy.nep141Status.verified;
+  if (value === false) return copy.nep141Status.invalid;
+  if (value === null) return copy.nep141Status.unavailable;
+  return copy.nep141Status.na;
+};
+
 export function AgentRiskPanel({ copy }: { copy: AgentRiskCopy }) {
   const [mint, setMint] = useState('');
   const [result, setResult] = useState<AgentRisk | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const api = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+
+  useEffect(() => {
+    const param = new URLSearchParams(window.location.search).get('mint')?.trim() ?? '';
+    if (param && isNearAccountId(param)) {
+      setMint(param);
+      void check(param);
+    }
+    // Check ?mint= once on mount when linked from the public thesis desk.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function check(value: string) {
     const trimmed = value.trim();
@@ -83,6 +101,11 @@ export function AgentRiskPanel({ copy }: { copy: AgentRiskCopy }) {
     void check(copy.exampleMint);
   }
 
+  function runPreset(presetMint: string) {
+    setMint(presetMint);
+    void check(presetMint);
+  }
+
   const icon = result?.verdict === 'PASS' ? '✓' : result?.verdict === 'BLOCK' ? '✕' : '?';
 
   return <div className="agent-risk-panel">
@@ -102,9 +125,26 @@ export function AgentRiskPanel({ copy }: { copy: AgentRiskCopy }) {
           {loading ? copy.checking : copy.submit}
         </button>
       </div>
-      <button className="agent-risk-example" type="button" onClick={useExample} disabled={loading}>
-        {copy.example}
-      </button>
+      <div className="agent-risk-actions">
+        <button className="agent-risk-example" type="button" onClick={useExample} disabled={loading}>
+          {copy.example}
+        </button>
+        <div className="agent-risk-presets" role="group" aria-label={copy.presetsLabel}>
+          <span className="agent-risk-presets-label">{copy.presetsLabel}</span>
+          {copy.presets.map(preset => (
+            <button
+              key={preset.id}
+              className="agent-risk-preset"
+              type="button"
+              data-preset={preset.id}
+              onClick={() => runPreset(preset.mint)}
+              disabled={loading}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+      </div>
       <p className="agent-risk-example-note">{copy.exampleNote}</p>
     </form>
 
@@ -128,6 +168,7 @@ export function AgentRiskPanel({ copy }: { copy: AgentRiskCopy }) {
         <div><dt>{copy.liquidity}</dt><dd>{result.metrics ? money(result.metrics.liquidityUsd) : copy.none}</dd></div>
         <div><dt>{copy.contract}</dt><dd>{result.contract ? copy.contractStatus[result.contract.status] : copy.none}</dd></div>
         <div><dt>{copy.fullAccess}</dt><dd>{result.contract?.fullAccessKeys ?? copy.none}</dd></div>
+        <div><dt>{copy.nep141}</dt><dd>{nep141Label(result.contract?.nep141, copy)}</dd></div>
       </dl>
 
       <div className="agent-risk-flags">

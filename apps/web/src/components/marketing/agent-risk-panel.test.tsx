@@ -93,4 +93,35 @@ describe('agent risk panel', () => {
     expect(screen.getByText('Treat as blocked: evidence is missing or stale.')).toBeVisible();
     expect(screen.getByText('TOKEN_NOT_FOUND')).toBeVisible();
   });
+
+  it('runs a scenario preset and displays non-NEP-141 BLOCK verdict', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'http://localhost:4000');
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({
+      ...pass,
+      mint: 'social.near',
+      symbol: null,
+      name: null,
+      verdict: 'BLOCK',
+      riskScore: null,
+      holders: null,
+      metrics: null,
+      fresh: false,
+      reasons: ['TOKEN_NOT_FOUND', 'NOT_NEP141_CONTRACT'],
+      warnings: ['FULL_ACCESS_KEYS'],
+      contract: {status: 'CONTRACT', fullAccessKeys: 1, functionCallKeys: 0, nep141: false},
+    }), {status: 200, headers: {'content-type': 'application/json'}}));
+    vi.stubGlobal('fetch', fetchMock);
+    const user = userEvent.setup();
+    render(<AgentRiskPanel copy={agentRiskCopy.en}/>);
+
+    await user.click(screen.getByRole('button', {name: 'BLOCK · Non-NEP-141 contract'}));
+
+    await waitFor(() => expect(screen.getByText('BLOCK')).toBeVisible());
+    expect(screen.getByText('Not NEP-141')).toBeVisible();
+    expect(screen.getByText('NOT_NEP141_CONTRACT')).toBeVisible();
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/v1/agent/risk/social.near'),
+      expect.objectContaining({headers: {accept: 'application/json'}}),
+    );
+  });
 });
