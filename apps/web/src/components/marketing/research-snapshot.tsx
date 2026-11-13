@@ -7,6 +7,7 @@ import { Link } from '@/i18n/navigation';
 import { createTransport } from '@/lib/api';
 import { snapshotCopy } from '@/content/research-snapshot';
 import { agentRiskCopy } from '@/content/agent-risk';
+import { thesisDeskCopy } from '@/content/thesis-desk';
 import { QueryProvider } from '@/lib/queries';
 
 const count = z.number().int().nonnegative();
@@ -62,6 +63,6 @@ function SnapshotContent() {
       </div>
       <button type="button" className="button button-ghost" disabled={query.isFetching} onClick={() => void query.refetch()}>{copy.retry}</button>
     </div>
-    <div className="snapshot-links"><Link className="button button-primary" href="/app/radar">{copy.radar}<ArrowUpRight size={16} aria-hidden="true" /></Link><Link className="button button-ghost" href="/methodology">{copy.methodology}</Link><Link className="button button-ghost" href="/agent-risk">{agentRiskCopy[locale].title}</Link></div>
+    <div className="snapshot-links"><Link className="button button-primary" href="/app/radar">{copy.radar}<ArrowUpRight size={16} aria-hidden="true" /></Link><Link className="button button-ghost" href="/thesis">{thesisDeskCopy[locale].navLabel}</Link><Link className="button button-ghost" href="/agent-risk">{agentRiskCopy[locale].title}</Link><Link className="button button-ghost" href="/methodology">{copy.methodology}</Link></div>
   </section>;
 }
