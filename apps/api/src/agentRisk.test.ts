@@ -67,6 +67,31 @@ describe('agent risk gate', () => {
     expect(response.json()).toMatchObject({ mint: 'unknown.near', verdict: 'UNKNOWN', fresh: false, reasons: ['TOKEN_NOT_FOUND'] });
   });
 
+  it('blocks an uncatalogued contract when live on-chain verification proves it is not NEP-141', async () => {
+    const response = await get('/v1/agent/risk/social.near', null, contractSource({
+      status: 'CONTRACT', fullAccessKeys: 0, functionCallKeys: 2, nep141: false,
+    }));
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      mint: 'social.near',
+      verdict: 'BLOCK',
+      reasons: ['TOKEN_NOT_FOUND', 'NOT_NEP141_CONTRACT'],
+      contract: { status: 'CONTRACT', nep141: false },
+    });
+  });
+
+  it('blocks an uncatalogued account that has no deployed contract', async () => {
+    const response = await get('/v1/agent/risk/alice.near', null, contractSource({
+      status: 'NOT_CONTRACT', fullAccessKeys: null, functionCallKeys: null,
+    }));
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({
+      mint: 'alice.near',
+      verdict: 'BLOCK',
+      reasons: ['TOKEN_NOT_FOUND', 'NOT_A_CONTRACT'],
+    });
+  });
+
   it('returns UNKNOWN when market evidence is stale', async () => {
     const response = await get('/v1/agent/risk/token.near', tokenRow({
       metrics: [{
@@ -123,6 +148,28 @@ describe('agent risk gate', () => {
       status: 'CONTRACT', fullAccessKeys: null, functionCallKeys: null,
     }));
     expect(response.json()).toMatchObject({ verdict: 'PASS', warnings: ['KEY_LIST_UNAVAILABLE'] });
+  });
+
+  it('blocks a deployed contract that fails NEP-141 ft_metadata validation', async () => {
+    const response = await get('/v1/agent/risk/token.near', tokenRow(), contractSource({
+      status: 'CONTRACT', fullAccessKeys: 0, functionCallKeys: 1, nep141: false,
+    }));
+    expect(response.json()).toMatchObject({
+      verdict: 'BLOCK',
+      reasons: ['NOT_NEP141_CONTRACT'],
+      contract: { status: 'CONTRACT', fullAccessKeys: 0, functionCallKeys: 1, nep141: false },
+    });
+  });
+
+  it('warns without blocking when NEP-141 ft_metadata RPC check is transiently unavailable', async () => {
+    const response = await get('/v1/agent/risk/token.near', tokenRow(), contractSource({
+      status: 'CONTRACT', fullAccessKeys: 0, functionCallKeys: 1, nep141: null,
+    }));
+    expect(response.json()).toMatchObject({
+      verdict: 'PASS',
+      warnings: ['NEP141_CHECK_UNAVAILABLE'],
+      contract: { status: 'CONTRACT', fullAccessKeys: 0, functionCallKeys: 1, nep141: null },
+    });
   });
 
   it('rejects a string that cannot be a NEAR account id', async () => {

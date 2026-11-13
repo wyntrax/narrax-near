@@ -13,9 +13,9 @@ export interface TokenRisk {
 
 /** Starting values, not validated against outcomes. Each is a named constant so it can be tuned or moved to settings. */
 export const RISK_WEIGHTS = {
-  top10Over60: 30,
+  top10Over60: 40,
   top10Over40: 15,
-  thinLiquidity: 20,
+  thinLiquidity: 25,
   fewHolders: 15,
   holdersUnknown: 5,
   veryNew: 10,

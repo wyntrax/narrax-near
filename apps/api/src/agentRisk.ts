@@ -83,6 +83,7 @@ export interface AgentRiskResponse {
     status: 'CONTRACT' | 'NOT_CONTRACT' | 'NOT_FOUND' | 'UNKNOWN';
     fullAccessKeys: number | null;
     functionCallKeys: number | null;
+    nep141?: boolean | null;
   } | null;
   policy: {
     maxRiskScore: number;
@@ -122,7 +123,22 @@ export function evaluateAgentRisk(input: AgentRiskInput): AgentRiskResponse {
 
   if (!token) {
     reasons.push('TOKEN_NOT_FOUND');
-    verdict = 'UNKNOWN';
+    if (contract?.status === 'NOT_CONTRACT') {
+      reasons.push('NOT_A_CONTRACT');
+      verdict = 'BLOCK';
+    } else if (contract?.status === 'CONTRACT') {
+      if (contract.fullAccessKeys == null) warnings.push('KEY_LIST_UNAVAILABLE');
+      else if (contract.fullAccessKeys > 0) warnings.push('FULL_ACCESS_KEYS');
+      if (contract.nep141 === false) {
+        reasons.push('NOT_NEP141_CONTRACT');
+        verdict = 'BLOCK';
+      } else {
+        if (contract.nep141 === null) warnings.push('NEP141_CHECK_UNAVAILABLE');
+        verdict = 'UNKNOWN';
+      }
+    } else {
+      verdict = 'UNKNOWN';
+    }
   } else if (token.blacklisted) {
     reasons.push('BLACKLISTED');
     verdict = 'BLOCK';
@@ -148,6 +164,12 @@ export function evaluateAgentRisk(input: AgentRiskInput): AgentRiskResponse {
     } else if (contract?.status === 'CONTRACT') {
       if (contract.fullAccessKeys == null) warnings.push('KEY_LIST_UNAVAILABLE');
       else if (contract.fullAccessKeys > 0) warnings.push('FULL_ACCESS_KEYS');
+      if (contract.nep141 === false) {
+        reasons.push('NOT_NEP141_CONTRACT');
+        verdict = 'BLOCK';
+      } else if (contract.nep141 === null) {
+        warnings.push('NEP141_CHECK_UNAVAILABLE');
+      }
     }
 
     if (verdict === 'PASS' && riskScore == null) {
@@ -224,7 +246,7 @@ export function registerAgentRiskRoutes(
     });
 
     let contract: ContractSafety | null | undefined;
-    if (token && deps.contracts) {
+    if (!token?.blacklisted && deps.contracts) {
       try {
         contract = await deps.contracts.inspect(mint);
       } catch {

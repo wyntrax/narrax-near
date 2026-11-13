@@ -89,4 +89,10 @@ describe('NEAR market data', () => {
     expect(risk.flags).toEqual(expect.arrayContaining(['THIN_LIQUIDITY', 'FEW_HOLDERS', 'VERY_NEW', 'CONCENTRATION_UNKNOWN']));
     expect(risk.riskScore).toBeGreaterThan(0);
   });
+
+  it('reaches the critical >= 80 risk threshold when extreme concentration, thin liquidity, and few holders combine', () => {
+    const risk = tokenRisk({ liquidityUsd: 5_000, holders: 12, top10Pct: 82, pairAgeMinutes: 120 });
+    expect(risk.flags).toEqual(['TOP10_OVER_60', 'THIN_LIQUIDITY', 'FEW_HOLDERS']);
+    expect(risk.riskScore).toBeGreaterThanOrEqual(80);
+  });
 });

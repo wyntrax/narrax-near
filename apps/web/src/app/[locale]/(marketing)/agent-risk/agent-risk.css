@@ -6,8 +6,14 @@
 .agent-risk-row input{flex:1;min-width:240px;padding:12px 16px;border:1px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--tx);font-family:var(--font-mono),monospace;font-size:.9rem}
 .agent-risk-row input::placeholder{color:var(--tx3)}
 .agent-risk-row input:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
-.agent-risk-example{margin-top:.9rem;padding:0;border:0;background:none;color:var(--tx2);font-size:.8rem;text-decoration:underline;text-underline-offset:.25em}
+.agent-risk-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:.9rem}
+.agent-risk-example{padding:0;border:0;background:none;color:var(--tx2);font-size:.8rem;text-decoration:underline;text-underline-offset:.25em}
 .agent-risk-example:hover{color:var(--tx)}
+.agent-risk-presets{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.agent-risk-presets-label{color:var(--tx3);font-size:.75rem}
+.agent-risk-preset{padding:5px 11px;border:1px solid var(--bd);border-radius:999px;background:var(--bg);color:var(--tx2);font-size:.75rem;line-height:1.2;transition:border-color .15s,color .15s}
+.agent-risk-preset:hover:not(:disabled){border-color:var(--tx2);color:var(--tx)}
+.agent-risk-preset:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 .agent-risk-example-note{margin:.45rem 0 0;font-size:.75rem;color:var(--tx3)}
 .agent-risk-verdict{margin-top:1.5rem;padding:clamp(1.25rem,3vw,2rem);border:2px solid var(--bd);border-radius:20px;background:var(--s1)}
 .agent-risk-verdict[data-verdict=PASS]{border-color:var(--ac);box-shadow:0 0 0 1px color-mix(in srgb,var(--ac) 20%,transparent)}
