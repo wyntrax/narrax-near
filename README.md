@@ -210,6 +210,25 @@ npm run typecheck
 - Missing data stays unknown; it is never replaced with zero.
 - Social text is untrusted input and is sanitized before storage or display.
 
+## Hackathon baseline, diff and disclosures (Q-002 / Q-003 / Q-005)
+
+Per `HACKATHON.md` (`Q-001`, `Q-002`, `Q-003`, `Q-005`):
+
+- **Baseline disclosure (`Q-002`, `Q-003`)**: NARRAX originated as a research workspace on another chain. Commit `2f32ed6` (tagged `hackathon-baseline` and `pre-hackathon`) is the initial port baseline; all legacy chain adapters, trading, custody, portfolio and executor surfaces were stripped during the hackathon window (`745b983`). Only the NEAR-native architecture, thesis pipeline and agent risk gate built during the hackathon window are submitted for evaluation.
+- **Hackathon diff (`Q-003`)**:
+  - Baseline tag: `pre-hackathon` / `hackathon-baseline` (`2f32ed6`)
+  - Submission tag: `hackathon-submission` (`main`)
+  - Compare diff: [`hackathon-baseline...main`](https://github.com/wyntrax/narrax-near/compare/hackathon-baseline...main) (or [`pre-hackathon...hackathon-submission`](https://github.com/wyntrax/narrax-near/compare/pre-hackathon...hackathon-submission))
+- **Built during the NEAR Hackathon window**:
+  - `@narra/near` (`packages/near`): NEAR JSON-RPC client, account-id validation (named + 64-hex implicit), NEP-141 `ft_metadata` / `ft_balance_of`, NEP-413 message signing/verification, NearBlocks explorer helpers and network config.
+  - **AI Security & Defense (`security`)**: Public fail-closed agent risk gate (`GET /v1/agent/risk/:mint`, `/agent-risk` web UI, `scripts/agent-risk.ts` CLI) with live NEAR RPC contract code verification (`code_hash` + `global_contract_hash`) and access-key inspection (`fullAccessKeys` vs. `functionCallKeys`).
+  - **Investment Thesis (`thesis`)**: Reproducible NEAR thesis evidence generator (`scripts/thesis-report.ts` → `THESIS_EVIDENCE.md` + `THESIS_EVIDENCE.svg`), keyless NEAR macro context generator (`scripts/thesis-context.ts` → `THESIS_CONTEXT.md` + `THESIS_CONTEXT.svg`), NearBlocks holder concentration fallback (`packages/market-data/src/nearblocks.ts`), and bridged-asset (`*.omft.near`, `*.omdep.near`, `*.bridge.near`) cohort exclusions.
+  - **NEAR Smart Money & Public Judge Path**: Observed NEAR DEX wallet flow accounting (`workers/pipeline`, `apps/api/src/smartMoney.ts`), Telegram Early Radar delivery, and the keyless 5-minute public judge demo (`demo:seed`, `demo:refresh`, `dev:api:public`).
+- **Libraries and tooling disclosure (`Q-005`)**:
+  - Open-source packages: Next.js 15, React 19, Fastify, Prisma (PostgreSQL), ioredis / BullMQ, `@privy-io/react-auth`, TanStack Query, Radix UI, Tailwind CSS, Zod, Vitest, Playwright.
+  - Public data APIs: NEAR JSON-RPC, NearBlocks, DEX Screener, GeckoTerminal, DefiLlama, CoinGecko, Treg.
+  - AI coding assistance: Claude Code and Gemini / Antigravity were used during development and testing.
+
 ## License
 
 MIT. See [`LICENSE`](./LICENSE).
