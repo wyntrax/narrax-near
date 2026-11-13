@@ -70,9 +70,9 @@ be used as a shell policy gate.
 
 | Verdict | Meaning | Agent behavior |
 | --- | --- | --- |
-| `PASS` | Fresh market, holder and risk evidence exists, the token is not blacklisted, the account is a deployed contract, and the risk score is below 80. | The agent may continue to its own policy. Flags and warnings may still be present, so apply any stricter limits you need. This is not a safety guarantee. |
-| `BLOCK` | The token is blacklisted, its risk score is at or above 80, its account is not a contract, or its account does not exist on chain. | Do not spend. |
-| `UNKNOWN` | The token is unknown, required evidence is missing or stale, or the contract check failed. | Treat as blocked. Never infer low risk from missing data. |
+| `PASS` | Fresh market, holder and risk evidence exists, the token is not blacklisted, the account is a deployed NEP-141 contract, and the risk score is below 80. | The agent may continue to its own policy. Flags and warnings may still be present, so apply any stricter limits you need. This is not a safety guarantee. |
+| `BLOCK` | The token is blacklisted, its risk score is at or above 80, its account is not a contract, a deployed contract fails `ft_metadata`, or a stored token account does not exist on chain. | Do not spend. |
+| `UNKNOWN` | The token is unknown (with no disqualifying on-chain contract proof), required evidence is missing or stale, or the contract check failed. | Treat as blocked. Never infer low risk from missing data. |
 
 `UNKNOWN` is intentional. If neither GeckoTerminal nor the NearBlocks fallback has holder evidence,
 the token has no current price, the risk row is older than an hour, or the NEAR RPC contract check
@@ -80,13 +80,13 @@ fails, the gate fails closed rather than guessing.
 
 ## Contract safety facts
 
-Before returning `PASS`, the gate asks the NEAR RPC whether the account actually has code deployed:
+Before returning `PASS`, the gate asks the NEAR RPC whether the account actually has code deployed and validates `ft_metadata`:
 
 | Status | Meaning | Verdict effect |
 | --- | --- | --- |
-| `CONTRACT` | The account has deployed code, either its own `code_hash` or a `global_contract_hash`. | Can continue to the market/holder/risk checks. |
+| `CONTRACT` | The account has deployed code, either its own `code_hash` or a `global_contract_hash`. | Also calls read-only `ft_metadata`: `nep141: true` passes to market/holder/risk checks; `nep141: false` returns `BLOCK` (`NOT_NEP141_CONTRACT`); `nep141: null` adds warning `NEP141_CHECK_UNAVAILABLE`. |
 | `NOT_CONTRACT` | The account exists but has neither a code hash nor a global contract hash. | `BLOCK` (`NOT_A_CONTRACT`). An EOA cannot be a NEP-141 token. |
-| `NOT_FOUND` | The account does not exist at finality. | `BLOCK` (`TOKEN_CONTRACT_NOT_FOUND`). A stored token row must not outlive its account. |
+| `NOT_FOUND` | The account does not exist at finality. | `BLOCK` (`TOKEN_CONTRACT_NOT_FOUND`) for catalogued tokens; `UNKNOWN` (`TOKEN_NOT_FOUND`) if never catalogued. |
 | `UNKNOWN` | The check could not be completed. | `UNKNOWN` (`CONTRACT_CHECK_UNAVAILABLE`). |
 
 For a contract, the gate also reads the access-key list and returns `fullAccessKeys` and
