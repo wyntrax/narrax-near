@@ -73,7 +73,7 @@ const referenceContracts = () => new Set([...NEAR_REFERENCE_CONTRACTS, process.e
  */
 export async function refreshMarketData(
   db: PrismaClient, deps: MarketDataDeps, now: Date = new Date(),
-  opts: { maxTokens?: number; maxInfoCalls?: number } = {},
+  opts: { maxTokens?: number; maxInfoCalls?: number; infoPriorityMints?: string[] } = {},
 ): Promise<MarketDataSummary> {
   const L = MARKET_DATA_LIMITS;
   const emptyCoverage = (): PriceCoverageCounts => ({ selected: 0, written: 0, unavailable: 0, failed: 0, notRequested: 0 });
@@ -219,9 +219,15 @@ export async function refreshMarketData(
 
   // 5. Holders and risk. Missing or failed attribution remains unknown, never zero.
   if (deps.info) {
+    const infoPriority = new Set(opts.infoPriorityMints ?? []);
     const due = tokens
       .filter((t) => snaps.has(t.mint) && (!t.risk[0] || now.getTime() - t.risk[0].at.getTime() >= L.infoRefreshMs))
-      .sort((a, b) => (a.risk[0]?.at.getTime() ?? 0) - (b.risk[0]?.at.getTime() ?? 0))
+      .sort((a, b) => {
+        // The demo refresh names its documented PASS example so a slow or rate-limited holder source
+        // cannot starve it behind older rows. Normal worker runs leave this unset.
+        const priority = Number(infoPriority.has(b.mint)) - Number(infoPriority.has(a.mint));
+        return priority || (a.risk[0]?.at.getTime() ?? 0) - (b.risk[0]?.at.getTime() ?? 0);
+      })
       .slice(0, opts.maxInfoCalls ?? L.maxInfoCallsPerRun);
     for (const t of due) {
       const s = snaps.get(t.mint)!;

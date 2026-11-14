@@ -42,9 +42,10 @@ shifts timestamps or invents values. It needs network access and may take about 
   aggregate of observed DEX wallet activity, not individual wallet addresses or transaction hashes.
   `/app/smart-money` shows that aggregate with an explicit notice, and `/thesis` shows the same
   aggregate publicly. The full per-wallet leaderboard requires the live research database.
-- **Use NEARLY for the fresh `PASS` example.** RHEA can return `UNKNOWN` when its holder/risk rows are
-  older than 60 minutes even though its price was just refreshed. That is the fail-closed behavior,
-  not a missing token.
+- **Use NEARLY for the fresh `PASS` example.** `demo:refresh` prioritizes NEARLY's holder and risk
+  lookup before the slower per-token calls, so a rate limit cannot starve the documented example.
+  RHEA can return `UNKNOWN` when its holder/risk rows are older than 60 minutes even though its price
+  was just refreshed. That is the fail-closed behavior, not a missing token.
 - **The workspace overview shows the five highest-scoring active narratives.** The active-narrative
   count covers the whole set; use **Open radar** for the rest.
 
