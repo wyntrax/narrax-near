@@ -48,9 +48,11 @@ npm run demo:seed
 npm run demo:refresh
 ```
 
-Then open `http://localhost:4010/agent-risk` and click **Use example**. You should see `PASS` for
-NEARLY with 2,680 holders and 19.1% top-10 concentration. Open `http://localhost:4010/` for the
-landing snapshot.
+Then verify the public judge path:
+
+1. Open `http://localhost:4010/thesis` (or `http://localhost:4000/v1/public-thesis-desk`) to inspect the keyless H1/H2 narrative-to-token conversion funnel, watched NEAR narratives, non-bridged NEP-141 token evidence (`Fresh` / `Stale` / `Missing`), and anonymized aggregate smart-money DEX flows, with direct links into the risk gate.
+2. Open `http://localhost:4010/agent-risk` and click **Use example** — you should see `PASS` for `nearly-993927.nearlytrade.near` (NEARLY) with 2,680 holders, 19.1% top-10 concentration, verified NEP-141 `ft_metadata`, and 0 full-access keys.
+3. Open `http://localhost:4010/` for the landing snapshot.
 
 `demo:seed` replaces the research tables in the target database, so point `DATABASE_URL` at a demo
 database, not production. `demo:refresh` then fetches current public market, holder and risk evidence
@@ -68,17 +70,31 @@ Entering **Investment Thesis** (`thesis`), **AI Security & Defense** (`security`
 
 | Track | What the submission shows |
 | --- | --- |
-| **Thesis** | An evidence-first NEAR ecosystem thesis: attention only matters when it converts into liquidity, distributed ownership, and observed trade flow. The workspace exposes the evidence, the counter-evidence, and the reproducible pipeline behind both. The keyless macro backdrop is in [`THESIS_CONTEXT.md`](./THESIS_CONTEXT.md). See [`THESIS.md`](./THESIS.md). |
+| **Thesis** | An evidence-first NEAR ecosystem thesis: attention only matters when it converts into liquidity, distributed ownership, and observed trade flow. The keyless [`/thesis`](http://localhost:4010/thesis) desk (`GET /v1/public-thesis-desk`), [`THESIS_EVIDENCE.md`](./THESIS_EVIDENCE.md) and [`THESIS_CONTEXT.md`](./THESIS_CONTEXT.md) expose the evidence, the counter-evidence, and the reproducible pipeline behind both. See [`THESIS.md`](./THESIS.md). |
 | **Security** | A public, fail-closed risk gate for AI agents: an agent checks token risk before it spends and blocks on `BLOCK` or `UNKNOWN`. It verifies the target is a deployed contract (including a global contract), not an EOA or deleted account, and reports full-access keys as a warning. NARRAX supplies scam and risk evidence and never holds keys or signs. See [`docs/AGENT_RISK.md`](./docs/AGENT_RISK.md). |
 | **Open** | A public research workspace and methodology that does not fit a single category: social narrative → NEP-141 identity → market and holder evidence → written research. |
 
-## Thesis
+## Thesis & public thesis desk
 
 NARRAX's working thesis is that attention on NEAR becomes durable ecosystem value only when it
 converts into measurable on-chain activity: liquidity deep enough to trade, ownership distributed
 beyond one wallet, and repeated participation from observed wallets. The workspace is built to test
 that claim and to show the evidence against it, not to score conviction. The full claim, limits and
 reproduction steps are in [`THESIS.md`](./THESIS.md).
+
+`GET /v1/public-thesis-desk` and the keyless `/thesis` web page expose the live thesis without an
+account:
+- **H1 / H2 conversion funnel**: active watched narratives (`12` topics across X), bridged quote
+  assets explicitly excluded (`*.omft.near`, `*.omdep.near`, `*.bridge.near`), native NEP-141 tokens
+  discovered, narrative-linked tokens, holder coverage, and tokens passing the `$20k` liquidity + `50`
+  holder confirmation floors.
+- **Native NEAR token evidence**: ranked contracts with `Fresh` / `Stale` / `Missing` evidence tags
+  (stale or missing evidence never counts as meeting floors) and direct links to `/agent-risk?mint=...`.
+- **Observed DEX wallet flow (aggregate)**: anonymized DEX swap statistics across NEAR pools
+  (wallet counts by `QUALIFIED` / `PROVISIONAL` / `INSUFFICIENT`, observed swaps, total DEX volume,
+  and per-token net buy/sell flows) with zero individual wallet addresses or transaction hashes exposed.
+
+![Public thesis desk showing funnel, narratives, native token evidence, and aggregate smart-money flow](./docs/screenshots/thesis-desk.png)
 
 ## Agent risk gate
 
@@ -104,6 +120,10 @@ the contract and a policy example.
   - `GET /v1/chain` — network and explorer metadata
   - `GET /v1/chain/status` — latest final block height and measured latency; fails closed
     with 503 when the probe is unavailable
+- **Public thesis desk**
+  - `GET /v1/public-thesis-desk` and `/thesis` — keyless conversion funnel, watched narratives,
+    non-bridged NEP-141 token evidence with freshness checks, and anonymized aggregate smart-money
+    DEX flows linking directly to `/agent-risk`
 - **Agent risk gate**
   - `GET /v1/agent/risk/:mint` - public, fail-closed `PASS` / `BLOCK` / `UNKNOWN` token risk verdict
     for AI agents, with no keys and no signing path; includes contract existence and access-key facts;
@@ -222,7 +242,7 @@ Per `HACKATHON.md` (`Q-001`, `Q-002`, `Q-003`, `Q-005`):
 - **Built during the NEAR Hackathon window**:
   - `@narra/near` (`packages/near`): NEAR JSON-RPC client, account-id validation (named + 64-hex implicit), NEP-141 `ft_metadata` / `ft_balance_of`, NEP-413 message signing/verification, NearBlocks explorer helpers and network config.
   - **AI Security & Defense (`security`)**: Public fail-closed agent risk gate (`GET /v1/agent/risk/:mint`, `/agent-risk` web UI, `scripts/agent-risk.ts` CLI) with live NEAR RPC contract code verification (`code_hash` + `global_contract_hash`) and access-key inspection (`fullAccessKeys` vs. `functionCallKeys`).
-  - **Investment Thesis (`thesis`)**: Reproducible NEAR thesis evidence generator (`scripts/thesis-report.ts` → `THESIS_EVIDENCE.md` + `THESIS_EVIDENCE.svg`), keyless NEAR macro context generator (`scripts/thesis-context.ts` → `THESIS_CONTEXT.md` + `THESIS_CONTEXT.svg`), NearBlocks holder concentration fallback (`packages/market-data/src/nearblocks.ts`), and bridged-asset (`*.omft.near`, `*.omdep.near`, `*.bridge.near`) cohort exclusions.
+  - **Investment Thesis (`thesis`)**: Keyless public thesis desk (`GET /v1/public-thesis-desk` + `/thesis` web UI with H1/H2 funnel, freshness-gated native tokens, and anonymized aggregate smart-money DEX flows), reproducible NEAR thesis evidence generator (`scripts/thesis-report.ts` → `THESIS_EVIDENCE.md` + `THESIS_EVIDENCE.svg`), keyless NEAR macro context generator (`scripts/thesis-context.ts` → `THESIS_CONTEXT.md` + `THESIS_CONTEXT.svg`), NearBlocks holder concentration fallback (`packages/market-data/src/nearblocks.ts`), and bridged-asset (`*.omft.near`, `*.omdep.near`, `*.bridge.near`) cohort exclusions.
   - **NEAR Smart Money & Public Judge Path**: Observed NEAR DEX wallet flow accounting (`workers/pipeline`, `apps/api/src/smartMoney.ts`), Telegram Early Radar delivery, and the keyless 5-minute public judge demo (`demo:seed`, `demo:refresh`, `dev:api:public`).
 - **Libraries and tooling disclosure (`Q-005`)**:
   - Open-source packages: Next.js 15, React 19, Fastify, Prisma (PostgreSQL), ioredis / BullMQ, `@privy-io/react-auth`, TanStack Query, Radix UI, Tailwind CSS, Zod, Vitest, Playwright.
