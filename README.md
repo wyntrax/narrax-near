@@ -1,16 +1,33 @@
-# NARRAX — NEAR Research Desk
+<div align="center">
+  <h1>
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="./apps/web/public/narrax-logo-dark.svg" />
+      <source media="(prefers-color-scheme: light)" srcset="./apps/web/public/narrax-logo-light.svg" />
+      <img src="./apps/web/public/narrax-logo-dark.svg" alt="NARRAX" width="28" height="28" align="absmiddle" />
+    </picture>
+    &nbsp;NARRAX
+  </h1>
+  <p><strong>Narrative intelligence on NEAR you can verify.</strong></p>
+  <p>Keyless public thesis desk · Fail-closed agent risk gate · Built on NEAR</p>
+  <p>
+    <img src="https://img.shields.io/badge/Built%20on-NEAR-111827?style=flat-square&labelColor=374151" alt="Built on NEAR" />
+    <img src="https://img.shields.io/badge/status-research%20build%2C%20read--only-C9A25B?style=flat-square&labelColor=374151" alt="Status: research build, read-only" />
+    <img src="https://img.shields.io/badge/tests-326%20backend%20%C2%B7%20165%20web%20%C2%B7%204%20E2E-1B5E3C?style=flat-square&labelColor=374151" alt="Tests: 326 backend, 165 web, 4 E2E" />
+    <img src="https://img.shields.io/badge/license-MIT-1F513F?style=flat-square&labelColor=374151" alt="License: MIT" />
+  </p>
+  <p>
+    <a href="#judge-quickstart">Judge quickstart</a> ·
+    <a href="./docs/JUDGE.md">Judge guide</a> ·
+    <a href="./THESIS.md">Thesis</a> ·
+    <a href="./docs/AGENT_RISK.md">Agent risk gate</a> ·
+    <a href="#architecture">Architecture</a>
+  </p>
+</div>
 
-A research workspace for narrative-driven markets, built on NEAR. NARRAX turns public
-conversation and public market data into one evidence-first workspace: what is forming, why it
-is moving, and what still needs checking.
+> [!TIP]
+> **Judges:** start with [`docs/JUDGE.md`](./docs/JUDGE.md) or the [Judge quickstart](#judge-quickstart) below — a 5-minute keyless walkthrough covering `/thesis`, `/agent-risk`, and `/` with Node 22 + Postgres 16 alone.
 
-This repository is **NEAR-only**. Legacy chain adapters, trading, custody and executor code have
-been removed. Research data comes from NEAR token contracts, DEX Screener, GeckoTerminal, NearBlocks
-and the configured social provider.
-
-> **Status: NEAR HACKATHON research build.** Narrative ingestion, token discovery, market and holder
-> observations, early-radar alerts, AI research analysis, analytics, agent chat, Telegram delivery
-> and local access grants work. Nothing signs or sends a transaction.
+A research workspace for narrative-driven markets, **NEAR-only** and strictly read-only: legacy chain adapters, trading, custody and executor code have been removed. Research data comes from NEAR token contracts (`ft_metadata`), DEX Screener, GeckoTerminal, NearBlocks and the configured social provider.
 
 ![NARRAX landing page](./docs/screenshots/landing.png)
 
