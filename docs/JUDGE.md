@@ -5,8 +5,8 @@ does not need Privy, a wallet, Redis or an AI key.
 
 The authenticated workspace (`/app/...`) and the `/app/agent` chat are shown in the demo video and
 require a Privy app and an AI provider key; they are not part of the public judge path. The public
-path covers the landing snapshot and `/agent-risk`, the gate an external AI agent calls before it
-spends.
+path covers the landing snapshot, `/thesis` (the keyless public thesis desk), and `/agent-risk`, the
+gate an external AI agent calls before it spends.
 
 ## Public path — 5 minutes
 
