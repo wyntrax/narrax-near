@@ -1,31 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="620" viewBox="0 0 1000 620" role="img" aria-label="NARRAX evidence snapshot" font-family="Arial, Helvetica, sans-serif">
   <rect width="1000" height="620" fill="#ffffff"/>
   <text x="40" y="42" font-size="22" font-weight="700" fill="#111">NARRAX evidence snapshot</text>
-  <text x="40" y="66" font-size="12" fill="#666">Generated 2026-11-11T06:11:28.221Z · window 7 days</text>
+  <text x="40" y="66" font-size="12" fill="#666">Generated 2026-11-14T03:36:00.105Z · window 7 days</text>
   <text x="40" y="96" font-size="15" font-weight="700" fill="#111">Narrative-to-token conversion</text>
   <text x="40" y="128" font-size="13" fill="#111">Linked to a narrative</text>
       <rect x="300" y="112" width="520" height="22" fill="#eeeeee" rx="3"/>
       <rect x="300" y="112" width="520.0" height="22" fill="#111" rx="3"/>
-      <text x="836" y="128" font-size="13" fill="#111" font-weight="600">2</text>
+      <text x="836" y="128" font-size="13" fill="#111" font-weight="600">3</text>
 <text x="40" y="160" font-size="13" fill="#111">Non-suspicious relation</text>
       <rect x="300" y="144" width="520" height="22" fill="#eeeeee" rx="3"/>
       <rect x="300" y="144" width="520.0" height="22" fill="#111" rx="3"/>
-      <text x="836" y="160" font-size="13" fill="#111" font-weight="600">2</text>
+      <text x="836" y="160" font-size="13" fill="#111" font-weight="600">3</text>
 <text x="40" y="192" font-size="13" fill="#111">Liquidity &gt;= $20,000</text>
       <rect x="300" y="176" width="520" height="22" fill="#eeeeee" rx="3"/>
-      <rect x="300" y="176" width="260.0" height="22" fill="#111" rx="3"/>
+      <rect x="300" y="176" width="173.3" height="22" fill="#111" rx="3"/>
       <text x="836" y="192" font-size="13" fill="#111" font-weight="600">1</text>
 <text x="40" y="224" font-size="13" fill="#111">Holders &gt;= 50</text>
       <rect x="300" y="208" width="520" height="22" fill="#eeeeee" rx="3"/>
-      <rect x="300" y="208" width="260.0" height="22" fill="#111" rx="3"/>
+      <rect x="300" y="208" width="173.3" height="22" fill="#111" rx="3"/>
       <text x="836" y="224" font-size="13" fill="#111" font-weight="600">1</text>
 <text x="40" y="256" font-size="13" fill="#111">Both floors (confirmed)</text>
       <rect x="300" y="240" width="520" height="22" fill="#eeeeee" rx="3"/>
-      <rect x="300" y="240" width="260.0" height="22" fill="#111" rx="3"/>
+      <rect x="300" y="240" width="173.3" height="22" fill="#111" rx="3"/>
       <text x="836" y="256" font-size="13" fill="#111" font-weight="600">1</text>
 <text x="40" y="288" font-size="13" fill="#111">With an opportunity</text>
       <rect x="300" y="272" width="520" height="22" fill="#eeeeee" rx="3"/>
-      <rect x="300" y="272" width="260.0" height="22" fill="#111" rx="3"/>
+      <rect x="300" y="272" width="173.3" height="22" fill="#111" rx="3"/>
       <text x="836" y="288" font-size="13" fill="#111" font-weight="600">1</text>
 <text x="40" y="320" font-size="13" fill="#111">With an Early Radar alert</text>
       <rect x="300" y="304" width="520" height="22" fill="#eeeeee" rx="3"/>
@@ -37,19 +37,19 @@
   <text x="40" y="416" font-size="13" fill="#111">Tokens observed</text>
       <rect x="300" y="400" width="520" height="22" fill="#eeeeee" rx="3"/>
       <rect x="300" y="400" width="520.0" height="22" fill="#777" rx="3"/>
-      <text x="836" y="416" font-size="13" fill="#111" font-weight="600">28</text>
+      <text x="836" y="416" font-size="13" fill="#111" font-weight="600">49</text>
 <text x="40" y="448" font-size="13" fill="#111">Fresh price</text>
       <rect x="300" y="432" width="520" height="22" fill="#eeeeee" rx="3"/>
-      <rect x="300" y="432" width="130.0" height="22" fill="#777" rx="3"/>
-      <text x="836" y="448" font-size="13" fill="#111" font-weight="600">7</text>
+      <rect x="300" y="432" width="233.5" height="22" fill="#777" rx="3"/>
+      <text x="836" y="448" font-size="13" fill="#111" font-weight="600">22</text>
 <text x="40" y="480" font-size="13" fill="#111">Fresh holder evidence</text>
       <rect x="300" y="464" width="520" height="22" fill="#eeeeee" rx="3"/>
-      <rect x="300" y="464" width="55.7" height="22" fill="#777" rx="3"/>
-      <text x="836" y="480" font-size="13" fill="#111" font-weight="600">3</text>
+      <rect x="300" y="464" width="84.9" height="22" fill="#777" rx="3"/>
+      <text x="836" y="480" font-size="13" fill="#111" font-weight="600">8</text>
 <text x="40" y="512" font-size="13" fill="#111">Fresh risk row</text>
       <rect x="300" y="496" width="520" height="22" fill="#eeeeee" rx="3"/>
-      <rect x="300" y="496" width="130.0" height="22" fill="#777" rx="3"/>
-      <text x="836" y="512" font-size="13" fill="#111" font-weight="600">7</text>
+      <rect x="300" y="496" width="275.9" height="22" fill="#777" rx="3"/>
+      <text x="836" y="512" font-size="13" fill="#111" font-weight="600">26</text>
   <text x="40" y="552" font-size="11" fill="#666">Bridged assets (*.omft.near, *.omdep.near, *.bridge.near) are excluded from the conversion cohort.</text>
   <text x="40" y="572" font-size="11" fill="#666">Generated from Postgres by npm run thesis:report. No value is hardcoded; missing data stays unknown.</text>
   <text x="40" y="592" font-size="11" fill="#666">Early Radar returns are gross observed price returns, not executable PnL.</text>

@@ -1,6 +1,6 @@
 import { createPrisma } from '@narra/database';
 import { NearRpc, nearConfigFromEnv } from '@narra/near';
-import { DexScreenerSource, GeckoTerminalSource, NearBlocksHolderSource } from '@narra/market-data';
+import { DexScreenerSource, GeckoTerminalSource, NearBlocksHolderSource, RateLimiter } from '@narra/market-data';
 import { refreshMarketData } from '../workers/pipeline/src/marketData';
 import { resolveTokens } from '../workers/pipeline/src/tokenResolution';
 
@@ -26,18 +26,26 @@ async function main() {
     // The demo seed is mainnet research data. Keep the holder fallback on mainnet even when the chain
     // status probe is configured for testnet; an explicit DEMO_NEAR_RPC_URL wins.
     const rpcUrl = process.env.DEMO_NEAR_RPC_URL
-      || (near.network === 'mainnet' ? near.rpcUrl : 'https://rpc.mainnet.near.org');
+      || (near.network === 'mainnet' ? near.rpcUrl : 'https://free.rpc.fastnear.com');
     if (near.network !== 'mainnet' && !process.env.DEMO_NEAR_RPC_URL) {
       console.log(`NEAR_NETWORK=${near.network}; demo data is mainnet, using ${rpcUrl} for the refresh`);
     }
     const rpc = new NearRpc({ url: rpcUrl, timeoutMs: 15_000 });
-    const gecko = new GeckoTerminalSource({ baseUrl: process.env.GECKOTERMINAL_BASE_URL });
+    const gecko = new GeckoTerminalSource({
+      baseUrl: process.env.GECKOTERMINAL_BASE_URL,
+      limiter: new RateLimiter(3500),
+    });
     const holders = new NearBlocksHolderSource({
       baseUrl: process.env.NEARBLOCKS_BASE_URL,
+      limiter: new RateLimiter(5500),
       totalSupply: async (mint) => {
         const result = await rpc.callFunction<unknown>(mint, 'ft_total_supply');
         return typeof result.value === 'string' ? result.value : null;
       },
+    });
+    const existingTokens = await db.token.findMany({
+      where: { blacklisted: false },
+      select: { mint: true, symbol: true, name: true, createdOnChainAt: true },
     });
 
     const started = Date.now();
@@ -47,7 +55,18 @@ async function main() {
       quotes: new DexScreenerSource({ baseUrl: process.env.DEXSCREENER_BASE_URL }),
       info: gecko,
       holders,
-      launches: null,
+      launches: {
+        name: 'seeded-catalog',
+        getNewPools: async () =>
+          existingTokens.map((t) => ({
+            mint: t.mint,
+            symbol: t.symbol,
+            name: t.name,
+            poolAddress: t.mint,
+            createdAt: t.createdOnChainAt ?? now,
+            liquidityUsd: 25_000,
+          })),
+      },
     }, now, { maxTokens: 60, maxInfoCalls: 40 });
     const resolution = await resolveTokens(db, new Date());
     console.log(JSON.stringify({ ms: Date.now() - started, summary, resolution }, null, 2));

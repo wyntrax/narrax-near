@@ -1,6 +1,6 @@
 # NARRAX — NEAR macro context
 
-Generated: 2026-11-13T13:19:46.781Z
+Generated: 2026-11-14T03:36:11.152Z
 
 This is a keyless public-data snapshot. It is the slow macro clock, not a price prediction and not the token-level conversion evidence in [`THESIS_EVIDENCE.md`](./THESIS_EVIDENCE.md).
 
@@ -10,13 +10,13 @@ This is a keyless public-data snapshot. It is the slow macro clock, not a price 
 
 | Metric | Latest | 30d change | 90d change | 365d change |
 | --- | ---: | ---: | ---: | ---: |
-| NEAR TVL | $165,715,003 | -31.8% | +203.3% | -8.6% |
-| Stablecoin supply | $132,022,971.26 | +2.2% | +4.6% | -19.7% |
-| NEAR price | $3.54 | -29.7% | +115.9% | +44.8% |
-| NEAR market cap | $4.64B | -29.6% | +117.2% | +48.1% |
+| NEAR TVL | $158,696,475 | -29.5% | +194.4% | -9.7% |
+| Stablecoin supply | $133,378,678.61 | +3.5% | +4.6% | -18.9% |
+| NEAR price | $3.37 | -31.0% | +108.1% | +42.8% |
+| NEAR market cap | $4.42B | -30.9% | +109.4% | +46.4% |
 | Nodes online | 371 | — | — | — |
 | Gas price (yoctoNEAR) | 100,000,000 | — | — | — |
-| Latest final block | 224,368,702 | — | — | — |
+| Latest final block | 224,458,391 | — | — | — |
 
 Sources: DefiLlama chain TVL and stablecoin charts, CoinGecko market chart, NearBlocks stats, NEAR mainnet RPC. All public and keyless.
 

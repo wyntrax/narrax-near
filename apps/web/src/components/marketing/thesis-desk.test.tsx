@@ -85,6 +85,30 @@ describe('public thesis desk panel', () => {
           links: [],
         },
       ],
+      smartMoney: {
+        trackedWallets: 107,
+        qualifiedWallets: 2,
+        provisionalWallets: 5,
+        insufficientWallets: 100,
+        observedTrades: 1194,
+        volumeUsd: 249372.81,
+        observedFrom: '2026-11-08T10:00:00.000Z',
+        lastTradeAt: '2026-11-11T09:11:46.000Z',
+        flows: [
+          {
+            mint: 'token.v2.ref-finance.near',
+            symbol: 'REF',
+            name: 'Ref Finance',
+            netFlowUsd: 4250.5,
+            buyVolumeUsd: 6250.5,
+            sellVolumeUsd: 2000,
+            buys: 14,
+            sells: 6,
+            walletCount: 9,
+            lastTradeAt: '2026-11-11T09:11:46.000Z',
+          },
+        ],
+      },
     }), {status: 200, headers: {'content-type': 'application/json'}})));
 
     render(<ThesisDeskPanel copy={thesisDeskCopy.en}/>);
@@ -94,6 +118,9 @@ describe('public thesis desk panel', () => {
     expect(screen.getByText('Meets floors')).toBeVisible();
     expect(screen.getByText('Fresh', {exact: true})).toBeVisible();
     expect(screen.getByText('Stale', {exact: true})).toBeVisible();
+    expect(screen.getByText('Observed smart-money flow (aggregate)')).toBeVisible();
+    expect(screen.getByText('1,194')).toBeVisible();
+    expect(screen.getByText('REF')).toBeVisible();
     const gateLinks = screen.getAllByRole('link', {name: 'Run risk gate →'});
     expect(gateLinks[0]).toHaveAttribute(
       'href',

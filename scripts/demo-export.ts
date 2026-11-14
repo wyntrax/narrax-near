@@ -2,6 +2,10 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { createPrisma } from '@narra/database';
 import { NEAR_REFERENCE_CONTRACTS } from '@narra/market-data';
 import { isBridgedAsset, isImplicitNearAccount } from '@narra/shared';
+import {
+  PUBLIC_SMART_MONEY_SUMMARY_KEY,
+  buildPublicSmartMoneySummary,
+} from '../apps/api/src/publicThesisDesk';
 
 /**
  * Exports a small read-only research snapshot for the public judge demo. It deliberately omits
@@ -50,6 +54,9 @@ async function main() {
     const tokenIds = new Set(tokens.map(token => token.id));
     const narrativeIds = new Set(narrative.map(item => item.id));
 
+    const smartMoneySummary = await buildPublicSmartMoneySummary(db);
+    const exportedAt = new Date().toISOString();
+
     const tables = {
       narrative,
       narrativeMetric,
@@ -60,12 +67,19 @@ async function main() {
       narrativeTokenRelation: withTid(allLinks.filter(row => tokenIds.has(row.tokenId))),
       opportunity: withTid(allOpportunities.filter(row => tokenIds.has(row.tokenId))),
       alert: allAlerts.filter(alert => !alert.refId || (alert.refType === 'TOKEN' ? tokenIds.has(alert.refId) : alert.refType === 'NARRATIVE' ? narrativeIds.has(alert.refId) : true)),
+      systemSetting: [
+        {
+          key: PUBLIC_SMART_MONEY_SUMMARY_KEY,
+          value: smartMoneySummary,
+          updatedAt: exportedAt,
+        },
+      ],
     };
     const payload = {
       source: 'NARRAX curated research snapshot for the public judge demo',
-      exportedAt: new Date().toISOString(),
+      exportedAt,
       network: 'mainnet',
-      note: 'Read-only research rows only. Smart-money rows, transaction hashes, system settings, users, grants, chats and private research are excluded.',
+      note: 'Read-only research rows and anonymized aggregate smart-money summary only. Individual wallet addresses, raw smart-money trade rows, transaction hashes, users, grants, chats and private research are excluded.',
       tables,
     };
     await mkdir('demo', { recursive: true });

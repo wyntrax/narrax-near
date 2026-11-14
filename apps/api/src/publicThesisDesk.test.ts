@@ -74,6 +74,32 @@ describe('public thesis desk', () => {
         ],
       },
       opportunity: { count: async () => 1 },
+      smartWalletProfile: {
+        findMany: async () => [
+          { status: 'QUALIFIED' },
+          { status: 'INSUFFICIENT' },
+        ],
+      },
+      smartWalletTrade: {
+        findMany: async () => [
+          {
+            tokenId: 't-nearly',
+            walletId: 'w-1',
+            side: 'BUY',
+            valueUsd: 1200,
+            at: new Date('2026-11-11T11:45:00Z'),
+            token: { mint: 'nearly-993927.nearlytrade.near', symbol: 'NEARLY', name: 'NEARLY' },
+          },
+          {
+            tokenId: 't-eth',
+            walletId: 'w-2',
+            side: 'SELL',
+            valueUsd: 800,
+            at: new Date('2026-11-11T11:15:00Z'),
+            token: { mint: 'eth.omft.near', symbol: 'ETH', name: 'Bridged ETH' },
+          },
+        ],
+      },
     } as unknown as PrismaClient;
 
     const app = Fastify();
@@ -104,6 +130,26 @@ describe('public thesis desk', () => {
       expect(body.tokens[1]).toMatchObject({ passesFloors: false, freshness: 'STALE', marketFresh: false, holdersFresh: false });
       expect(body.tokens[2].passesFloors).toBe(false);
       expect(body.tokens[2].freshness).toBe('STALE');
+      expect(body.smartMoney).toMatchObject({
+        trackedWallets: 2,
+        qualifiedWallets: 1,
+        provisionalWallets: 0,
+        insufficientWallets: 1,
+        observedTrades: 2,
+        volumeUsd: 2000,
+        flows: [
+          {
+            mint: 'nearly-993927.nearlytrade.near',
+            symbol: 'NEARLY',
+            netFlowUsd: 1200,
+            buyVolumeUsd: 1200,
+            sellVolumeUsd: 0,
+            buys: 1,
+            sells: 0,
+            walletCount: 1,
+          },
+        ],
+      });
     } finally {
       await app.close();
     }

@@ -30,7 +30,7 @@ export function symbolScore(narrativeName: string, symbol: string): number {
   if (sym === joined || (acronym.length >= 2 && sym === acronym) || nw.some((w) => w.length >= 3 && sym === w)) return 1;
   if (leetKey(symbol) === joined || nw.some((w) => w.length >= 4 && leetKey(symbol) === w)) return 0.9;
   for (const letters of [sym.replace(/[0-9]/g, ''), leetKey(symbol).replace(/[0-9]/g, '')]) {
-    if (letters.length >= 4 && nw.some((w) => w.startsWith(letters) || (w.length >= 4 && letters.startsWith(w)))) return 0.85;
+    if (letters.length >= 4 && nw.some((w) => w.startsWith(letters) || (w.length >= 4 && letters.includes(w)))) return 0.85;
   }
   const ratio = 1 - levenshtein(sym, joined) / Math.max(sym.length, joined.length);
   return ratio >= 0.8 ? 0.7 : 0;

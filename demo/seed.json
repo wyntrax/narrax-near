@@ -1,8 +1,8 @@
 {
   "source": "NARRAX curated research snapshot for the public judge demo",
-  "exportedAt": "2026-11-11T08:05:18.644Z",
+  "exportedAt": "2026-11-14T03:34:45.664Z",
   "network": "mainnet",
-  "note": "Read-only research rows only. Smart-money rows, transaction hashes, system settings, users, grants, chats and private research are excluded.",
+  "note": "Read-only research rows and anonymized aggregate smart-money summary only. Individual wallet addresses, raw smart-money trade rows, transaction hashes, users, grants, chats and private research are excluded.",
   "tables": {
     "narrative": [
       {
@@ -10,14 +10,14 @@
         "name": "Near Ecosystem",
         "slug": "near-ecosystem",
         "summary": null,
-        "stage": "ACCELERATING",
-        "score": 76.3,
-        "velocity": 2990.4,
-        "acceleration": -756.2,
-        "organicScore": 82,
-        "saturationRisk": 40,
+        "stage": "DECAYING",
+        "score": 72.4,
+        "velocity": 426.8,
+        "acceleration": -515.1,
+        "organicScore": 81,
+        "saturationRisk": 24,
         "firstDetectedAt": "2026-11-08T19:53:38.917Z",
-        "updatedAt": "2026-11-11T08:05:02.764Z"
+        "updatedAt": "2026-11-11T09:15:04.831Z"
       },
       {
         "id": "cmw891d9800019cdpwo8hy9vt",
@@ -32,6 +32,146 @@
         "saturationRisk": 14,
         "firstDetectedAt": "2026-11-08T19:52:31.165Z",
         "updatedAt": "2026-11-08T19:52:34.905Z"
+      },
+      {
+        "id": "cmwfs8i4s008pfkdpjwltp8wt",
+        "name": "Near Defi",
+        "slug": "near-defi",
+        "summary": null,
+        "stage": "ACCELERATING",
+        "score": 50.5,
+        "velocity": 222.9,
+        "acceleration": 193.8,
+        "organicScore": 88,
+        "saturationRisk": 11,
+        "firstDetectedAt": "2026-11-14T02:24:00.627Z",
+        "updatedAt": "2026-11-14T02:24:30.856Z"
+      },
+      {
+        "id": "cmwfs82vj0000fkdpo3tuga8k",
+        "name": "Near Launches",
+        "slug": "near-launches",
+        "summary": null,
+        "stage": "SEED",
+        "score": 46.3,
+        "velocity": 225,
+        "acceleration": 150,
+        "organicScore": 77,
+        "saturationRisk": 10,
+        "firstDetectedAt": "2026-11-14T02:24:00.627Z",
+        "updatedAt": "2026-11-14T02:24:30.546Z"
+      },
+      {
+        "id": "cmwfs8gdm007ffkdpq7scqiqv",
+        "name": "Near Rwa",
+        "slug": "near-rwa",
+        "summary": null,
+        "stage": "SEED",
+        "score": 37.4,
+        "velocity": 71.3,
+        "acceleration": 43.8,
+        "organicScore": 86,
+        "saturationRisk": 11,
+        "firstDetectedAt": "2026-11-14T02:24:00.627Z",
+        "updatedAt": "2026-11-14T02:24:30.795Z"
+      },
+      {
+        "id": "cmwfs85dw0016fkdp34z5ubza",
+        "name": "Community Takeover",
+        "slug": "community-takeover",
+        "summary": null,
+        "stage": "SEED",
+        "score": 23.2,
+        "velocity": 26.7,
+        "acceleration": 60,
+        "organicScore": 50,
+        "saturationRisk": 16,
+        "firstDetectedAt": "2026-11-14T02:24:00.627Z",
+        "updatedAt": "2026-11-14T02:24:30.589Z"
+      },
+      {
+        "id": "cmwfs87yw002kfkdphow5suej",
+        "name": "Lowcap Gems",
+        "slug": "lowcap-gems",
+        "summary": null,
+        "stage": "SEED",
+        "score": 22.1,
+        "velocity": 6.7,
+        "acceleration": 23.3,
+        "organicScore": 50,
+        "saturationRisk": 20,
+        "firstDetectedAt": "2026-11-14T02:24:00.627Z",
+        "updatedAt": "2026-11-14T02:24:30.627Z"
+      },
+      {
+        "id": "cmwfs8nh500awfkdp3xsidzln",
+        "name": "Builders Shipping",
+        "slug": "builders-shipping",
+        "summary": null,
+        "stage": "SEED",
+        "score": 22,
+        "velocity": 2.5,
+        "acceleration": 40,
+        "organicScore": 50,
+        "saturationRisk": 11,
+        "firstDetectedAt": "2026-11-14T02:24:00.627Z",
+        "updatedAt": "2026-11-14T02:24:30.948Z"
+      },
+      {
+        "id": "cmwfs89nu003zfkdplo1l6w7b",
+        "name": "Viral Memes",
+        "slug": "viral-memes",
+        "summary": null,
+        "stage": "SEED",
+        "score": 22,
+        "velocity": 5.4,
+        "acceleration": 28.3,
+        "organicScore": 50,
+        "saturationRisk": 18,
+        "firstDetectedAt": "2026-11-14T02:24:00.627Z",
+        "updatedAt": "2026-11-14T02:24:30.662Z"
+      },
+      {
+        "id": "cmwfs8kvn009ufkdp2rl9vc9n",
+        "name": "Near Gaming",
+        "slug": "near-gaming",
+        "summary": null,
+        "stage": "SEED",
+        "score": 15,
+        "velocity": -10.4,
+        "acceleration": 0,
+        "organicScore": 50,
+        "saturationRisk": 12,
+        "firstDetectedAt": "2026-11-14T02:24:00.627Z",
+        "updatedAt": "2026-11-14T02:24:30.906Z"
+      },
+      {
+        "id": "cmwfs8en1006afkdpztcghxe5",
+        "name": "Near Depin",
+        "slug": "near-depin",
+        "summary": null,
+        "stage": "SEED",
+        "score": 15,
+        "velocity": -18.7,
+        "acceleration": -25,
+        "organicScore": 50,
+        "saturationRisk": 12,
+        "firstDetectedAt": "2026-11-14T02:24:00.627Z",
+        "updatedAt": "2026-11-14T02:24:30.743Z"
+      },
+      {
+        "id": "cmwfs8bxk0052fkdp300aiabr",
+        "name": "Agent Coins",
+        "slug": "agent-coins",
+        "summary": null,
+        "stage": "SEED",
+        "score": 15,
+        "velocity": -39.6,
+        "acceleration": -41.7,
+        "organicScore": 50,
+        "saturationRisk": 3,
+        "firstDetectedAt": "2026-11-14T02:24:00.627Z",
+        "updatedAt": "2026-11-14T02:24:30.696Z"
       }
     ],
     "narrativeMetric": [
@@ -866,6 +1006,318 @@
         "creatorVelocity": 3453.8,
         "engagementVelocity": 5164.6,
         "at": "2026-11-11T08:05:00.021Z"
+      },
+      {
+        "id": "cmwbu9h5i03qlxwdpewu7ujdz",
+        "narrativeId": "cmw892t3h000uecdp2o74ixxs",
+        "score": 76.3,
+        "velocity": 2680.5,
+        "acceleration": -556.1,
+        "organicScore": 82,
+        "manipulationRisk": 18,
+        "mentionVelocity": 2680.5,
+        "creatorVelocity": 3303.6,
+        "engagementVelocity": 5062.5,
+        "at": "2026-11-11T08:10:00.111Z"
+      },
+      {
+        "id": "cmwbufx190402xwdpxqyo8x2o",
+        "narrativeId": "cmw892t3h000uecdp2o74ixxs",
+        "score": 76.3,
+        "velocity": 2196.8,
+        "acceleration": -593.5,
+        "organicScore": 82,
+        "manipulationRisk": 18,
+        "mentionVelocity": 2196.8,
+        "creatorVelocity": 2693.4,
+        "engagementVelocity": 1956.3,
+        "at": "2026-11-11T08:15:00.036Z"
+      },
+      {
+        "id": "cmwbumbti046rxwdpprom7jcf",
+        "narrativeId": "cmw892t3h000uecdp2o74ixxs",
+        "score": 76.3,
+        "velocity": 1844,
+        "acceleration": -816,
+        "organicScore": 82,
+        "manipulationRisk": 18,
+        "mentionVelocity": 1844,
+        "creatorVelocity": 2375,
+        "engagementVelocity": 1856.3,
+        "at": "2026-11-11T08:20:00.055Z"
+      },
+      {
+        "id": "cmwbusrp704gdxwdpo9kty8nv",
+        "narrativeId": "cmw892t3h000uecdp2o74ixxs",
+        "score": 76.3,
+        "velocity": 1331.9,
+        "acceleration": -806.7,
+        "organicScore": 82,
+        "manipulationRisk": 18,
+        "mentionVelocity": 1331.9,
+        "creatorVelocity": 1801.3,
+        "engagementVelocity": 928.6,
+        "at": "2026-11-11T08:25:00.011Z"
+      },
+      {
+        "id": "cmwbuz87c04n9xwdpvssamx4t",
+        "narrativeId": "cmw892t3h000uecdp2o74ixxs",
+        "score": 76.2,
+        "velocity": 1183.7,
+        "acceleration": -707,
+        "organicScore": 82,
+        "manipulationRisk": 18,
+        "mentionVelocity": 1183.7,
+        "creatorVelocity": 1528.6,
+        "engagementVelocity": 820,
+        "at": "2026-11-11T08:30:00.085Z"
+      },
+      {
+        "id": "cmwbv5ml604wyxwdp5qcdtb65",
+        "narrativeId": "cmw892t3h000uecdp2o74ixxs",
+        "score": 76.2,
+        "velocity": 1161.3,
+        "acceleration": -560.6,
+        "organicScore": 82,
+        "manipulationRisk": 18,
+        "mentionVelocity": 1161.3,
+        "creatorVelocity": 1464,
+        "engagementVelocity": 837.5,
+        "at": "2026-11-11T08:35:00.116Z"
+      },
+      {
+        "id": "cmwbvc1y5053txwdpksns02f0",
+        "narrativeId": "cmw892t3h000uecdp2o74ixxs",
+        "score": 76.2,
+        "velocity": 966.7,
+        "acceleration": -683.3,
+        "organicScore": 82,
+        "manipulationRisk": 18,
+        "mentionVelocity": 966.7,
+        "creatorVelocity": 1186.6,
+        "engagementVelocity": 786.2,
+        "at": "2026-11-11T08:40:00.104Z"
+      },
+      {
+        "id": "cmwbvihir05dmxwdpbeedpe1j",
+        "narrativeId": "cmw892t3h000uecdp2o74ixxs",
+        "score": 75.8,
+        "velocity": 767.1,
+        "acceleration": -743.2,
+        "organicScore": 82,
+        "manipulationRisk": 18,
+        "mentionVelocity": 767.1,
+        "creatorVelocity": 925.2,
+        "engagementVelocity": 527.7,
+        "at": "2026-11-11T08:45:00.019Z"
+      },
+      {
+        "id": "cmwbvoww705kjxwdpmxbt2a80",
+        "narrativeId": "cmw892t3h000uecdp2o74ixxs",
+        "score": 74.6,
+        "velocity": 602.4,
+        "acceleration": -863.4,
+        "organicScore": 82,
+        "manipulationRisk": 18,
+        "mentionVelocity": 602.4,
+        "creatorVelocity": 774.8,
+        "engagementVelocity": 317.4,
+        "at": "2026-11-11T08:50:00.069Z"
+      },
+      {
+        "id": "cmwbvvd8e05ugxwdp34wz5jpd",
+        "narrativeId": "cmw892t3h000uecdp2o74ixxs",
+        "score": 74.8,
+        "velocity": 569.8,
+        "acceleration": -753.5,
+        "organicScore": 82,
+        "manipulationRisk": 18,
+        "mentionVelocity": 569.8,
+        "creatorVelocity": 758.7,
+        "engagementVelocity": 352.2,
+        "at": "2026-11-11T08:55:00.112Z"
+      },
+      {
+        "id": "cmwbw1rvi061kxwdp1hoea5dj",
+        "narrativeId": "cmw892t3h000uecdp2o74ixxs",
+        "score": 74.3,
+        "velocity": 486.7,
+        "acceleration": -760,
+        "organicScore": 82,
+        "manipulationRisk": 18,
+        "mentionVelocity": 486.7,
+        "creatorVelocity": 624.1,
+        "engagementVelocity": 345.7,
+        "at": "2026-11-11T09:00:00.047Z"
+      },
+      {
+        "id": "cmwbw87e406blxwdpcycwkvoy",
+        "narrativeId": "cmw892t3h000uecdp2o74ixxs",
+        "score": 73.9,
+        "velocity": 430.5,
+        "acceleration": -656.8,
+        "organicScore": 82,
+        "manipulationRisk": 18,
+        "mentionVelocity": 430.5,
+        "creatorVelocity": 554.5,
+        "engagementVelocity": 360.3,
+        "at": "2026-11-11T09:05:00.046Z"
+      },
+      {
+        "id": "cmwbwemxt06j0xwdps06pe9bd",
+        "narrativeId": "cmw892t3h000uecdp2o74ixxs",
+        "score": 73.1,
+        "velocity": 353.1,
+        "acceleration": -710.2,
+        "organicScore": 82,
+        "manipulationRisk": 18,
+        "mentionVelocity": 353.1,
+        "creatorVelocity": 495.2,
+        "engagementVelocity": 367.5,
+        "at": "2026-11-11T09:10:00.037Z"
+      },
+      {
+        "id": "cmwbwl3io06tpxwdpuvx93bos",
+        "narrativeId": "cmw892t3h000uecdp2o74ixxs",
+        "score": 72.4,
+        "velocity": 426.8,
+        "acceleration": -515.1,
+        "organicScore": 81,
+        "manipulationRisk": 19,
+        "mentionVelocity": 426.8,
+        "creatorVelocity": 513.5,
+        "engagementVelocity": 238,
+        "at": "2026-11-11T09:15:00.022Z"
+      },
+      {
+        "id": "cmwfs8nkm00c3fkdpkrelcq0u",
+        "narrativeId": "cmwfs82vj0000fkdpo3tuga8k",
+        "score": 46.3,
+        "velocity": 225,
+        "acceleration": 150,
+        "organicScore": 77,
+        "manipulationRisk": 23,
+        "mentionVelocity": 225,
+        "creatorVelocity": 91.7,
+        "engagementVelocity": 387.3,
+        "at": "2026-11-14T02:24:00.627Z"
+      },
+      {
+        "id": "cmwfs8nlq00c7fkdpzs6900sl",
+        "narrativeId": "cmwfs85dw0016fkdp34z5ubza",
+        "score": 23.2,
+        "velocity": 26.7,
+        "acceleration": 60,
+        "organicScore": 50,
+        "manipulationRisk": 50,
+        "mentionVelocity": 26.7,
+        "creatorVelocity": 26.7,
+        "engagementVelocity": -37.9,
+        "at": "2026-11-14T02:24:00.627Z"
+      },
+      {
+        "id": "cmwfs8nmt00cnfkdpuptvf8m1",
+        "narrativeId": "cmwfs87yw002kfkdphow5suej",
+        "score": 22.1,
+        "velocity": 6.7,
+        "acceleration": 23.3,
+        "organicScore": 50,
+        "manipulationRisk": 50,
+        "mentionVelocity": 6.7,
+        "creatorVelocity": 6.7,
+        "engagementVelocity": -14.4,
+        "at": "2026-11-14T02:24:00.627Z"
+      },
+      {
+        "id": "cmwfs8nnr00d2fkdphdiss9ag",
+        "narrativeId": "cmwfs89nu003zfkdplo1l6w7b",
+        "score": 22,
+        "velocity": 5.4,
+        "acceleration": 28.3,
+        "organicScore": 50,
+        "manipulationRisk": 50,
+        "mentionVelocity": 5.4,
+        "creatorVelocity": 5.8,
+        "engagementVelocity": -36.7,
+        "at": "2026-11-14T02:24:00.627Z"
+      },
+      {
+        "id": "cmwfs8noq00ddfkdpcrjnvr0p",
+        "narrativeId": "cmwfs8bxk0052fkdp300aiabr",
+        "score": 15,
+        "velocity": -39.6,
+        "acceleration": -41.7,
+        "organicScore": 50,
+        "manipulationRisk": 50,
+        "mentionVelocity": -39.6,
+        "creatorVelocity": -39.6,
+        "engagementVelocity": -35.4,
+        "at": "2026-11-14T02:24:00.627Z"
+      },
+      {
+        "id": "cmwfs8nq000dxfkdpzf8hgv47",
+        "narrativeId": "cmwfs8en1006afkdpztcghxe5",
+        "score": 15,
+        "velocity": -18.7,
+        "acceleration": -25,
+        "organicScore": 50,
+        "manipulationRisk": 50,
+        "mentionVelocity": -18.7,
+        "creatorVelocity": -18.7,
+        "engagementVelocity": -11.8,
+        "at": "2026-11-14T02:24:00.627Z"
+      },
+      {
+        "id": "cmwfs8nri00effkdpd1w72d4k",
+        "narrativeId": "cmwfs8gdm007ffkdpq7scqiqv",
+        "score": 37.4,
+        "velocity": 71.3,
+        "acceleration": 43.8,
+        "organicScore": 86,
+        "manipulationRisk": 14,
+        "mentionVelocity": 71.3,
+        "creatorVelocity": 71.3,
+        "engagementVelocity": 24.8,
+        "at": "2026-11-14T02:24:00.627Z"
+      },
+      {
+        "id": "cmwfs8nt600f0fkdpph5guu9x",
+        "narrativeId": "cmwfs8i4s008pfkdpjwltp8wt",
+        "score": 50.5,
+        "velocity": 222.9,
+        "acceleration": 193.8,
+        "organicScore": 88,
+        "manipulationRisk": 12,
+        "mentionVelocity": 222.9,
+        "creatorVelocity": 222.9,
+        "engagementVelocity": 187.2,
+        "at": "2026-11-14T02:24:00.627Z"
+      },
+      {
+        "id": "cmwfs8nuj00fjfkdpg5zhyt01",
+        "narrativeId": "cmwfs8kvn009ufkdp2rl9vc9n",
+        "score": 15,
+        "velocity": -10.4,
+        "acceleration": 0,
+        "organicScore": 50,
+        "manipulationRisk": 50,
+        "mentionVelocity": -10.4,
+        "creatorVelocity": -10.4,
+        "engagementVelocity": -24.4,
+        "at": "2026-11-14T02:24:00.627Z"
+      },
+      {
+        "id": "cmwfs8nvq00fzfkdpa8yid3jb",
+        "narrativeId": "cmwfs8nh500awfkdp3xsidzln",
+        "score": 22,
+        "velocity": 2.5,
+        "acceleration": 40,
+        "organicScore": 50,
+        "manipulationRisk": 50,
+        "mentionVelocity": 2.5,
+        "creatorVelocity": 2.5,
+        "engagementVelocity": -34.6,
+        "at": "2026-11-14T02:24:00.627Z"
       }
     ],
     "token": [
@@ -875,6 +1327,42 @@
         "symbol": "ALEXCHAD",
         "name": "Alex Chad",
         "createdOnChainAt": "2026-11-07T22:48:16.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwfrrirv0004todppqe9m4qh",
+        "mint": "ambfj.nearlytrade.near",
+        "symbol": "AMBFJ",
+        "name": "Amber Fjord",
+        "createdOnChainAt": "2026-11-13T12:14:52.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwbwb6om06hnxwdphhg2ib2r",
+        "mint": "bagflip.v2-launchpad.justhoot.near",
+        "symbol": "BAGFLIP",
+        "name": "BAGFLIP",
+        "createdOnChainAt": "2026-11-11T09:03:24.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwfrrisu0009todpiecbp1zx",
+        "mint": "blackdragon.tkn.near",
+        "symbol": "BLACKDRAGON",
+        "name": "Black Dragon",
+        "createdOnChainAt": "2026-11-13T09:14:17.000Z",
         "deployer": null,
         "blacklisted": false,
         "blacklistReason": null,
@@ -894,11 +1382,131 @@
         "blacklistedBy": null
       },
       {
+        "id": "cmwfrritg000ctodpxj5fi9xj",
+        "mint": "dacity.v2-launchpad.justhoot.near",
+        "symbol": "DACITY",
+        "name": "Dacity",
+        "createdOnChainAt": "2026-11-12T22:19:32.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwfrris80006todpq8joiri1",
+        "mint": "donk.v2-launchpad.justhoot.near",
+        "symbol": "DONK",
+        "name": "Donkey Coin",
+        "createdOnChainAt": "2026-11-13T11:20:45.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwfs8oys00gqfkdpc920wvso",
+        "mint": "ftv2.nekotoken.near",
+        "symbol": "NEKO",
+        "name": "NEKO",
+        "createdOnChainAt": "2024-06-06T03:40:46.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwfs8okb00gofkdpo7v9tk3i",
+        "mint": "gear.enleap.near",
+        "symbol": "GEAR",
+        "name": "GEAR",
+        "createdOnChainAt": "2024-06-06T02:37:56.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
         "id": "cmwbozf1j00281kdpfyq6c9j3",
         "mint": "gta.grandtheftapes.near",
         "symbol": "GTA",
         "name": "Grand Theft Apes",
         "createdOnChainAt": "2026-11-10T20:35:14.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwfrrisl0008todp7t91lql1",
+        "mint": "inear.nearonhq.near",
+        "symbol": "iNEAR",
+        "name": "Intelligent NEAR",
+        "createdOnChainAt": "2026-11-13T10:56:57.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwfrriri0002todp781vdylx",
+        "mint": "jen2.nearlytrade.near",
+        "symbol": "JEN2",
+        "name": "JENSEN",
+        "createdOnChainAt": "2026-11-13T12:31:25.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwfrrit0000atodp8jvuovc1",
+        "mint": "jensen-2.v2-launchpad.justhoot.near",
+        "symbol": "JENSEN",
+        "name": "Jensen",
+        "createdOnChainAt": "2026-11-13T08:29:35.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwfs8oy200gpfkdpz6llwdls",
+        "mint": "kat.token0.near",
+        "symbol": "KAT",
+        "name": "NearKat",
+        "createdOnChainAt": "2024-09-06T02:01:41.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwfrrira0001todpum0hrmnb",
+        "mint": "last-2.nearlytrade.near",
+        "symbol": "LAST",
+        "name": "Last",
+        "createdOnChainAt": "2026-11-13T19:06:43.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwfs8ok700gnfkdpwdkvrdoy",
+        "mint": "mpdao-token.near",
+        "symbol": "mpDAO",
+        "name": "metapool.app DAO Governance Token",
+        "createdOnChainAt": "2024-09-24T00:56:10.000Z",
         "deployer": null,
         "blacklisted": false,
         "blacklistReason": null,
@@ -930,11 +1538,107 @@
         "blacklistedBy": null
       },
       {
+        "id": "cmwfrrise0007todpq8i5j4qh",
+        "mint": "thehuangs.v2-launchpad.justhoot.near",
+        "symbol": "THEHUANGS",
+        "name": "Activate The Huangs",
+        "createdOnChainAt": "2026-11-13T10:56:57.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwfs8oaf00glfkdpw2fbl62d",
+        "mint": "token.burrow.near",
+        "symbol": "BRRR",
+        "name": "Burrow Token",
+        "createdOnChainAt": "2024-06-06T04:03:51.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwfs8ozd00grfkdpfqpjv9k8",
+        "mint": "token.paras.near",
+        "symbol": "PARAS",
+        "name": "PARAS",
+        "createdOnChainAt": "2024-06-06T02:57:48.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwfrriro0003todpeqk2zzg1",
+        "mint": "token.rhealab.near",
+        "symbol": "RHEA",
+        "name": "Rhea",
+        "createdOnChainAt": "2026-11-13T12:27:21.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwfs8ok300gmfkdpms9si52h",
+        "mint": "token.sweat",
+        "symbol": "SWEAT",
+        "name": "SWEAT",
+        "createdOnChainAt": "2025-12-16T16:06:36.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwfs8oa600gifkdpce9u9z8c",
+        "mint": "token.v2.ref-finance.near",
+        "symbol": "REF",
+        "name": "Ref Finance Token",
+        "createdOnChainAt": "2024-06-06T02:36:19.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
         "id": "cmw7mj1kh0004lgdp5oc0uwwq",
         "mint": "und.v2-launchpad.justhoot.near",
         "symbol": "UND",
         "name": "사용자들에게는 탈중앙화가 필요합니다",
         "createdOnChainAt": "2026-11-07T19:59:19.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwfrris10005todpblf4xil4",
+        "mint": "vpine.nearlytrade.near",
+        "symbol": "VPINE",
+        "name": "Velvet Pine",
+        "createdOnChainAt": "2026-11-13T12:07:11.000Z",
+        "deployer": null,
+        "blacklisted": false,
+        "blacklistReason": null,
+        "blacklistedAt": null,
+        "blacklistedBy": null
+      },
+      {
+        "id": "cmwfrrijn0000todpzayyl7s4",
+        "mint": "whatsnow.v2-launchpad.justhoot.near",
+        "symbol": "WHATSNOW",
+        "name": "So, what's now ??",
+        "createdOnChainAt": "2026-11-13T22:56:07.000Z",
         "deployer": null,
         "blacklisted": false,
         "blacklistReason": null,
@@ -953,114 +1657,686 @@
         "tid": "cmw7mj1k80003lgdpdfc3h80h"
       },
       {
-        "id": "cmw8exdtr03hurkdp43b5kpbl",
-        "priceUsd": "0.00000503",
-        "marketCapUsd": "5031",
-        "liquidityUsd": "5039.06",
-        "volume24hUsd": "439.84",
-        "at": "2026-11-08T22:37:22.947Z",
+        "id": "cmwfuqc0700007wdp3ox97jov",
+        "priceUsd": "0.000005015",
+        "marketCapUsd": "5016",
+        "liquidityUsd": "5016.5",
+        "volume24hUsd": "68.37",
+        "at": "2026-11-14T03:34:13.037Z",
         "tid": "cmw7mj1kh0004lgdp5oc0uwwq"
       },
       {
-        "id": "cmwbtzm7r03iwxwdpq3q07ne6",
-        "priceUsd": "0.0006634",
-        "marketCapUsd": "663486",
-        "liquidityUsd": "109287.96",
-        "volume24hUsd": "15547.44",
-        "at": "2026-11-11T08:02:19.808Z",
+        "id": "cmwfuqc0z00027wdpe56b7by4",
+        "priceUsd": "0.0005374000000000001",
+        "marketCapUsd": "537433",
+        "liquidityUsd": "94666.71000000001",
+        "volume24hUsd": "12555.19",
+        "at": "2026-11-14T03:34:13.037Z",
         "tid": "cmw7mj1n9000glgdpnpxxg3ef"
       },
       {
-        "id": "cmwbtzm7z03ixxwdp9b4ua088",
+        "id": "cmwc6bdnv00017odpj1vzhsaq",
         "priceUsd": "0.000005262",
         "marketCapUsd": "5263",
         "liquidityUsd": "5268.02",
         "volume24hUsd": "776.84",
-        "at": "2026-11-11T08:02:19.808Z",
+        "at": "2026-11-11T13:47:25.560Z",
         "tid": "cmwbozf1000271kdp5dj693n8"
       },
       {
-        "id": "cmwbtzm8603iyxwdp5l4itcls",
+        "id": "cmwc6bdoa00027odp841fnzof",
         "priceUsd": "0.0001845",
         "marketCapUsd": "1845503",
         "liquidityUsd": "184550.31",
         "volume24hUsd": "420.26",
-        "at": "2026-11-11T08:02:19.808Z",
+        "at": "2026-11-11T13:47:25.560Z",
         "tid": "cmwbozf1j00281kdpfyq6c9j3"
+      },
+      {
+        "id": "cmwfuqc1e00057wdpptyyd1hx",
+        "priceUsd": "0.000005099",
+        "marketCapUsd": "5100",
+        "liquidityUsd": "5099.33",
+        "volume24hUsd": "3.51",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwbwb6om06hnxwdphhg2ib2r"
+      },
+      {
+        "id": "cmwfuqc22000a7wdptqzcktep",
+        "priceUsd": "0.000004986",
+        "marketCapUsd": "4986",
+        "liquidityUsd": "4991.57",
+        "volume24hUsd": "715.2",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrrijn0000todpzayyl7s4"
+      },
+      {
+        "id": "cmwfuqc28000c7wdpdhbt9gfb",
+        "priceUsd": "0.000003443",
+        "marketCapUsd": "3443",
+        "liquidityUsd": "3443.68",
+        "volume24hUsd": "37.92",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrrira0001todpum0hrmnb"
+      },
+      {
+        "id": "cmwfuqc2i000e7wdpzzwnmv8g",
+        "priceUsd": "0.000003666",
+        "marketCapUsd": "3666",
+        "liquidityUsd": "3666.12",
+        "volume24hUsd": "87.12",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrriri0002todp781vdylx"
+      },
+      {
+        "id": "cmwfuqc2p000g7wdpvc0fkmcp",
+        "priceUsd": "0.0358",
+        "marketCapUsd": "14810144",
+        "liquidityUsd": "767267.4",
+        "volume24hUsd": "103818.89",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrriro0003todpeqk2zzg1"
+      },
+      {
+        "id": "cmwfuqc31000j7wdpjjoxtwe8",
+        "priceUsd": "0.000003564",
+        "marketCapUsd": "3564",
+        "liquidityUsd": "3564.79",
+        "volume24hUsd": "20",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrrirv0004todppqe9m4qh"
+      },
+      {
+        "id": "cmwfuqc3a000l7wdp98iko9jw",
+        "priceUsd": "0.000003577",
+        "marketCapUsd": "3577",
+        "liquidityUsd": "3577.14",
+        "volume24hUsd": "61.23",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrris10005todpblf4xil4"
+      },
+      {
+        "id": "cmwfuqc3h000n7wdpoy3qy6eo",
+        "priceUsd": "0.000005019",
+        "marketCapUsd": "5020",
+        "liquidityUsd": "5023.49",
+        "volume24hUsd": "19.03",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrris80006todpq8joiri1"
+      },
+      {
+        "id": "cmwfuqc3o000p7wdp2yziu1h0",
+        "priceUsd": "0.000005141",
+        "marketCapUsd": "5142",
+        "liquidityUsd": "5141.94",
+        "volume24hUsd": "6.97",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrrise0007todpq8i5j4qh"
+      },
+      {
+        "id": "cmwfuqc42000r7wdpymh7p90h",
+        "priceUsd": "3.49",
+        "marketCapUsd": "1404",
+        "liquidityUsd": "12574.19",
+        "volume24hUsd": "616.3099999999999",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrrisl0008todp7t91lql1"
+      },
+      {
+        "id": "cmwfuqc4b000t7wdpinmy4ne9",
+        "priceUsd": "5.617e-9",
+        "marketCapUsd": "561782",
+        "liquidityUsd": "36265.1",
+        "volume24hUsd": "3716.36",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrrisu0009todpiecbp1zx"
+      },
+      {
+        "id": "cmwfuqc4k000w7wdpcckdif1w",
+        "priceUsd": "0.000005116",
+        "marketCapUsd": "5117",
+        "liquidityUsd": "5117.55",
+        "volume24hUsd": "112.95",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrrit0000atodp8jvuovc1"
+      },
+      {
+        "id": "cmwftuypj000eg0dpz8iqn7ao",
+        "priceUsd": "0.000005001",
+        "marketCapUsd": "5002",
+        "liquidityUsd": "5001.84",
+        "volume24hUsd": "1",
+        "at": "2026-11-14T03:09:49.288Z",
+        "tid": "cmwfrritg000ctodpxj5fi9xj"
+      },
+      {
+        "id": "cmwfuqc1o00077wdpvo175e4w",
+        "priceUsd": "0.06157",
+        "marketCapUsd": "5910547",
+        "liquidityUsd": "198283.88",
+        "volume24hUsd": "150.93",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8oa600gifkdpce9u9z8c"
+      },
+      {
+        "id": "cmwfuqc4u000y7wdpaqy7glu4",
+        "priceUsd": "0.00005874",
+        "marketCapUsd": "502083",
+        "liquidityUsd": "10654.69",
+        "volume24hUsd": "2261.15",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8ok300gmfkdpms9si52h"
+      },
+      {
+        "id": "cmwfuqc5000107wdpykxm3zan",
+        "priceUsd": "0.007292",
+        "marketCapUsd": "273282",
+        "liquidityUsd": "20878.1",
+        "volume24hUsd": "1202.25",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8ok700gnfkdpwdkvrdoy"
+      },
+      {
+        "id": "cmwfuqc5d00137wdpey6hpm9w",
+        "priceUsd": "0.001423",
+        "marketCapUsd": "849943",
+        "liquidityUsd": "4357.12",
+        "volume24hUsd": "118.2",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8oaf00glfkdpw2fbl62d"
+      },
+      {
+        "id": "cmwfuqc5o00167wdpymg91ef9",
+        "priceUsd": "0.01233",
+        "marketCapUsd": "119634",
+        "liquidityUsd": "25949.32",
+        "volume24hUsd": "95.23999999999999",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8okb00gofkdpo7v9tk3i"
+      },
+      {
+        "id": "cmwfuqc5y00197wdpxcteptmr",
+        "priceUsd": "0.0000813",
+        "marketCapUsd": "81302",
+        "liquidityUsd": "16607.81",
+        "volume24hUsd": "197.85",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8oy200gpfkdpz6llwdls"
+      },
+      {
+        "id": "cmwfuqc67001c7wdp7xapor0o",
+        "priceUsd": "0.000005127",
+        "marketCapUsd": "50857",
+        "liquidityUsd": "10976.87",
+        "volume24hUsd": "243.68",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8oys00gqfkdpc920wvso"
+      },
+      {
+        "id": "cmwfuqc6c001e7wdpsa6u3gpo",
+        "priceUsd": "0.000458",
+        "marketCapUsd": "45800",
+        "liquidityUsd": "7386.7",
+        "volume24hUsd": "4.32",
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8ozd00grfkdpfqpjv9k8"
       }
     ],
     "tokenHolderMetric": [
       {
-        "id": "cmwbta2l702ocxwdpr2ofzo34",
+        "id": "cmwfuqc1400037wdpd6gk45b8",
         "holders": 2680,
-        "top10Pct": 19.11,
-        "at": "2026-11-11T07:42:19.811Z",
+        "top10Pct": 19.12,
+        "at": "2026-11-14T03:34:13.037Z",
         "tid": "cmw7mj1n9000glgdpnpxxg3ef"
+      },
+      {
+        "id": "cmwfuqc2u000h7wdpsb08dipv",
+        "holders": 16285,
+        "top10Pct": 88.96,
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrriro0003todpeqk2zzg1"
+      },
+      {
+        "id": "cmwfuqc4e000u7wdp4s5074ee",
+        "holders": 286268,
+        "top10Pct": 47.29,
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrrisu0009todpiecbp1zx"
+      },
+      {
+        "id": "cmwfuqc5g00147wdpsnfd2jyu",
+        "holders": 99423,
+        "top10Pct": 83.75,
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8oaf00glfkdpw2fbl62d"
+      },
+      {
+        "id": "cmwfuqc5r00177wdpm0f8gui7",
+        "holders": 14814,
+        "top10Pct": 99.64,
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8okb00gofkdpo7v9tk3i"
+      },
+      {
+        "id": "cmwfuqc1s00087wdprl0d7dp3",
+        "holders": 124627,
+        "top10Pct": 95.06,
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8oa600gifkdpce9u9z8c"
+      },
+      {
+        "id": "cmwfuqc5700117wdpkuwalfh4",
+        "holders": 83228,
+        "top10Pct": 49.19,
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8ok700gnfkdpwdkvrdoy"
+      },
+      {
+        "id": "cmwfuqc62001a7wdpxq8jlbrz",
+        "holders": 6377,
+        "top10Pct": 54.79,
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8oy200gpfkdpz6llwdls"
       }
     ],
     "tokenRiskMetric": [
       {
-        "id": "cmw8exgub03hzrkdpqjusq5sz",
-        "riskScore": 25,
-        "flags": [
-          "THIN_LIQUIDITY",
-          "HOLDERS_UNKNOWN",
-          "CONCENTRATION_UNKNOWN"
-        ],
-        "at": "2026-11-08T22:37:22.947Z",
-        "tid": "cmw7mj1k80003lgdpdfc3h80h"
-      },
-      {
-        "id": "cmw8exijc03i0rkdplwb8ex9v",
-        "riskScore": 25,
-        "flags": [
-          "THIN_LIQUIDITY",
-          "HOLDERS_UNKNOWN",
-          "CONCENTRATION_UNKNOWN"
-        ],
-        "at": "2026-11-08T22:37:22.947Z",
-        "tid": "cmw7mj1kh0004lgdp5oc0uwwq"
-      },
-      {
-        "id": "cmwbta2la02odxwdptgdtqpbc",
-        "riskScore": 0,
-        "flags": [],
-        "at": "2026-11-11T07:42:19.811Z",
-        "tid": "cmw7mj1n9000glgdpnpxxg3ef"
-      },
-      {
-        "id": "cmwbtta88039txwdpvfd9qjqz",
-        "riskScore": 25,
+        "id": "cmwfsratj0000o4dp9v94hq2g",
+        "riskScore": 30,
         "flags": [
           "THIN_LIQUIDITY",
           "HOLDERS_UNKNOWN",
           "CONCENTRATION_UNKNOWN",
           "INFO_UNAVAILABLE"
         ],
-        "at": "2026-11-11T07:57:19.817Z",
+        "at": "2026-11-14T02:38:57.407Z",
+        "tid": "cmw7mj1k80003lgdpdfc3h80h"
+      },
+      {
+        "id": "cmwfuqc0r00017wdpf6siom7z",
+        "riskScore": 30,
+        "flags": [
+          "THIN_LIQUIDITY",
+          "HOLDERS_UNKNOWN",
+          "CONCENTRATION_UNKNOWN",
+          "INFO_UNAVAILABLE"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmw7mj1kh0004lgdp5oc0uwwq"
+      },
+      {
+        "id": "cmwfuqc1800047wdp0embkgp9",
+        "riskScore": 0,
+        "flags": [],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmw7mj1n9000glgdpnpxxg3ef"
+      },
+      {
+        "id": "cmwfsrrq00002o4dp48z96f21",
+        "riskScore": 30,
+        "flags": [
+          "THIN_LIQUIDITY",
+          "HOLDERS_UNKNOWN",
+          "CONCENTRATION_UNKNOWN",
+          "INFO_UNAVAILABLE"
+        ],
+        "at": "2026-11-14T02:38:57.407Z",
         "tid": "cmwbozf1000271kdp5dj693n8"
       },
       {
-        "id": "cmwbttbrj039uxwdp8xn22grk",
+        "id": "cmwfsrzno0003o4dpmlhgz79m",
         "riskScore": 5,
         "flags": [
           "HOLDERS_UNKNOWN",
           "CONCENTRATION_UNKNOWN",
           "INFO_UNAVAILABLE"
         ],
-        "at": "2026-11-11T07:57:19.817Z",
+        "at": "2026-11-14T02:38:57.407Z",
         "tid": "cmwbozf1j00281kdpfyq6c9j3"
+      },
+      {
+        "id": "cmwfuqc1j00067wdpuzlicxtu",
+        "riskScore": 30,
+        "flags": [
+          "THIN_LIQUIDITY",
+          "HOLDERS_UNKNOWN",
+          "CONCENTRATION_UNKNOWN",
+          "INFO_UNAVAILABLE"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwbwb6om06hnxwdphhg2ib2r"
+      },
+      {
+        "id": "cmwfuqc25000b7wdpdy0ttupy",
+        "riskScore": 30,
+        "flags": [
+          "THIN_LIQUIDITY",
+          "HOLDERS_UNKNOWN",
+          "CONCENTRATION_UNKNOWN",
+          "INFO_UNAVAILABLE"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrrijn0000todpzayyl7s4"
+      },
+      {
+        "id": "cmwfuqc2e000d7wdp4jzpafol",
+        "riskScore": 30,
+        "flags": [
+          "THIN_LIQUIDITY",
+          "HOLDERS_UNKNOWN",
+          "CONCENTRATION_UNKNOWN",
+          "INFO_UNAVAILABLE"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrrira0001todpum0hrmnb"
+      },
+      {
+        "id": "cmwfuqc2l000f7wdpidlydgp6",
+        "riskScore": 30,
+        "flags": [
+          "THIN_LIQUIDITY",
+          "HOLDERS_UNKNOWN",
+          "CONCENTRATION_UNKNOWN",
+          "INFO_UNAVAILABLE"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrriri0002todp781vdylx"
+      },
+      {
+        "id": "cmwfuqc2x000i7wdpix4agffv",
+        "riskScore": 40,
+        "flags": [
+          "TOP10_OVER_60"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrriro0003todpeqk2zzg1"
+      },
+      {
+        "id": "cmwfuqc35000k7wdplxwmzmsz",
+        "riskScore": 30,
+        "flags": [
+          "THIN_LIQUIDITY",
+          "HOLDERS_UNKNOWN",
+          "CONCENTRATION_UNKNOWN",
+          "INFO_UNAVAILABLE"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrrirv0004todppqe9m4qh"
+      },
+      {
+        "id": "cmwfuqc3d000m7wdpcu48yoqh",
+        "riskScore": 30,
+        "flags": [
+          "THIN_LIQUIDITY",
+          "HOLDERS_UNKNOWN",
+          "CONCENTRATION_UNKNOWN",
+          "INFO_UNAVAILABLE"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrris10005todpblf4xil4"
+      },
+      {
+        "id": "cmwfuqc3k000o7wdptqi8euoq",
+        "riskScore": 30,
+        "flags": [
+          "THIN_LIQUIDITY",
+          "HOLDERS_UNKNOWN",
+          "CONCENTRATION_UNKNOWN",
+          "INFO_UNAVAILABLE"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrris80006todpq8joiri1"
+      },
+      {
+        "id": "cmwfuqc3s000q7wdpab3xjymw",
+        "riskScore": 30,
+        "flags": [
+          "THIN_LIQUIDITY",
+          "HOLDERS_UNKNOWN",
+          "CONCENTRATION_UNKNOWN",
+          "INFO_UNAVAILABLE"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrrise0007todpq8i5j4qh"
+      },
+      {
+        "id": "cmwfuqc46000s7wdpg3yjoztd",
+        "riskScore": 30,
+        "flags": [
+          "THIN_LIQUIDITY",
+          "HOLDERS_UNKNOWN",
+          "CONCENTRATION_UNKNOWN",
+          "INFO_UNAVAILABLE"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrrisl0008todp7t91lql1"
+      },
+      {
+        "id": "cmwfuqc1y00097wdpsv56ftkr",
+        "riskScore": 40,
+        "flags": [
+          "TOP10_OVER_60"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8oa600gifkdpce9u9z8c"
+      },
+      {
+        "id": "cmwfuqc4h000v7wdpuc49dug1",
+        "riskScore": 15,
+        "flags": [
+          "TOP10_OVER_40"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrrisu0009todpiecbp1zx"
+      },
+      {
+        "id": "cmwfuqc4q000x7wdplfb2at9c",
+        "riskScore": 30,
+        "flags": [
+          "THIN_LIQUIDITY",
+          "HOLDERS_UNKNOWN",
+          "CONCENTRATION_UNKNOWN",
+          "INFO_UNAVAILABLE"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfrrit0000atodp8jvuovc1"
+      },
+      {
+        "id": "cmwfsv6az000go4dpq5nwauyh",
+        "riskScore": 30,
+        "flags": [
+          "THIN_LIQUIDITY",
+          "HOLDERS_UNKNOWN",
+          "CONCENTRATION_UNKNOWN",
+          "INFO_UNAVAILABLE"
+        ],
+        "at": "2026-11-14T02:38:57.407Z",
+        "tid": "cmwfrritg000ctodpxj5fi9xj"
+      },
+      {
+        "id": "cmwfuqc4x000z7wdpdf06xkwu",
+        "riskScore": 30,
+        "flags": [
+          "THIN_LIQUIDITY",
+          "HOLDERS_UNKNOWN",
+          "CONCENTRATION_UNKNOWN",
+          "INFO_UNAVAILABLE"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8ok300gmfkdpms9si52h"
+      },
+      {
+        "id": "cmwfuqc5a00127wdplyvyktmv",
+        "riskScore": 15,
+        "flags": [
+          "TOP10_OVER_40"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8ok700gnfkdpwdkvrdoy"
+      },
+      {
+        "id": "cmwfuqc5l00157wdpdjwf8ug2",
+        "riskScore": 65,
+        "flags": [
+          "TOP10_OVER_60",
+          "THIN_LIQUIDITY"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8oaf00glfkdpw2fbl62d"
+      },
+      {
+        "id": "cmwfuqc5u00187wdpkbm6pvnc",
+        "riskScore": 40,
+        "flags": [
+          "TOP10_OVER_60"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8okb00gofkdpo7v9tk3i"
+      },
+      {
+        "id": "cmwfuqc65001b7wdpt3jnjadn",
+        "riskScore": 40,
+        "flags": [
+          "TOP10_OVER_40",
+          "THIN_LIQUIDITY"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8oy200gpfkdpz6llwdls"
+      },
+      {
+        "id": "cmwfuqc69001d7wdpe7geypy9",
+        "riskScore": 30,
+        "flags": [
+          "THIN_LIQUIDITY",
+          "HOLDERS_UNKNOWN",
+          "CONCENTRATION_UNKNOWN",
+          "INFO_UNAVAILABLE"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8oys00gqfkdpc920wvso"
+      },
+      {
+        "id": "cmwfuqc6e001f7wdpgn10ex6v",
+        "riskScore": 30,
+        "flags": [
+          "THIN_LIQUIDITY",
+          "HOLDERS_UNKNOWN",
+          "CONCENTRATION_UNKNOWN",
+          "INFO_UNAVAILABLE"
+        ],
+        "at": "2026-11-14T03:34:13.037Z",
+        "tid": "cmwfs8ozd00grfkdpfqpjv9k8"
       }
     ],
     "narrativeTokenRelation": [
+      {
+        "id": "cmwftw6bn0012g0dpa1fbsq0z",
+        "narrativeId": "cmwfs8gdm007ffkdpq7scqiqv",
+        "relation": "DERIVATIVE",
+        "ogScore": 63,
+        "matchScore": 0.717,
+        "confidence": 0.78,
+        "tid": "cmw8e7nrq02f4rkdpd6kc0t9c"
+      },
+      {
+        "id": "cmwftw6hx001mg0dpkga8czaa",
+        "narrativeId": "cmwfs82vj0000fkdpo3tuga8k",
+        "relation": "DERIVATIVE",
+        "ogScore": 63,
+        "matchScore": 0.717,
+        "confidence": 0.78,
+        "tid": "cmw8e7nrq02f4rkdpd6kc0t9c"
+      },
+      {
+        "id": "cmwftw6i8001og0dpjbzvtkzp",
+        "narrativeId": "cmwfs82vj0000fkdpo3tuga8k",
+        "relation": "DERIVATIVE",
+        "ogScore": 53,
+        "matchScore": 0.717,
+        "confidence": 0.78,
+        "tid": "cmwfrrisl0008todp7t91lql1"
+      },
+      {
+        "id": "cmwftw6by0014g0dpdqaik2v2",
+        "narrativeId": "cmwfs8gdm007ffkdpq7scqiqv",
+        "relation": "DERIVATIVE",
+        "ogScore": 53,
+        "matchScore": 0.717,
+        "confidence": 0.78,
+        "tid": "cmwfrrisl0008todp7t91lql1"
+      },
+      {
+        "id": "cmwfsbswx00193gdpwgwqg29n",
+        "narrativeId": "cmwfs8i4s008pfkdpjwltp8wt",
+        "relation": "OG",
+        "ogScore": 100,
+        "matchScore": 0.595,
+        "confidence": 0.85,
+        "tid": "cmw7mj1n9000glgdpnpxxg3ef"
+      },
+      {
+        "id": "cmwftw6d90017g0dpwi058ofc",
+        "narrativeId": "cmwfs8i4s008pfkdpjwltp8wt",
+        "relation": "DERIVATIVE",
+        "ogScore": 63,
+        "matchScore": 0.717,
+        "confidence": 0.78,
+        "tid": "cmw8e7nrq02f4rkdpd6kc0t9c"
+      },
+      {
+        "id": "cmwftw6dm0019g0dpbnsmkpyb",
+        "narrativeId": "cmwfs8i4s008pfkdpjwltp8wt",
+        "relation": "DERIVATIVE",
+        "ogScore": 53,
+        "matchScore": 0.717,
+        "confidence": 0.78,
+        "tid": "cmwfrrisl0008todp7t91lql1"
+      },
+      {
+        "id": "cmwfsbsxo001b3gdpeub9qw9v",
+        "narrativeId": "cmwfs8kvn009ufkdp2rl9vc9n",
+        "relation": "OG",
+        "ogScore": 100,
+        "matchScore": 0.595,
+        "confidence": 0.85,
+        "tid": "cmw7mj1n9000glgdpnpxxg3ef"
+      },
+      {
+        "id": "cmwftw6es001cg0dpag5fdgub",
+        "narrativeId": "cmwfs8kvn009ufkdp2rl9vc9n",
+        "relation": "DERIVATIVE",
+        "ogScore": 63,
+        "matchScore": 0.717,
+        "confidence": 0.78,
+        "tid": "cmw8e7nrq02f4rkdpd6kc0t9c"
+      },
+      {
+        "id": "cmwftw6f3001eg0dpapicn2wj",
+        "narrativeId": "cmwfs8kvn009ufkdp2rl9vc9n",
+        "relation": "DERIVATIVE",
+        "ogScore": 53,
+        "matchScore": 0.717,
+        "confidence": 0.78,
+        "tid": "cmwfrrisl0008todp7t91lql1"
+      },
       {
         "id": "cmw89dzar006vecdpnr4iryd2",
         "narrativeId": "cmw892t3h000uecdp2o74ixxs",
         "relation": "OG",
         "ogScore": 100,
         "matchScore": 0.595,
-        "confidence": 0.6,
+        "confidence": 0.85,
         "tid": "cmw7mj1n9000glgdpnpxxg3ef"
+      },
+      {
+        "id": "cmwftw6gh001hg0dpucv85mcq",
+        "narrativeId": "cmw892t3h000uecdp2o74ixxs",
+        "relation": "DERIVATIVE",
+        "ogScore": 40,
+        "matchScore": 0.717,
+        "confidence": 0.78,
+        "tid": "cmw8e7nrq02f4rkdpd6kc0t9c"
       },
       {
         "id": "cmw892ref000pecdpbnbyir0j",
@@ -1076,9 +2352,72 @@
         "narrativeId": "cmw891d9800019cdpwo8hy9vt",
         "relation": "DERIVATIVE",
         "ogScore": 40,
-        "matchScore": 0.796,
+        "matchScore": 0.838,
         "confidence": 0.78,
         "tid": "cmw8e7nrq02f4rkdpd6kc0t9c"
+      },
+      {
+        "id": "cmwfsbsu200133gdp0ea5u71x",
+        "narrativeId": "cmw891d9800019cdpwo8hy9vt",
+        "relation": "DERIVATIVE",
+        "ogScore": 11,
+        "matchScore": 0.838,
+        "confidence": 0.78,
+        "tid": "cmwfrrisl0008todp7t91lql1"
+      },
+      {
+        "id": "cmwfsbsvb00153gdp4p6er3x1",
+        "narrativeId": "cmwfs8en1006afkdpztcghxe5",
+        "relation": "OG",
+        "ogScore": 100,
+        "matchScore": 0.595,
+        "confidence": 0.85,
+        "tid": "cmw7mj1n9000glgdpnpxxg3ef"
+      },
+      {
+        "id": "cmwftw6a2000xg0dp6eibywrv",
+        "narrativeId": "cmwfs8en1006afkdpztcghxe5",
+        "relation": "DERIVATIVE",
+        "ogScore": 63,
+        "matchScore": 0.717,
+        "confidence": 0.78,
+        "tid": "cmw8e7nrq02f4rkdpd6kc0t9c"
+      },
+      {
+        "id": "cmwftw6ae000zg0dp3x92lqfg",
+        "narrativeId": "cmwfs8en1006afkdpztcghxe5",
+        "relation": "DERIVATIVE",
+        "ogScore": 53,
+        "matchScore": 0.717,
+        "confidence": 0.78,
+        "tid": "cmwfrrisl0008todp7t91lql1"
+      },
+      {
+        "id": "cmwfsbsw500173gdp20pqrot3",
+        "narrativeId": "cmwfs8gdm007ffkdpq7scqiqv",
+        "relation": "OG",
+        "ogScore": 100,
+        "matchScore": 0.595,
+        "confidence": 0.85,
+        "tid": "cmw7mj1n9000glgdpnpxxg3ef"
+      },
+      {
+        "id": "cmwftw6gp001jg0dpznk8f8ho",
+        "narrativeId": "cmw892t3h000uecdp2o74ixxs",
+        "relation": "DERIVATIVE",
+        "ogScore": 11,
+        "matchScore": 0.717,
+        "confidence": 0.78,
+        "tid": "cmwfrrisl0008todp7t91lql1"
+      },
+      {
+        "id": "cmwfsbsze001e3gdpnoa74rfs",
+        "narrativeId": "cmwfs82vj0000fkdpo3tuga8k",
+        "relation": "OG",
+        "ogScore": 100,
+        "matchScore": 0.595,
+        "confidence": 0.85,
+        "tid": "cmw7mj1n9000glgdpnpxxg3ef"
       }
     ],
     "opportunity": [
@@ -1206,6 +2545,104 @@
         "attentionGrowth": 1000,
         "priceGrowth": 10.08961168270826,
         "createdAt": "2026-11-11T08:03:54.129Z",
+        "tid": "cmw7mj1n9000glgdpnpxxg3ef"
+      },
+      {
+        "id": "cmwbura3t04f9xwdph2wkowsi",
+        "narrativeId": "cmw892t3h000uecdp2o74ixxs",
+        "score": 75.4,
+        "narrativeScore": 76.3,
+        "liquidityScore": 43.7,
+        "momentumScore": 50.7,
+        "ogScore": 100,
+        "riskScore": 17.7,
+        "attentionGrowth": 1844,
+        "priceGrowth": 12.28011948224361,
+        "createdAt": "2026-11-11T08:23:54.042Z",
+        "tid": "cmw7mj1n9000glgdpnpxxg3ef"
+      },
+      {
+        "id": "cmwbvh02905cixwdpbw77iwv0",
+        "narrativeId": "cmw891d9800019cdpwo8hy9vt",
+        "score": 72.2,
+        "narrativeScore": 67.5,
+        "liquidityScore": 43.7,
+        "momentumScore": 52.5,
+        "ogScore": 100,
+        "riskScore": 20.1,
+        "attentionGrowth": 1000,
+        "priceGrowth": -1.096330945768165,
+        "createdAt": "2026-11-11T08:43:54.069Z",
+        "tid": "cmw7mj1n9000glgdpnpxxg3ef"
+      },
+      {
+        "id": "cmwbw6pyt06aixwdpdk155f13",
+        "narrativeId": "cmw892t3h000uecdp2o74ixxs",
+        "score": 74.8,
+        "narrativeScore": 74.3,
+        "liquidityScore": 43.5,
+        "momentumScore": 51.4,
+        "ogScore": 100,
+        "riskScore": 17.7,
+        "attentionGrowth": 486.7,
+        "priceGrowth": -1.944160210495538,
+        "createdAt": "2026-11-11T09:03:54.053Z",
+        "tid": "cmw7mj1n9000glgdpnpxxg3ef"
+      },
+      {
+        "id": "cmwfsbsti00103gdp2xc7fymr",
+        "narrativeId": "cmw891d9800019cdpwo8hy9vt",
+        "score": 66.1,
+        "narrativeScore": 67.5,
+        "liquidityScore": 39.8,
+        "momentumScore": 17.9,
+        "ogScore": 100,
+        "riskScore": 21,
+        "attentionGrowth": 1000,
+        "priceGrowth": -25.6548111386821,
+        "createdAt": "2026-11-14T02:26:57.141Z",
+        "tid": "cmw7mj1n9000glgdpnpxxg3ef"
+      },
+      {
+        "id": "cmwfsyvzt00teo4dp4xosmf81",
+        "narrativeId": "cmwfs8en1006afkdpztcghxe5",
+        "score": 42.2,
+        "narrativeScore": 15,
+        "liquidityScore": 39.8,
+        "momentumScore": 17.9,
+        "ogScore": 100,
+        "riskScore": 25,
+        "attentionGrowth": -18.7,
+        "priceGrowth": -25.6548111386821,
+        "createdAt": "2026-11-14T02:44:54.201Z",
+        "tid": "cmw7mj1n9000glgdpnpxxg3ef"
+      },
+      {
+        "id": "cmwftw67p000tg0dpaf9qb0yo",
+        "narrativeId": "cmw891d9800019cdpwo8hy9vt",
+        "score": 66.1,
+        "narrativeScore": 67.5,
+        "liquidityScore": 39.7,
+        "momentumScore": 17.6,
+        "ogScore": 100,
+        "riskScore": 21.1,
+        "attentionGrowth": 1000,
+        "priceGrowth": -25.91673559415494,
+        "createdAt": "2026-11-14T03:10:47.175Z",
+        "tid": "cmw7mj1n9000glgdpnpxxg3ef"
+      },
+      {
+        "id": "cmwfuqc92001h7wdp4wws2pbv",
+        "narrativeId": "cmw891d9800019cdpwo8hy9vt",
+        "score": 70.8,
+        "narrativeScore": 67.5,
+        "liquidityScore": 39.7,
+        "momentumScore": 49.6,
+        "ogScore": 100,
+        "riskScore": 21.1,
+        "attentionGrowth": 1000,
+        "priceGrowth": -25.91673559415494,
+        "createdAt": "2026-11-14T03:34:13.037Z",
         "tid": "cmw7mj1n9000glgdpnpxxg3ef"
       }
     ],
@@ -1341,6 +2778,420 @@
         "refId": "cmw892t3h000uecdp2o74ixxs",
         "createdAt": "2026-11-11T05:42:10.292Z",
         "dispatchedAt": "2026-11-11T05:42:14.449Z"
+      },
+      {
+        "id": "cmwbusrsg04m0xwdpsllk2o1h",
+        "userId": null,
+        "kind": "NARRATIVE_DECAY",
+        "priority": "WATCH",
+        "title": "Near Ecosystem is losing momentum",
+        "body": "Score 76.3, velocity 1331.9%, organic 82.",
+        "refType": "NARRATIVE",
+        "refId": "cmw892t3h000uecdp2o74ixxs",
+        "createdAt": "2026-11-11T08:25:00.011Z",
+        "dispatchedAt": "2026-11-11T08:25:04.463Z"
+      },
+      {
+        "id": "cmwfs8ntq00fifkdpnksrqtbu",
+        "userId": null,
+        "kind": "NARRATIVE_ACCELERATING",
+        "priority": "IMPORTANT",
+        "title": "Near Defi is accelerating",
+        "body": "Score 50.5, velocity 222.9%, organic 88.",
+        "refType": "NARRATIVE",
+        "refId": "cmwfs8i4s008pfkdpjwltp8wt",
+        "createdAt": "2026-11-14T02:24:00.627Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwfsbstp00113gdprfz6j440",
+        "userId": null,
+        "kind": "HIGH_ATTENTION_PRICE_DIVERGENCE",
+        "priority": "WATCH",
+        "title": "NEARLY: attention is outpacing price",
+        "body": "Attention is growing much faster than price. This does not guarantee price gains. Attention 1000%, price -26%.",
+        "refType": "TOKEN",
+        "refId": "cmw7mj1n9000glgdpnpxxg3ef",
+        "createdAt": "2026-11-14T02:26:57.141Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwfsbsu600143gdpx9b1g58w",
+        "userId": null,
+        "kind": "NEW_OG_TOKEN_CANDIDATE",
+        "priority": "INFO",
+        "title": "iNEAR: derivative for Near",
+        "body": "OG score 11, confidence 78%. This is an estimate, not proof.",
+        "refType": "TOKEN",
+        "refId": "cmwfrrisl0008todp7t91lql1",
+        "createdAt": "2026-11-14T02:26:57.141Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwfsbsve00163gdpaa236qv5",
+        "userId": null,
+        "kind": "NEW_OG_TOKEN_CANDIDATE",
+        "priority": "INFO",
+        "title": "NEARLY: possible og for Near Depin",
+        "body": "OG score 100, confidence 60%. This is an estimate, not proof.",
+        "refType": "TOKEN",
+        "refId": "cmw7mj1n9000glgdpnpxxg3ef",
+        "createdAt": "2026-11-14T02:26:57.141Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwfsbsw900183gdp8ivqqadr",
+        "userId": null,
+        "kind": "NEW_OG_TOKEN_CANDIDATE",
+        "priority": "INFO",
+        "title": "NEARLY: possible og for Near Rwa",
+        "body": "OG score 100, confidence 60%. This is an estimate, not proof.",
+        "refType": "TOKEN",
+        "refId": "cmw7mj1n9000glgdpnpxxg3ef",
+        "createdAt": "2026-11-14T02:26:57.141Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwfsbsx0001a3gdphtopvmko",
+        "userId": null,
+        "kind": "NEW_OG_TOKEN_CANDIDATE",
+        "priority": "INFO",
+        "title": "NEARLY: possible og for Near Defi",
+        "body": "OG score 100, confidence 60%. This is an estimate, not proof.",
+        "refType": "TOKEN",
+        "refId": "cmw7mj1n9000glgdpnpxxg3ef",
+        "createdAt": "2026-11-14T02:26:57.141Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwfsbsxs001c3gdppfz0ssoh",
+        "userId": null,
+        "kind": "NEW_OG_TOKEN_CANDIDATE",
+        "priority": "INFO",
+        "title": "NEARLY: possible og for Near Gaming",
+        "body": "OG score 100, confidence 60%. This is an estimate, not proof.",
+        "refType": "TOKEN",
+        "refId": "cmw7mj1n9000glgdpnpxxg3ef",
+        "createdAt": "2026-11-14T02:26:57.141Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwfsbszh001f3gdps9cvkmgx",
+        "userId": null,
+        "kind": "NEW_OG_TOKEN_CANDIDATE",
+        "priority": "INFO",
+        "title": "NEARLY: possible og for Near Launches",
+        "body": "OG score 100, confidence 60%. This is an estimate, not proof.",
+        "refType": "TOKEN",
+        "refId": "cmw7mj1n9000glgdpnpxxg3ef",
+        "createdAt": "2026-11-14T02:26:57.141Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwftw6a7000yg0dppryeb5py",
+        "userId": null,
+        "kind": "NEW_OG_TOKEN_CANDIDATE",
+        "priority": "INFO",
+        "title": "cNEAR: derivative for Near Depin",
+        "body": "OG score 63, confidence 78%. This is an estimate, not proof.",
+        "refType": "TOKEN",
+        "refId": "cmw8e7nrq02f4rkdpd6kc0t9c",
+        "createdAt": "2026-11-14T03:10:47.175Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwftw6ai0010g0dpi8hmfuf3",
+        "userId": null,
+        "kind": "NEW_OG_TOKEN_CANDIDATE",
+        "priority": "INFO",
+        "title": "iNEAR: derivative for Near Depin",
+        "body": "OG score 53, confidence 78%. This is an estimate, not proof.",
+        "refType": "TOKEN",
+        "refId": "cmwfrrisl0008todp7t91lql1",
+        "createdAt": "2026-11-14T03:10:47.175Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwftw6br0013g0dphnmy6dbp",
+        "userId": null,
+        "kind": "NEW_OG_TOKEN_CANDIDATE",
+        "priority": "INFO",
+        "title": "cNEAR: derivative for Near Rwa",
+        "body": "OG score 63, confidence 78%. This is an estimate, not proof.",
+        "refType": "TOKEN",
+        "refId": "cmw8e7nrq02f4rkdpd6kc0t9c",
+        "createdAt": "2026-11-14T03:10:47.175Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwftw6c30015g0dpl7mgj0m9",
+        "userId": null,
+        "kind": "NEW_OG_TOKEN_CANDIDATE",
+        "priority": "INFO",
+        "title": "iNEAR: derivative for Near Rwa",
+        "body": "OG score 53, confidence 78%. This is an estimate, not proof.",
+        "refType": "TOKEN",
+        "refId": "cmwfrrisl0008todp7t91lql1",
+        "createdAt": "2026-11-14T03:10:47.175Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwftw6de0018g0dp020pq5uk",
+        "userId": null,
+        "kind": "NEW_OG_TOKEN_CANDIDATE",
+        "priority": "INFO",
+        "title": "cNEAR: derivative for Near Defi",
+        "body": "OG score 63, confidence 78%. This is an estimate, not proof.",
+        "refType": "TOKEN",
+        "refId": "cmw8e7nrq02f4rkdpd6kc0t9c",
+        "createdAt": "2026-11-14T03:10:47.175Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwftw6dq001ag0dpljo035xs",
+        "userId": null,
+        "kind": "NEW_OG_TOKEN_CANDIDATE",
+        "priority": "INFO",
+        "title": "iNEAR: derivative for Near Defi",
+        "body": "OG score 53, confidence 78%. This is an estimate, not proof.",
+        "refType": "TOKEN",
+        "refId": "cmwfrrisl0008todp7t91lql1",
+        "createdAt": "2026-11-14T03:10:47.175Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwftw6ex001dg0dpan4yyl1z",
+        "userId": null,
+        "kind": "NEW_OG_TOKEN_CANDIDATE",
+        "priority": "INFO",
+        "title": "cNEAR: derivative for Near Gaming",
+        "body": "OG score 63, confidence 78%. This is an estimate, not proof.",
+        "refType": "TOKEN",
+        "refId": "cmw8e7nrq02f4rkdpd6kc0t9c",
+        "createdAt": "2026-11-14T03:10:47.175Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwftw6f7001fg0dpc2ctp5ox",
+        "userId": null,
+        "kind": "NEW_OG_TOKEN_CANDIDATE",
+        "priority": "INFO",
+        "title": "iNEAR: derivative for Near Gaming",
+        "body": "OG score 53, confidence 78%. This is an estimate, not proof.",
+        "refType": "TOKEN",
+        "refId": "cmwfrrisl0008todp7t91lql1",
+        "createdAt": "2026-11-14T03:10:47.175Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwftw6gk001ig0dpkq3l3oid",
+        "userId": null,
+        "kind": "NEW_OG_TOKEN_CANDIDATE",
+        "priority": "INFO",
+        "title": "cNEAR: derivative for Near Ecosystem",
+        "body": "OG score 40, confidence 78%. This is an estimate, not proof.",
+        "refType": "TOKEN",
+        "refId": "cmw8e7nrq02f4rkdpd6kc0t9c",
+        "createdAt": "2026-11-14T03:10:47.175Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwftw6gs001kg0dporxbp33x",
+        "userId": null,
+        "kind": "NEW_OG_TOKEN_CANDIDATE",
+        "priority": "INFO",
+        "title": "iNEAR: derivative for Near Ecosystem",
+        "body": "OG score 11, confidence 78%. This is an estimate, not proof.",
+        "refType": "TOKEN",
+        "refId": "cmwfrrisl0008todp7t91lql1",
+        "createdAt": "2026-11-14T03:10:47.175Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwftw6i1001ng0dpoov5047p",
+        "userId": null,
+        "kind": "NEW_OG_TOKEN_CANDIDATE",
+        "priority": "INFO",
+        "title": "cNEAR: derivative for Near Launches",
+        "body": "OG score 63, confidence 78%. This is an estimate, not proof.",
+        "refType": "TOKEN",
+        "refId": "cmw8e7nrq02f4rkdpd6kc0t9c",
+        "createdAt": "2026-11-14T03:10:47.175Z",
+        "dispatchedAt": null
+      },
+      {
+        "id": "cmwftw6id001pg0dpywo5grwu",
+        "userId": null,
+        "kind": "NEW_OG_TOKEN_CANDIDATE",
+        "priority": "INFO",
+        "title": "iNEAR: derivative for Near Launches",
+        "body": "OG score 53, confidence 78%. This is an estimate, not proof.",
+        "refType": "TOKEN",
+        "refId": "cmwfrrisl0008todp7t91lql1",
+        "createdAt": "2026-11-14T03:10:47.175Z",
+        "dispatchedAt": null
+      }
+    ],
+    "systemSetting": [
+      {
+        "key": "research.smartMoney.publicSummary",
+        "value": {
+          "trackedWallets": 213,
+          "qualifiedWallets": 0,
+          "provisionalWallets": 0,
+          "insufficientWallets": 213,
+          "observedTrades": 2049,
+          "volumeUsd": 306039.2,
+          "observedFrom": "2026-11-07T21:23:48.000Z",
+          "lastTradeAt": "2026-11-14T02:41:44.000Z",
+          "flows": [
+            {
+              "mint": "token.rhealab.near",
+              "symbol": "RHEA",
+              "name": "Rhea",
+              "netFlowUsd": 8114.87,
+              "buyVolumeUsd": 21517.42,
+              "sellVolumeUsd": 13402.54,
+              "buys": 126,
+              "sells": 174,
+              "walletCount": 36,
+              "lastTradeAt": "2026-11-14T02:41:44.000Z"
+            },
+            {
+              "mint": "nearly-993927.nearlytrade.near",
+              "symbol": "NEARLY",
+              "name": "NEARLY",
+              "netFlowUsd": -764.76,
+              "buyVolumeUsd": 23472.35,
+              "sellVolumeUsd": 24237.11,
+              "buys": 156,
+              "sells": 102,
+              "walletCount": 94,
+              "lastTradeAt": "2026-11-14T02:07:50.000Z"
+            },
+            {
+              "mint": "und.v2-launchpad.justhoot.near",
+              "symbol": "UND",
+              "name": "사용자들에게는 탈중앙화가 필요합니다",
+              "netFlowUsd": -542.41,
+              "buyVolumeUsd": 0,
+              "sellVolumeUsd": 542.41,
+              "buys": 0,
+              "sells": 8,
+              "walletCount": 8,
+              "lastTradeAt": "2026-11-13T12:09:55.000Z"
+            },
+            {
+              "mint": "mpdao-token.near",
+              "symbol": "mpDAO",
+              "name": "metapool.app DAO Governance Token",
+              "netFlowUsd": -426.46,
+              "buyVolumeUsd": 242.77,
+              "sellVolumeUsd": 669.22,
+              "buys": 20,
+              "sells": 32,
+              "walletCount": 11,
+              "lastTradeAt": "2026-11-14T02:38:56.000Z"
+            },
+            {
+              "mint": "alexchad.v2-launchpad.justhoot.near",
+              "symbol": "ALEXCHAD",
+              "name": "Alex Chad",
+              "netFlowUsd": -353.04,
+              "buyVolumeUsd": 3.69,
+              "sellVolumeUsd": 356.73,
+              "buys": 1,
+              "sells": 4,
+              "walletCount": 4,
+              "lastTradeAt": "2026-11-08T17:29:50.000Z"
+            },
+            {
+              "mint": "blackdragon.tkn.near",
+              "symbol": "BLACKDRAGON",
+              "name": "Black Dragon",
+              "netFlowUsd": -286.14,
+              "buyVolumeUsd": 1726.59,
+              "sellVolumeUsd": 2012.73,
+              "buys": 69,
+              "sells": 58,
+              "walletCount": 28,
+              "lastTradeAt": "2026-11-14T02:20:34.000Z"
+            },
+            {
+              "mint": "jensen-2.v2-launchpad.justhoot.near",
+              "symbol": "JENSEN",
+              "name": "Jensen",
+              "netFlowUsd": -112.79,
+              "buyVolumeUsd": 0,
+              "sellVolumeUsd": 112.79,
+              "buys": 0,
+              "sells": 10,
+              "walletCount": 10,
+              "lastTradeAt": "2026-11-13T09:02:43.000Z"
+            },
+            {
+              "mint": "token.sweat",
+              "symbol": "SWEAT",
+              "name": "SWEAT",
+              "netFlowUsd": 106.5,
+              "buyVolumeUsd": 1183.03,
+              "sellVolumeUsd": 1076.53,
+              "buys": 29,
+              "sells": 26,
+              "walletCount": 7,
+              "lastTradeAt": "2026-11-13T23:06:36.000Z"
+            },
+            {
+              "mint": "nulls-2.v2-launchpad.justhoot.near",
+              "symbol": "NULLS",
+              "name": "NULLS",
+              "netFlowUsd": -101.02,
+              "buyVolumeUsd": 337.32,
+              "sellVolumeUsd": 438.34,
+              "buys": 4,
+              "sells": 4,
+              "walletCount": 4,
+              "lastTradeAt": "2026-11-11T01:29:40.000Z"
+            },
+            {
+              "mint": "kat.token0.near",
+              "symbol": "KAT",
+              "name": "NearKat",
+              "netFlowUsd": -98.99,
+              "buyVolumeUsd": 49.41,
+              "sellVolumeUsd": 148.4,
+              "buys": 19,
+              "sells": 16,
+              "walletCount": 3,
+              "lastTradeAt": "2026-11-14T01:52:49.000Z"
+            },
+            {
+              "mint": "token.burrow.near",
+              "symbol": "BRRR",
+              "name": "Burrow Token",
+              "netFlowUsd": -92.18,
+              "buyVolumeUsd": 13.14,
+              "sellVolumeUsd": 105.32,
+              "buys": 5,
+              "sells": 2,
+              "walletCount": 4,
+              "lastTradeAt": "2026-11-13T15:53:52.000Z"
+            },
+            {
+              "mint": "gear.enleap.near",
+              "symbol": "GEAR",
+              "name": "GEAR",
+              "netFlowUsd": 84.46,
+              "buyVolumeUsd": 89.8,
+              "sellVolumeUsd": 5.34,
+              "buys": 27,
+              "sells": 3,
+              "walletCount": 2,
+              "lastTradeAt": "2026-11-14T02:38:17.000Z"
+            }
+          ]
+        },
+        "updatedAt": "2026-11-14T03:34:45.664Z"
       }
     ]
   }

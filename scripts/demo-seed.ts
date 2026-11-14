@@ -54,6 +54,7 @@ async function main() {
             OR: [
               { key: { startsWith: 'research.market.' } },
               { key: 'research.smartMoney.health' },
+              { key: 'research.smartMoney.publicSummary' },
             ],
           },
         });

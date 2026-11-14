@@ -21,9 +21,11 @@ test.describe('public thesis desk and agent risk gate E2E', () => {
       // 2. Keyless public thesis desk -> links to agent risk gate
       await page.goto(`${baseUrl}/thesis`, { waitUntil: 'networkidle' });
       await expect(page.getByRole('heading', { name: 'Public thesis desk' })).toBeVisible();
-      await expect(page.getByText('NEARLY', { exact: true })).toBeVisible();
-      await expect(page.getByText('Meets floors')).toBeVisible();
+      await expect(page.getByText('NEARLY', { exact: true }).first()).toBeVisible();
+      await expect(page.getByText('Meets floors').first()).toBeVisible();
       await expect(page.getByText('Fresh', { exact: true }).first()).toBeVisible();
+      expect(await page.locator('.thesis-narrative-card').count()).toBeGreaterThan(2);
+      await expect(page.getByRole('heading', { name: 'Observed smart-money flow (aggregate)' })).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
 

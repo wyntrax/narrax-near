@@ -20,6 +20,7 @@ export interface ContractSafetyOptions {
   ttlMs?: number;
   /** Failures are cached for less time than facts, so a transient RPC error clears quickly. */
   errorTtlMs?: number;
+  fallbackRpc?: Pick<NearRpc, 'viewAccount' | 'viewAccessKeyList'> & Partial<Pick<NearRpc, 'callFunction'>>;
 }
 
 function rpcErrorText(error: NearRpcError): string {
@@ -78,15 +79,43 @@ export function createContractSafety(
       const cached = cache.get(mint);
       if (cached && now() - cached.at < (cached.value === null ? errorTtlMs : ttlMs)) return cached.value;
 
+      const fallback = opts.fallbackRpc;
+      const viewAccount = async () => {
+        try {
+          return await rpc.viewAccount(mint);
+        } catch (error) {
+          const rpcErr = asNearRpcError(error);
+          if (rpcErr && isMissingAccount(rpcErr)) throw error;
+          if (!fallback) throw error;
+          return fallback.viewAccount(mint);
+        }
+      };
+      const viewKeys = async () => {
+        try {
+          return await rpc.viewAccessKeyList(mint);
+        } catch (error) {
+          if (!fallback) throw error;
+          return fallback.viewAccessKeyList(mint);
+        }
+      };
+      const readFtMeta = async () => {
+        try {
+          return await ftMetadata(rpc as NearRpc, mint);
+        } catch (error) {
+          if (isNonNep141Error(error) || !fallback || typeof fallback.callFunction !== 'function') throw error;
+          return ftMetadata(fallback as NearRpc, mint);
+        }
+      };
+
       let value: ContractSafety | null = null;
       try {
-        const account = await rpc.viewAccount(mint);
+        const account = await viewAccount();
         if (!hasDeployedCode(account)) {
           value = { status: 'NOT_CONTRACT', fullAccessKeys: null, functionCallKeys: null };
         } else {
           const checkKeys = async (): Promise<{ fullAccessKeys: number | null; functionCallKeys: number | null }> => {
             try {
-              const list = await rpc.viewAccessKeyList(mint);
+              const list = await viewKeys();
               let fullAccessKeys = 0, functionCallKeys = 0;
               for (const key of list.keys) {
                 if (key.access_key.permission === 'FullAccess') fullAccessKeys++;
@@ -101,7 +130,7 @@ export function createContractSafety(
           const checkNep141 = async (): Promise<boolean | null | undefined> => {
             if (typeof rpc.callFunction !== 'function') return undefined;
             try {
-              await ftMetadata(rpc as NearRpc, mint);
+              await readFtMeta();
               return true;
             } catch (error) {
               return isNonNep141Error(error) ? false : null;
