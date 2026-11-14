@@ -29,6 +29,25 @@ fetches current public market, holder and risk evidence for the seeded tokens. W
 seed ages out of the freshness window and the gate correctly returns `UNKNOWN`; the refresh never
 shifts timestamps or invents values. It needs network access and may take about a minute.
 
+### Freshness and demo data
+
+- **Prices expire after 15 minutes; holder and risk evidence after 60 minutes.** The thesis desk marks
+  every token Fresh, Stale or Missing, and stale or missing evidence never counts as meeting floors.
+  Run `demo:refresh` immediately before testing, then reload the page.
+- **Narrative metrics are a dated social snapshot.** `demo:refresh` updates market, holder and risk
+  evidence, not social collection, so narrative cards can stay Stale while token prices are fresh.
+  Each card shows its own observation time. A newer social snapshot requires running the narrative
+  collector and re-exporting the seed; do not edit timestamps by hand.
+- **Smart Money is aggregate-only in the demo seed.** The seed intentionally stores an anonymized
+  aggregate of observed DEX wallet activity, not individual wallet addresses or transaction hashes.
+  `/app/smart-money` shows that aggregate with an explicit notice, and `/thesis` shows the same
+  aggregate publicly. The full per-wallet leaderboard requires the live research database.
+- **Use NEARLY for the fresh `PASS` example.** RHEA can return `UNKNOWN` when its holder/risk rows are
+  older than 60 minutes even though its price was just refreshed. That is the fail-closed behavior,
+  not a missing token.
+- **The workspace overview shows the five highest-scoring active narratives.** The active-narrative
+  count covers the whole set; use **Open radar** for the rest.
+
 In a second terminal:
 
 ```bash
@@ -93,7 +112,9 @@ Then:
 1. Sign in with the Privy email/Google account.
 2. Open `/early-access` if self-join is enabled, or use `/app/admin` with the admin account to grant
    early access.
-3. Open `/app/agent` and ask:
+3. Open `/app/smart-money` to see the seeded aggregate flow. The page explains that individual wallet
+   rows are omitted; `/thesis` exposes the same aggregate without an account.
+4. Open `/app/agent` and ask:
    - “What narratives are moving?”
    - “Summarize the evidence for NEARLY.”
    - “Which tools can you use?” — the answer should be read-only research tools.
