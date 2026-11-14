@@ -67,7 +67,7 @@ async function main() {
             liquidityUsd: 25_000,
           })),
       },
-    }, now, { maxTokens: 60, maxInfoCalls: 40 });
+    }, now, { maxTokens: 60, maxInfoCalls: 40, infoPriorityMints: [EXAMPLE_MINT] });
     const resolution = await resolveTokens(db, new Date());
     console.log(JSON.stringify({ ms: Date.now() - started, summary, resolution }, null, 2));
 
