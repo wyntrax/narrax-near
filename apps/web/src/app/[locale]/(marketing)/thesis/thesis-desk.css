@@ -40,4 +40,8 @@
 .thesis-clocks{max-width:860px;margin-top:3rem;padding-top:2rem;border-top:1px solid var(--bd)}
 .thesis-clocks-links{display:flex;flex-wrap:wrap;gap:12px;margin-top:1.25rem}
 @media(max-width:960px){.thesis-funnel-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:560px){.thesis-funnel-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.thesis-smart-money-grid{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:1rem}
+.thesis-net-flow{font-weight:700;font-variant-numeric:tabular-nums}
+.thesis-net-flow[data-direction="in"]{color:#34d399}
+.thesis-net-flow[data-direction="out"]{color:#f87171}
+@media(max-width:560px){.thesis-funnel-grid,.thesis-smart-money-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}

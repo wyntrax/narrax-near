@@ -46,6 +46,31 @@ interface PublicThesisToken {
   links: PublicThesisTokenLink[];
 }
 
+interface PublicThesisSmartMoneyFlow {
+  mint: string;
+  symbol: string;
+  name: string;
+  netFlowUsd: number;
+  buyVolumeUsd: number;
+  sellVolumeUsd: number;
+  buys: number;
+  sells: number;
+  walletCount: number;
+  lastTradeAt: string;
+}
+
+interface PublicThesisSmartMoney {
+  trackedWallets: number;
+  qualifiedWallets: number;
+  provisionalWallets: number;
+  insufficientWallets: number;
+  observedTrades: number;
+  volumeUsd: number;
+  observedFrom: string | null;
+  lastTradeAt: string | null;
+  flows: PublicThesisSmartMoneyFlow[];
+}
+
 interface PublicThesisDeskData {
   at: string;
   funnel: {
@@ -65,11 +90,13 @@ interface PublicThesisDeskData {
   };
   narratives: PublicThesisNarrative[];
   tokens: PublicThesisToken[];
+  smartMoney?: PublicThesisSmartMoney;
 }
 
 const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 2 });
 const money = (value: number | null, fallback: string): string => value == null ? fallback : `$${compact.format(value)}`;
-const num = (value: number | null, fallback: string): string => value == null ? fallback : Math.round(value).toLocaleString();
+const signedMoney = (value: number): string => `${value >= 0 ? '+' : '-'}$${compact.format(Math.abs(value))}`;
+const num = (value: number | null, fallback: string): string => value == null ? fallback : Math.round(value).toLocaleString('en-US');
 const utcDate = (at: string): string => `${new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }).format(new Date(at))} UTC`;
 
 export function ThesisDeskPanel({ copy }: { copy: ThesisDeskCopy }) {
@@ -224,7 +251,7 @@ export function ThesisDeskPanel({ copy }: { copy: ThesisDeskCopy }) {
                         )}
                       </td>
                       <td>{money(token.liquidityUsd, copy.unknown)}</td>
-                      <td>{token.holders == null ? copy.unknown : token.holders.toLocaleString()}</td>
+                      <td>{token.holders == null ? copy.unknown : token.holders.toLocaleString('en-US')}</td>
                       <td>{token.top10Pct == null ? copy.unknown : `${token.top10Pct.toFixed(1)}%`}</td>
                       <td>
                         <span className="thesis-risk-score">{token.riskScore ?? copy.unknown}</span>
@@ -257,6 +284,93 @@ export function ThesisDeskPanel({ copy }: { copy: ThesisDeskCopy }) {
             </table>
             <p className="thesis-evidence-note">{copy.evidenceNote}</p>
           </div>
+        )}
+      </section>
+
+      <section className="thesis-section" aria-labelledby="thesis-smart-money-heading">
+        <div className="thesis-section-head">
+          <div>
+            <h2 id="thesis-smart-money-heading">{copy.smartMoneyTitle}</h2>
+            <p>{copy.smartMoneyIntro}</p>
+          </div>
+        </div>
+
+        {!data.smartMoney || data.smartMoney.observedTrades === 0 ? (
+          <p className="thesis-empty">{copy.smartMoneyEmpty}</p>
+        ) : (
+          <>
+            <dl className="thesis-funnel-grid thesis-smart-money-grid">
+              <div>
+                <dt>{copy.smartMoneyStats.trackedWallets}</dt>
+                <dd>{num(data.smartMoney.trackedWallets, copy.unknown)}</dd>
+              </div>
+              <div>
+                <dt>{copy.smartMoneyStats.qualified}</dt>
+                <dd>
+                  {data.smartMoney.qualifiedWallets} / {data.smartMoney.provisionalWallets} / {data.smartMoney.insufficientWallets}
+                </dd>
+              </div>
+              <div>
+                <dt>{copy.smartMoneyStats.observedTrades}</dt>
+                <dd>{num(data.smartMoney.observedTrades, copy.unknown)}</dd>
+              </div>
+              <div>
+                <dt>{copy.smartMoneyStats.volumeUsd}</dt>
+                <dd>{money(data.smartMoney.volumeUsd, copy.unknown)}</dd>
+              </div>
+            </dl>
+
+            {data.smartMoney.flows.length > 0 && (
+              <div className="thesis-table-wrap">
+                <table className="thesis-table">
+                  <thead>
+                    <tr>
+                      <th>{copy.smartMoneyCols.token}</th>
+                      <th>{copy.smartMoneyCols.netFlow}</th>
+                      <th>{copy.smartMoneyCols.buyVol}</th>
+                      <th>{copy.smartMoneyCols.sellVol}</th>
+                      <th>{copy.smartMoneyCols.trades}</th>
+                      <th>{copy.smartMoneyCols.wallets}</th>
+                      <th>{copy.smartMoneyCols.lastTrade}</th>
+                      <th>{copy.smartMoneyCols.action}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.smartMoney.flows.map((flow) => (
+                      <tr key={flow.mint}>
+                        <td>
+                          <strong>{flow.symbol}</strong>
+                          <code className="thesis-mint">{flow.mint}</code>
+                        </td>
+                        <td>
+                          <span
+                            className="thesis-net-flow"
+                            data-direction={flow.netFlowUsd > 0 ? 'in' : flow.netFlowUsd < 0 ? 'out' : 'flat'}
+                          >
+                            {signedMoney(flow.netFlowUsd)}
+                          </span>
+                        </td>
+                        <td>{money(flow.buyVolumeUsd, copy.unknown)}</td>
+                        <td>{money(flow.sellVolumeUsd, copy.unknown)}</td>
+                        <td>
+                          {flow.buys} / {flow.sells}
+                        </td>
+                        <td>{flow.walletCount.toLocaleString('en-US')}</td>
+                        <td>
+                          <small className="thesis-freshness-at">{utcDate(flow.lastTradeAt)}</small>
+                        </td>
+                        <td>
+                          <Link className="thesis-gate-link" href={`/agent-risk?mint=${encodeURIComponent(flow.mint)}`}>
+                            {copy.checkGate}
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
         )}
       </section>
 

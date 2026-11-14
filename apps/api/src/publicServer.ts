@@ -17,15 +17,20 @@ async function main() {
   const rpc = new NearRpc({ url: near.rpcUrl, timeoutMs: 15_000 });
   // The risk gate is mainnet-only because all market evidence is mainnet-only. Keep its contract
   // check on mainnet even when NEAR_NETWORK is testnet for the chain-status probe.
+  const riskRpcUrl = process.env.AGENT_RISK_NEAR_RPC_URL || 'https://free.rpc.fastnear.com';
   const riskRpc = new NearRpc({
-    url: process.env.AGENT_RISK_NEAR_RPC_URL || 'https://rpc.mainnet.near.org',
+    url: riskRpcUrl,
+    timeoutMs: 15_000,
+  });
+  const fallbackRiskRpc = new NearRpc({
+    url: riskRpcUrl === 'https://free.rpc.fastnear.com' ? 'https://rpc.mainnet.near.org' : 'https://free.rpc.fastnear.com',
     timeoutMs: 15_000,
   });
 
   const app = await buildApp({
     publicDb: db,
     publicOnly: true,
-    contractSafety: createContractSafety(riskRpc),
+    contractSafety: createContractSafety(riskRpc, { fallbackRpc: fallbackRiskRpc }),
     // Exact origins only. Empty means browsers on other origins are refused.
     http: { corsOrigins: parseCorsOrigins(process.env.CORS_ORIGINS), hsts: process.env.HSTS === 'true' },
     trustProxy: process.env.TRUST_PROXY === 'true',

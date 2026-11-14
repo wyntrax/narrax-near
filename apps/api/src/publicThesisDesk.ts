@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { PrismaClient } from '@narra/database';
-import { isBridgedAsset, sanitizeUntrusted } from '@narra/shared';
+import { NEAR_REFERENCE_CONTRACTS } from '@narra/market-data';
+import { isBridgedAsset, isImplicitNearAccount, sanitizeUntrusted } from '@narra/shared';
 import { MIN_HOLDERS, MIN_LIQUIDITY_USD } from '@narra/token-intel';
 import { AGENT_RISK_POLICY } from './agentRisk';
 
@@ -51,6 +52,33 @@ export interface PublicThesisToken {
   links: PublicThesisTokenLink[];
 }
 
+export const PUBLIC_SMART_MONEY_SUMMARY_KEY = 'research.smartMoney.publicSummary';
+
+export interface PublicThesisSmartMoneyFlow {
+  mint: string;
+  symbol: string;
+  name: string;
+  netFlowUsd: number;
+  buyVolumeUsd: number;
+  sellVolumeUsd: number;
+  buys: number;
+  sells: number;
+  walletCount: number;
+  lastTradeAt: string;
+}
+
+export interface PublicThesisSmartMoney {
+  trackedWallets: number;
+  qualifiedWallets: number;
+  provisionalWallets: number;
+  insufficientWallets: number;
+  observedTrades: number;
+  volumeUsd: number;
+  observedFrom: string | null;
+  lastTradeAt: string | null;
+  flows: PublicThesisSmartMoneyFlow[];
+}
+
 export interface PublicThesisDesk {
   at: string;
   funnel: {
@@ -70,6 +98,7 @@ export interface PublicThesisDesk {
   };
   narratives: PublicThesisNarrative[];
   tokens: PublicThesisToken[];
+  smartMoney: PublicThesisSmartMoney;
 }
 
 const num = (value: unknown): number | null => {
@@ -234,6 +263,8 @@ export async function loadPublicThesisDesk(db: PrismaClient, at: Date): Promise<
     return a.mint.localeCompare(b.mint);
   });
 
+  const smartMoney = await buildPublicSmartMoneySummary(db);
+
   return {
     at: at.toISOString(),
     funnel: {
@@ -253,6 +284,183 @@ export async function loadPublicThesisDesk(db: PrismaClient, at: Date): Promise<
     },
     narratives,
     tokens,
+    smartMoney,
+  };
+}
+
+function roundUsd(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+function parseSavedSmartMoney(raw: unknown): PublicThesisSmartMoney | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const v = raw as Record<string, unknown>;
+  if (typeof v.trackedWallets !== 'number' || typeof v.observedTrades !== 'number' || !Array.isArray(v.flows)) {
+    return null;
+  }
+  return {
+    trackedWallets: v.trackedWallets,
+    qualifiedWallets: typeof v.qualifiedWallets === 'number' ? v.qualifiedWallets : 0,
+    provisionalWallets: typeof v.provisionalWallets === 'number' ? v.provisionalWallets : 0,
+    insufficientWallets: typeof v.insufficientWallets === 'number' ? v.insufficientWallets : 0,
+    observedTrades: v.observedTrades,
+    volumeUsd: typeof v.volumeUsd === 'number' ? roundUsd(v.volumeUsd) : 0,
+    observedFrom: typeof v.observedFrom === 'string' ? v.observedFrom : null,
+    lastTradeAt: typeof v.lastTradeAt === 'string' ? v.lastTradeAt : null,
+    flows: v.flows
+      .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === 'object'))
+      .map((item) => ({
+        mint: String(item.mint ?? ''),
+        symbol: sanitizeUntrusted(String(item.symbol ?? ''), 24),
+        name: sanitizeUntrusted(String(item.name ?? ''), 80),
+        netFlowUsd: roundUsd(Number(item.netFlowUsd) || 0),
+        buyVolumeUsd: roundUsd(Number(item.buyVolumeUsd) || 0),
+        sellVolumeUsd: roundUsd(Number(item.sellVolumeUsd) || 0),
+        buys: Number(item.buys) || 0,
+        sells: Number(item.sells) || 0,
+        walletCount: Number(item.walletCount) || 0,
+        lastTradeAt: String(item.lastTradeAt ?? ''),
+      }))
+      .filter((item) => Boolean(item.mint && item.lastTradeAt)),
+  };
+}
+
+/**
+ * Builds an anonymized aggregate smart-money summary (wallet status counts, total trades/volume,
+ * and per-token net flows) without exposing individual wallet addresses or transaction hashes.
+ */
+export async function buildPublicSmartMoneySummary(db: PrismaClient): Promise<PublicThesisSmartMoney> {
+  const profiles =
+    typeof db.smartWalletProfile?.findMany === 'function'
+      ? await db.smartWalletProfile.findMany({ select: { status: true } })
+      : [];
+  const trades =
+    typeof db.smartWalletTrade?.findMany === 'function'
+      ? await db.smartWalletTrade.findMany({
+          orderBy: { at: 'desc' },
+          take: 5_000,
+          select: {
+            tokenId: true,
+            walletId: true,
+            side: true,
+            valueUsd: true,
+            at: true,
+            token: { select: { mint: true, symbol: true, name: true } },
+          },
+        })
+      : [];
+
+  if (profiles.length === 0 && trades.length === 0) {
+    if (typeof db.systemSetting?.findUnique === 'function') {
+      const saved = await db.systemSetting.findUnique({ where: { key: PUBLIC_SMART_MONEY_SUMMARY_KEY } });
+      const parsed = parseSavedSmartMoney(saved?.value);
+      if (parsed) return parsed;
+    }
+    return {
+      trackedWallets: 0,
+      qualifiedWallets: 0,
+      provisionalWallets: 0,
+      insufficientWallets: 0,
+      observedTrades: 0,
+      volumeUsd: 0,
+      observedFrom: null,
+      lastTradeAt: null,
+      flows: [],
+    };
+  }
+
+  let qualifiedWallets = 0;
+  let provisionalWallets = 0;
+  let insufficientWallets = 0;
+  for (const p of profiles) {
+    if (p.status === 'QUALIFIED') qualifiedWallets++;
+    else if (p.status === 'PROVISIONAL') provisionalWallets++;
+    else insufficientWallets++;
+  }
+
+  let volumeUsd = 0;
+  let earliest: Date | null = null;
+  let latest: Date | null = null;
+  const allWallets = new Set<string>();
+  const flowMap = new Map<
+    string,
+    {
+      mint: string;
+      symbol: string;
+      name: string;
+      buyUsd: number;
+      sellUsd: number;
+      buys: number;
+      sells: number;
+      wallets: Set<string>;
+      lastTradeAt: Date;
+    }
+  >();
+
+  for (const row of trades) {
+    const val = num(row.valueUsd) ?? 0;
+    volumeUsd += val;
+    allWallets.add(row.walletId);
+    if (!earliest || row.at < earliest) earliest = row.at;
+    if (!latest || row.at > latest) latest = row.at;
+
+    const mint = row.token.mint;
+    if (NEAR_REFERENCE_CONTRACTS.has(mint) || isBridgedAsset(mint) || isImplicitNearAccount(mint)) {
+      continue;
+    }
+    const cur = flowMap.get(row.tokenId) ?? {
+      mint,
+      symbol: sanitizeUntrusted(row.token.symbol, 24),
+      name: sanitizeUntrusted(row.token.name, 80),
+      buyUsd: 0,
+      sellUsd: 0,
+      buys: 0,
+      sells: 0,
+      wallets: new Set<string>(),
+      lastTradeAt: row.at,
+    };
+    cur.wallets.add(row.walletId);
+    if (row.at > cur.lastTradeAt) cur.lastTradeAt = row.at;
+    if (row.side === 'BUY') {
+      cur.buys++;
+      cur.buyUsd += val;
+    } else {
+      cur.sells++;
+      cur.sellUsd += val;
+    }
+    flowMap.set(row.tokenId, cur);
+  }
+
+  const flows: PublicThesisSmartMoneyFlow[] = [...flowMap.values()]
+    .map((f) => ({
+      mint: f.mint,
+      symbol: f.symbol,
+      name: f.name,
+      netFlowUsd: roundUsd(f.buyUsd - f.sellUsd),
+      buyVolumeUsd: roundUsd(f.buyUsd),
+      sellVolumeUsd: roundUsd(f.sellUsd),
+      buys: f.buys,
+      sells: f.sells,
+      walletCount: f.wallets.size,
+      lastTradeAt: f.lastTradeAt.toISOString(),
+    }))
+    .sort(
+      (a, b) =>
+        Math.abs(b.netFlowUsd) - Math.abs(a.netFlowUsd) ||
+        b.buyVolumeUsd + b.sellVolumeUsd - (a.buyVolumeUsd + a.sellVolumeUsd),
+    )
+    .slice(0, 12);
+
+  return {
+    trackedWallets: profiles.length || allWallets.size,
+    qualifiedWallets,
+    provisionalWallets,
+    insufficientWallets: profiles.length ? insufficientWallets : allWallets.size,
+    observedTrades: trades.length,
+    volumeUsd: roundUsd(volumeUsd),
+    observedFrom: earliest ? earliest.toISOString() : null,
+    lastTradeAt: latest ? latest.toISOString() : null,
+    flows,
   };
 }
 
