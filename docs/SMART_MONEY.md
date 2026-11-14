@@ -105,17 +105,20 @@ All routes require authentication and `research.smart_money` access.
 
 | Route | Purpose |
 | --- | --- |
-| `GET /v1/smart-money/wallets` | Observed wallet profiles and coverage summary |
+| `GET /v1/smart-money/wallets` | Observed wallet profiles and coverage summary; returns the saved anonymized aggregate when raw tables are empty |
 | `GET /v1/smart-money/flows?window=24h` | Token buy/sell flows in a 1h, 6h or 24h window |
 | `GET /v1/smart-money/wallets/:address` | Profile, token activity and latest observed trades |
 | `GET /v1/smart-money/meta` | Source and calculation notes |
 
 The list route supports `limit`, `q` (address prefix), `status` and `sort` (`pnl`, `score`,
-`recent`). It is capped by the current access tier's page limit.
+`recent`). It is capped by the current access tier's page limit. When the raw wallet tables are empty,
+it returns `source: "AGGREGATE"` and the saved anonymized summary in `aggregate`; it never fabricates
+wallet rows or transaction hashes.
 
 ## UI
 
-- `/app/smart-money`: coverage metrics, observed wallet table and token flows.
+- `/app/smart-money`: coverage metrics, observed wallet table and token flows. With the demo seed it
+  shows the saved aggregate and an explicit notice that individual wallet rows are omitted.
 - `/app/smart-money/[address]`: profile, reasons, token activity and latest trades.
 - Wallet and transaction links use the configured NearBlocks explorer.
 

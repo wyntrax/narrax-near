@@ -78,8 +78,22 @@ export const SmartMoneyWalletSchema=z.object({
   unmatchedSells:z.number().int().nonnegative(),excessSellUnits:z.number().int().nonnegative(),
 });
 export type SmartMoneyWallet=z.infer<typeof SmartMoneyWalletSchema>;
+export const SmartMoneyAggregateFlowSchema=z.object({
+  mint:text,symbol:text,name:text,netFlowUsd:number,buyVolumeUsd:number,sellVolumeUsd:number,
+  buys:z.number().int().nonnegative(),sells:z.number().int().nonnegative(),
+  walletCount:z.number().int().nonnegative(),lastTradeAt:date,
+});
+export type SmartMoneyAggregateFlow=z.infer<typeof SmartMoneyAggregateFlowSchema>;
+export const SmartMoneyAggregateSchema=z.object({
+  trackedWallets:z.number().int().nonnegative(),qualifiedWallets:z.number().int().nonnegative(),
+  provisionalWallets:z.number().int().nonnegative(),insufficientWallets:z.number().int().nonnegative(),
+  observedTrades:z.number().int().nonnegative(),volumeUsd:number,
+  observedFrom:date.nullable(),lastTradeAt:date.nullable(),flows:z.array(SmartMoneyAggregateFlowSchema),
+});
+export type SmartMoneyAggregate=z.infer<typeof SmartMoneyAggregateSchema>;
 export const SmartMoneyWalletsSchema=z.object({
   asOf:date,items:z.array(SmartMoneyWalletSchema),nextCursor:z.string().nullable(),
+  source:z.enum(['OBSERVED','AGGREGATE']).optional(),aggregate:SmartMoneyAggregateSchema.nullable().optional(),
   summary:z.object({trackedWallets:z.number().int().nonnegative(),eligibleWallets:z.number().int().nonnegative(),observedTrades:z.number().int().nonnegative(),volumeUsd:nullable,lastTradeAt:date.nullable()}),
 });
 export const SmartMoneyFlowsSchema=z.object({

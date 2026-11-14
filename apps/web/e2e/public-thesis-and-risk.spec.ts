@@ -25,7 +25,7 @@ test.describe('public thesis desk and agent risk gate E2E', () => {
       await expect(page.getByText('Meets floors').first()).toBeVisible();
       await expect(page.getByText('Fresh', { exact: true }).first()).toBeVisible();
       expect(await page.locator('.thesis-narrative-card').count()).toBeGreaterThan(2);
-      await expect(page.getByRole('heading', { name: 'Observed smart-money flow (aggregate)' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Observed DEX wallet flow (aggregate)' })).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
 

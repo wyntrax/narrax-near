@@ -25,22 +25,35 @@ function SmartMoneyOverview(){
   return <>
     <p className="research-notice">{t('smartMoneyNotice')}</p>
     <details className="research-history"><summary>{t('smartMoneyMethod')}</summary><p>{t('smartMoneyMethodBody')}</p><p>{t('smartMoneyMethodCost')}</p><p>{t('smartMoneyMethodEntities')}</p><p>{t('smartMoneyMethodSource')}</p></details>
-    {wallets.isError?<ResourceError error={wallets.error} retry={()=>void wallets.refetch()}/>:wallets.isPending?<Loading/>:<>
-      <Metrics items={[
-        {label:t('smartMoneyTrackedWallets'),value:f.number(wallets.data.summary.trackedWallets,0)},
-        {label:t('smartMoneyEligibleWallets'),value:f.number(wallets.data.summary.eligibleWallets,0)},
-        {label:t('smartMoneyObservedTrades'),value:f.number(wallets.data.summary.observedTrades,0)},
-        {label:t('smartMoneyVolume'),value:f.usd(wallets.data.summary.volumeUsd)},
-        {label:t('smartMoneyLastTrade'),value:f.date(wallets.data.summary.lastTradeAt)},
-      ]}/>
-      <Section title={t('smartMoneyLeaderboard')}>
-        {!wallets.data.items.length?<Empty body={t('smartMoneyEmpty')}/>:<DataTable rowHref={address=>`/app/smart-money/${encodeURIComponent(address)}`} caption={t('smartMoneyLeaderboard')} headers={[t('smartMoneyWallet'),t('smartMoneyStatus'),t('smartMoneyScore'),t('smartMoneyPnl'),t('smartMoneyWinRate'),t('smartMoneyClosedTrades'),t('smartMoneyVolume'),t('smartMoneyLastTrade')]} rows={wallets.data.items.map(wallet=>walletRow(wallet,t,f))}/>}
-        <p className="research-note">{t('smartMoneyLeaderboardNote')}</p>
-      </Section>
-    </>}
-    <Section title={t('smartMoneyFlows')}>
-      {flows.isError?<ResourceError error={flows.error} retry={()=>void flows.refetch()}/>:flows.isPending?<Loading/>:!flows.data.items.length?<Empty body={t('smartMoneyNoFlows')}/>:<><DataTable caption={t('smartMoneyFlows')} headers={[t('smartMoneyToken'),t('smartMoneyNetFlow'),t('smartMoneyBuyVolume'),t('smartMoneySellVolume'),t('smartMoneyBuysSells'),t('smartMoneyWallets'),t('smartMoneyLastTrade')]} rows={flows.data.items.map(flow=>({key:flow.mint,cells:[<Link key="token" href={`/app/tokens/${encodeURIComponent(flow.mint)}`}>{flow.symbol}<small>{flow.name}</small></Link>,f.usd(flow.netFlowUsd),f.usd(flow.buyVolumeUsd),f.usd(flow.sellVolumeUsd),`${flow.buys} / ${flow.sells}`,f.number(flow.walletCount,0),f.date(flow.lastTradeAt)]}))}/><p className="research-note">{t('smartMoneyFlowNote',{from:f.date(flows.data.coverage.observedSince),to:f.date(flows.data.coverage.to)})}{flows.data.coverage.truncated?` ${t('smartMoneyTruncated')}`:''}</p></>}
-    </Section>
+    {wallets.isError?<ResourceError error={wallets.error} retry={()=>void wallets.refetch()}/>:wallets.isPending?<Loading/>:(()=>{
+      const aggregate=wallets.data.source==='AGGREGATE'?wallets.data.aggregate??null:null;
+      const aggregateFlows=aggregate?.flows??[];
+      return <>
+        {aggregate&&<p className="research-notice">{t('smartMoneyAggregateNotice')} <Link href="/thesis">{t('smartMoneyAggregateThesisLink')}</Link></p>}
+        <Metrics items={aggregate?[
+          {label:t('smartMoneyTrackedWallets'),value:f.number(aggregate.trackedWallets,0)},
+          {label:t('smartMoneyAggregateStatus'),value:`${aggregate.qualifiedWallets} / ${aggregate.provisionalWallets} / ${aggregate.insufficientWallets}`},
+          {label:t('smartMoneyObservedTrades'),value:f.number(aggregate.observedTrades,0)},
+          {label:t('smartMoneyVolume'),value:f.usd(aggregate.volumeUsd)},
+          {label:t('smartMoneyLastTrade'),value:f.date(aggregate.lastTradeAt)},
+        ]:[
+          {label:t('smartMoneyTrackedWallets'),value:f.number(wallets.data.summary.trackedWallets,0)},
+          {label:t('smartMoneyEligibleWallets'),value:f.number(wallets.data.summary.eligibleWallets,0)},
+          {label:t('smartMoneyObservedTrades'),value:f.number(wallets.data.summary.observedTrades,0)},
+          {label:t('smartMoneyVolume'),value:f.usd(wallets.data.summary.volumeUsd)},
+          {label:t('smartMoneyLastTrade'),value:f.date(wallets.data.summary.lastTradeAt)},
+        ]}/>
+        <Section title={t('smartMoneyLeaderboard')}>
+          {aggregate?<p className="research-notice">{t('smartMoneyAggregateLeaderboard')}</p>:!wallets.data.items.length?<Empty body={t('smartMoneyEmpty')}/>:<DataTable rowHref={address=>`/app/smart-money/${encodeURIComponent(address)}`} caption={t('smartMoneyLeaderboard')} headers={[t('smartMoneyWallet'),t('smartMoneyStatus'),t('smartMoneyScore'),t('smartMoneyPnl'),t('smartMoneyWinRate'),t('smartMoneyClosedTrades'),t('smartMoneyVolume'),t('smartMoneyLastTrade')]} rows={wallets.data.items.map(wallet=>walletRow(wallet,t,f))}/>}
+          {!aggregate&&<p className="research-note">{t('smartMoneyLeaderboardNote')}</p>}
+        </Section>
+        <Section title={aggregate?t('smartMoneyAggregateFlows'):t('smartMoneyFlows')}>
+          {aggregate
+            ? !aggregateFlows.length?<Empty body={t('smartMoneyNoFlows')}/>:<><DataTable caption={t('smartMoneyAggregateFlows')} headers={[t('smartMoneyToken'),t('smartMoneyNetFlow'),t('smartMoneyBuyVolume'),t('smartMoneySellVolume'),t('smartMoneyBuysSells'),t('smartMoneyWallets'),t('smartMoneyLastTrade')]} rows={aggregateFlows.map(flow=>({key:flow.mint,cells:[<Link key="token" href={`/app/tokens/${encodeURIComponent(flow.mint)}`}>{flow.symbol}<small>{flow.name}</small></Link>,f.usd(flow.netFlowUsd),f.usd(flow.buyVolumeUsd),f.usd(flow.sellVolumeUsd),`${flow.buys} / ${flow.sells}`,f.number(flow.walletCount,0),f.date(flow.lastTradeAt)]}))}/><p className="research-note">{t('smartMoneyAggregateFlowsNote',{from:f.date(aggregate.observedFrom),to:f.date(aggregate.lastTradeAt)})}</p></>
+            : flows.isError?<ResourceError error={flows.error} retry={()=>void flows.refetch()}/>:flows.isPending?<Loading/>:!flows.data.items.length?<Empty body={t('smartMoneyNoFlows')}/>:<><DataTable caption={t('smartMoneyFlows')} headers={[t('smartMoneyToken'),t('smartMoneyNetFlow'),t('smartMoneyBuyVolume'),t('smartMoneySellVolume'),t('smartMoneyBuysSells'),t('smartMoneyWallets'),t('smartMoneyLastTrade')]} rows={flows.data.items.map(flow=>({key:flow.mint,cells:[<Link key="token" href={`/app/tokens/${encodeURIComponent(flow.mint)}`}>{flow.symbol}<small>{flow.name}</small></Link>,f.usd(flow.netFlowUsd),f.usd(flow.buyVolumeUsd),f.usd(flow.sellVolumeUsd),`${flow.buys} / ${flow.sells}`,f.number(flow.walletCount,0),f.date(flow.lastTradeAt)]}))}/><p className="research-note">{t('smartMoneyFlowNote',{from:f.date(flows.data.coverage.observedSince),to:f.date(flows.data.coverage.to)})}{flows.data.coverage.truncated?` ${t('smartMoneyTruncated')}`:''}</p></>}
+        </Section>
+      </>;
+    })()}
   </>;
 }
 

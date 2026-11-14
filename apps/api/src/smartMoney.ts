@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { PrismaClient } from '@narra/database';
 import { isNearAccountId } from '@narra/shared';
 import { makeAuthenticate, type AccountDeps } from './account';
+import { buildPublicSmartMoneySummary } from './publicThesisDesk';
 import { Limit } from './paging';
 
 const number = (value: unknown): number | null => {
@@ -103,10 +104,18 @@ export function registerSmartMoneyRoutes(app: FastifyInstance, deps: Pick<Accoun
       if (query.data.sort === 'recent') return +b.wallet.lastTradeAt - +a.wallet.lastTradeAt || a.wallet.address.localeCompare(b.wallet.address);
       return Number(b.realizedPnlUsd) - Number(a.realizedPnlUsd) || (b.winRate ?? -1) - (a.winRate ?? -1) || a.wallet.address.localeCompare(b.wallet.address);
     });
+    // The demo snapshot intentionally keeps individual wallet rows and transaction hashes out of the
+    // database. When the raw tables are empty, fall back to the saved anonymized aggregate so the
+    // authenticated page shows the same observed counts as the public thesis desk. Never invents rows.
+    const rawEmpty = trackedWallets === 0 && observedTrades === 0;
+    const aggregate = rawEmpty ? await buildPublicSmartMoneySummary(db) : null;
+    const aggregateSummary = aggregate && aggregate.observedTrades > 0 ? aggregate : null;
     return {
       asOf: at.toISOString(),
       items: sorted.slice(0, query.data.limit).map(walletResponse),
       nextCursor: null,
+      source: aggregateSummary ? 'AGGREGATE' : 'OBSERVED',
+      aggregate: aggregateSummary,
       summary: {
         trackedWallets, eligibleWallets, observedTrades,
         volumeUsd: number(volume._sum.valueUsd),

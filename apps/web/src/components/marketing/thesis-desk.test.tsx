@@ -118,7 +118,8 @@ describe('public thesis desk panel', () => {
     expect(screen.getByText('Meets floors')).toBeVisible();
     expect(screen.getByText('Fresh', {exact: true})).toBeVisible();
     expect(screen.getByText('Stale', {exact: true})).toBeVisible();
-    expect(screen.getByText('Observed smart-money flow (aggregate)')).toBeVisible();
+    expect(screen.getByText(thesisDeskCopy.en.narrativesNote)).toBeVisible();
+    expect(screen.getByText('Observed DEX wallet flow (aggregate)')).toBeVisible();
     expect(screen.getByText('1,194')).toBeVisible();
     expect(screen.getByText('REF')).toBeVisible();
     const gateLinks = screen.getAllByRole('link', {name: 'Run risk gate →'});

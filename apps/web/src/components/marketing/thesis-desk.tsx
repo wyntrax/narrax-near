@@ -169,6 +169,7 @@ export function ThesisDeskPanel({ copy }: { copy: ThesisDeskCopy }) {
 
       <section className="thesis-block" aria-labelledby="thesis-narratives-title">
         <h2 id="thesis-narratives-title">{copy.narrativesTitle}</h2>
+        <p className="thesis-block-note">{copy.narrativesNote}</p>
         {data.narratives.length === 0 ? (
           <p className="thesis-empty">{copy.narrativesEmpty}</p>
         ) : (
@@ -287,8 +288,8 @@ export function ThesisDeskPanel({ copy }: { copy: ThesisDeskCopy }) {
         )}
       </section>
 
-      <section className="thesis-section" aria-labelledby="thesis-smart-money-heading">
-        <div className="thesis-section-head">
+      <section className="thesis-block" aria-labelledby="thesis-smart-money-heading">
+        <div className="thesis-block-head">
           <div>
             <h2 id="thesis-smart-money-heading">{copy.smartMoneyTitle}</h2>
             <p>{copy.smartMoneyIntro}</p>
